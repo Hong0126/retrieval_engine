@@ -1,0 +1,140 @@
+{
+    "title": "Our takeaways and sessions to rewatch from Beam Summit 2022",
+    "author": "Ruwan Lambrichts",
+    "readTime": "5 min read",
+    "publishDate": "Aug 26, 2022",
+    "blocks": [
+        {
+            "type": "P",
+            "content": "Last week, the Apache Beam youtube channel uploaded all the recorded sessions from the Beam Summit that took place in July 2022, which our ML engineer Konstantin attended to give a talk as well. There is a lot of interesting content out there, maybe even too much! So, we’ll try to make your lives easier by sharing our overall thoughts & takeways on the summit and why we’re excited about Beam’s future. In addition, we’ll share some interesting sessions we think are definitely worth checking out in more detail."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "3d8793687b5b5025be2264babd43b9ca.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/0*xfxjjd9JxH1t1Ubf",
+            "caption": null
+        },
+        {
+            "type": "H1",
+            "content": "Main takeaways"
+        },
+        {
+            "type": "P",
+            "content": "Although Beam is part of the open source community, Google is one the driving forces behind Beam as it’s used at multiple places within the company (with the Dataflow Runner). The keynote talk outlined their efforts for Beam are focused on three axes: growing Beam, learning Beam, and contributing to Beam. We’re excited to see Beam growing even more and gaining more adoption."
+        },
+        {
+            "type": "P",
+            "content": "Among all the case-studies, deep-dives and general trends talks featured on the summit, our take-aways can be divided into three main themes:"
+        },
+        {
+            "type": "OL",
+            "items": [
+                "Machine Learning & Beam: MLInference, MLOps pipelines, ML Design Patterns with Beam, lots of ML use cases, …",
+                "Expanding Beam: Beam SQL, Beam DataFrame API, multi-language pipelines, new SDKs, Ray Beam Runner Project, …",
+                "Beam in production: cost-efficiency, performance testing, error handling, dataflow templates, …"
+            ]
+        },
+        {
+            "type": "P",
+            "content": "Of course, this list is not exhaustive and there’s more, but the bulk of the sessions can be placed under one of these themes. In the next section, we’ll go over our selected talks of each category worth checking out in more detail."
+        },
+        {
+            "type": "H1",
+            "content": "Highlighted Sessions"
+        },
+        {
+            "type": "H2",
+            "content": "RunInference: Machine Learning Inference in Beam"
+        },
+        {
+            "type": "FIGURE",
+            "filename": "37fe19d73bf3f441a2c8f319b7292ebf.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*aVcZgNO8929DI02rbl3neQ.png",
+            "caption": "ML Inference in Beam pipelines (source)"
+        },
+        {
+            "type": "P",
+            "content": "Starting from Beam 2.40, Machine Learning has gotten a big upgrade in the Apache Beam landscape. In general, there are 2 ways of doing inference in your pipelines. Either you expose your model as an external service via REST or RPC and call it from your pipeline, or you load your model on your working and do local inference."
+        },
+        {
+            "type": "P",
+            "content": "Before, if you wanted to do the latter, you had to write your own custom DoFn, or use the RunInference utility from the tfx_bxl package (which is only for TensorFlow models). Starting from Beam 2.40, you can now use the built-in RunInference PTransform. What this means, is that there is now a clean and simple unified interface across all internal implementations, which takes care of a lot of boilerplate stuff like dynamic batching, key forwarding, exposing standard metrics, …. Yay!"
+        },
+        {
+            "type": "H2",
+            "content": "Scaling up pandas with the Beam DataFrame API"
+        },
+        {
+            "type": "FIGURE",
+            "filename": "9fd564d64b02382f5caeaefa5e396a77.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:500/0*-bJqUkxc30J14Hmn",
+            "caption": "The previous beam-pandas dilemma (source)"
+        },
+        {
+            "type": "P",
+            "content": "As Machine Learning specialists, the pandas library is one of our go-to tools to inspect, analyze, and transform structured data. The Beam community also recognized the power of pandas as it has an efficient implementation (thanks to its columnar memory layout and C implementation), a declarative and concise API, and it’s a framework almost all (if not all) Python developers know. However, ML also involves large amounts of data, which can sometimes become a problem for pandas, which is in-memory only. As a result, they came up with a way to combine the best of both worlds by making a pandas-compatible API in Beam. (Note: there are also libraries out there that aim to address this problem, such as Dask or Polars)"
+        },
+        {
+            "type": "P",
+            "content": "After a glimpse of the Beam DataFrame API and how to use it, you’ll get a better understanding of how it works behind the scenes such as the idea of the proxy object and the expression metadata. Additionally, you’ll gain a deeper understanding on both Beam and pandas. For example, you might be surprised to learn that all pandas dataframes have an index and that many operations actually implicitly use it!"
+        },
+        {
+            "type": "H2",
+            "content": "Beam in Production: Working with DataFlow Flex templates and Cloud Build"
+        },
+        {
+            "type": "FIGURE",
+            "filename": "4a860ed31c8ad87fd72b8dc66ad85088.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/0*nxm6tJ-m3XUN0Wmu.jpg",
+            "caption": "Sharing a Dataflow pipeline with Flex Templates (source)"
+        },
+        {
+            "type": "P",
+            "content": "Beam is incredibly powerful, but its value is only unlocked when you start using it in production. If you are eager to learn how you can reliably update your pipelines and deploy them across environments, this talk is for you. While it will probably not answer all the questions you might have, it is a good starting point to start digging deeper depending on your exact needs for running CI/CD for Beam pipelines."
+        },
+        {
+            "type": "P",
+            "content": "The first question you might have is how you can test your Beam pipelines. Luckily, Beam provides the TestPipeline class and utility functions to make your life easier. This enables you to test whether the output matches the expected outcome in Beam paradigm. In addition, you’ll also see how you can test streaming pipelines!"
+        },
+        {
+            "type": "P",
+            "content": "The second step is to deploy your pipelines in a reliable manner. Flex Templates are a great way to achieving this as staging and execution are separate steps. This also allows non-technical users to launch pipelines (from Cloud Console for example)."
+        },
+        {
+            "type": "H1",
+            "content": "Bonus talks"
+        },
+        {
+            "type": "H2",
+            "content": "Where is Beam leading Data Processing now?"
+        },
+        {
+            "type": "P",
+            "content": "A great talk by Kenn Knowles takes one step back to look at the bigger picture and the landscape surrounding Beam. This talk offers some great insights in where Beam came from, which paradigm shifts it enabled, and which directions data processing could evolve into in the future. A must-watch to learn more about the data processing concepts surrounding Beam."
+        },
+        {
+            "type": "H2",
+            "content": "Online clustering and semantic enrichment of textual data with Apache Beam"
+        },
+        {
+            "type": "P",
+            "content": "Want to know how we have used Beam in one of our projects? This session is for you! Here, our very own Konstantin shares insights with regards to using Beam efficiently as an orchestrator for Machine Learning services to solve real-world problems, such as real-time semantic enrichment and online clustering of text content. We love this talk, but we might be a bit biased here of course ;)"
+        },
+        {
+            "type": "H1",
+            "content": "Want more?"
+        },
+        {
+            "type": "P",
+            "content": "If you want to have a look for any other recordings that could be interesting to you, you can find the full playlist here."
+        },
+        {
+            "type": "P",
+            "content": "Interested in more Beam content? There is the Ray Summit on which the Ray Beam Runner Project for unified batch, streaming, and ML is presented in more detail. Alternatively, if you’re more interested in stream processing, there’s the Pulsar Summit with a talk on “Beam + Pulsar: Powerful Streaming Processing at Scale”."
+        },
+        {
+            "type": "P",
+            "content": "There’s also GCP Podcast #299 with Kenn Knowles and Pablo Estrada about Beam, featuring one of the use cases we have done in the past at ML6."
+        }
+    ]
+}

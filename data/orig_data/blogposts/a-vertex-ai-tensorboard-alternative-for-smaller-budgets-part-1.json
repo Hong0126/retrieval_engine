@@ -1,0 +1,145 @@
+{
+    "title": "A Vertex AI TensorBoard alternative for smaller budgets (Part 1)",
+    "author": "Maximilian Gartz",
+    "readTime": "5 min read",
+    "publishDate": "Feb 3, 2022",
+    "blocks": [
+        {
+            "type": "FIGURE",
+            "filename": "3ce5324c3c609a8f460bdbbaf6ad5dda.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*_53UZ8GyFfqRZ32CJ59i8w.png",
+            "caption": "TensorBoard.dev example"
+        },
+        {
+            "type": "P",
+            "content": "A few weeks ago I received an email by GCP. It was about their Vertex AI TensorBoard offering going into general availability (GA). And this is what it looked like:"
+        },
+        {
+            "type": "BLOCKQUOTE",
+            "content": "Vertex AI TensorBoard becomes generally available (GA) with a new pricing model, effective February 1, 2022.Dear Maximilian,We’re writing to let you know that effective February 1, 2022, Vertex AI will launch a new General Availability (GA) pricing model for Vertex AI TensorBoard. Previously, usage was not charged.Starting February 1, 2022, the pricing model will be as follows: Vertex AI TensorBoard will charge $300 per user per month.What do I need to know?To understand how the GA Vertex AI TensorBoard price changes will affect your bill, review the updated Vertex AI pricing documentation.No action is required on your part; the GA Vertex AI TensorBoard price changes will take effect automatically."
+        },
+        {
+            "type": "P",
+            "content": "I have to say, I was a little bit shocked by the pricing they introduced and could not really believe it at first. If there is no misunderstanding here, then a team of 5 people, working on a project and actively sharing experiments via TensorBoard in Vertex AI, will now have to pay 300$ per user per month — that is 1500$ per month."
+        },
+        {
+            "type": "P",
+            "content": "Don’t get me wrong, TensorBoard is a great service, but not at this price. At least not for smaller companies."
+        },
+        {
+            "type": "P",
+            "content": "Clearly, one approach is to just start up TensorBoard locally, but then it is hard to share your results with colleagues and clients. I also just came across the free offering TensorBoard.dev. Here you can make use of publicly hosted TensorBoard instances by uploading/streaming your TensorBoard logs using:"
+        },
+        {
+            "type": "CODE",
+            "content": "$ pip install tensorboard# Upload an experiment:$ tensorboard dev upload --logdir logs \\    --name \"(optional) My latest experiment\" \\    --description \"(optional) short description\"***** TensorBoard Uploader *****This TensorBoard will be visible to everyone. Do not upload sensitive data.Continue? (yes/NO)Please visit this URL to authorize this application: https://accounts.google.com/o/oauth2/auth...Uploading to TensorBoard.dev at https://tensorboard.dev/experiment/QFRIzZJpTZCNRzi8N7zomA"
+        },
+        {
+            "type": "P",
+            "content": "This is a very nice solution for easily visualizing your results in a publicly accessible TensorBoard instance, although there are some limitations when it comes to the available storage."
+        },
+        {
+            "type": "P",
+            "content": "I see, however, three problems with this solution:"
+        },
+        {
+            "type": "OL",
+            "items": [
+                "For streaming your results from a GCS bucket, you would need to have this run constantly somewhere.",
+                "The TensorBoard instance is publicly accessible, which may not be a viable solution for most companies.",
+                "Not only is the TensorBoard UI freely accessible, but your data is also uploaded to the servers of TensorBoard.dev"
+            ]
+        },
+        {
+            "type": "P",
+            "content": "My colleague Tim De Smet and I are working on a solution for all of the above problems."
+        },
+        {
+            "type": "P",
+            "content": "In this post I want to describe my initial approach, which I developed before even knowing about TensorBoard.dev. My goal was to have a low cost alternative for a TensorBoard instance, which I can easily start up for my GCP projects."
+        },
+        {
+            "type": "P",
+            "content": "The solution is to create a Docker image, which starts up TensorBoard referencing a GCS bucket, and start up a Cloud Run service based on this image. Then we have an autoscaling TensorBoard instance and we are only paying for the compute used during the time that we are actually using the TensorBoard UI. If we are not using it actively, it will scale to zero, and we don’t incur any costs."
+        },
+        {
+            "type": "P",
+            "content": "Let’s take a look at the Dockerfile:"
+        },
+        {
+            "type": "P",
+            "content": "A few notes on this:"
+        },
+        {
+            "type": "UL",
+            "items": [
+                "We need to start from a tensorflow base image, instead of the tensorboard standalone package, because tensorboard itself does not support reading from GCS directly.",
+                "The “load_fast” option only seems to work for public buckets or when running “gcloud auth application-default login” — authentication via service-account keys may not work. So this will not work for us currently."
+            ]
+        },
+        {
+            "type": "P",
+            "content": "After having build and pushed this image to some container registry (e.g. GCP’s Artifact Registry), we can finally set up a terraform file to define the necessary infrastructure and the Cloud Run service:"
+        },
+        {
+            "type": "P",
+            "content": "This terraform config does a few things:"
+        },
+        {
+            "type": "UL",
+            "items": [
+                "it activates the Cloud Run API",
+                "it sets up a service account with storage.admin permission for the tensorboard service",
+                "it sets up a logs bucket, which we will use to write our TensorBoard logs to",
+                "it defines the Cloud Run service based on the above Docker image",
+                "finally it configures public access to this service"
+            ]
+        },
+        {
+            "type": "P",
+            "content": "You could also setup the service account, permissions and GCS bucket manually in the GCP console. Then deploy the Cloud Run service via"
+        },
+        {
+            "type": "P",
+            "content": "Note that the terraform file configures a few more things for the Cloud Run service. It limits the amount of running containers to 1 and sets resource limits on cpu and memory. The goal here is just to control the costs in a little bit more fine grained manner."
+        },
+        {
+            "type": "P",
+            "content": "It is essential to run your service in the same region as your logs bucket is located in. Otherwise you will incur additional network egress charges."
+        },
+        {
+            "type": "P",
+            "content": "Finally, run your training anywhere, e.g. using Keras:"
+        },
+        {
+            "type": "P",
+            "content": "The TensorBoard callback for Keras allows you to immediately write to a GCS bucket. If you use any other package that does not support writing to a GCS bucket directly, then you can also use gcsfuse to mount this bucket into your working directory. Then you can write to it as if it were local. In this case you will however not have live updates in your TensorBoard UI, because of the way gcsfuse works. So you will only be able to see the results in TensorBoard when training is done and the log writer closes the event file."
+        },
+        {
+            "type": "P",
+            "content": "This is what is looks like in the end:"
+        },
+        {
+            "type": "FIGURE",
+            "filename": "e2907616b14ad7203724335163414dcf.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*xyhpL9a7C3kebJaCiBwJsA.png",
+            "caption": "Visualization of running TensorBoard instance"
+        },
+        {
+            "type": "P",
+            "content": "As it stands now, with the terraform configuration provided above, your TensorBoard instance can still be accessed publicly. It can, however, be secured with Identity-Aware Proxy (IAP). Then all the issues I raised regarding using the TensorBoard.dev offering are resolved."
+        },
+        {
+            "type": "P",
+            "content": "We finally have a secured, self hosted TensorBoard instance. All the data is in your hands and you don’t have to pay 300$ per user per month, but only for the compute costs of hosting your own TensorBoard. But, since we have set it up via Cloud Run, you will only pay for the actual time you are looking at your TensorBoard UI, since it will scale down to zero while it is not used."
+        },
+        {
+            "type": "P",
+            "content": "We are also currently working on a solution using AppEngine, for which the IAP setup is a lot easier. We will give an updated, full solution (including the IAP setup) in the coming weeks."
+        },
+        {
+            "type": "P",
+            "content": "Stay tuned and have fun visualizing your ML experiments — almost for free :)"
+        }
+    ]
+}

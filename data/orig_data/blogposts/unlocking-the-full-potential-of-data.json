@@ -1,0 +1,211 @@
+{
+    "title": "Unlocking the full potential of data",
+    "author": "Caroline Adam",
+    "readTime": "9 min read",
+    "publishDate": "May 17, 2022",
+    "blocks": [
+        {
+            "type": "FIGURE",
+            "filename": "ba07d93d30a57653fbf629d6cc67c37c.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*0OS2ANqa1LjvnPvr93EmFA.png",
+            "caption": null
+        },
+        {
+            "type": "P",
+            "content": "“Data is the fuel for AI” — While the importance of data for building performant ML solutions is undeniable, we see in practice that the main focus is often put on the AI model, i.e. trying out different models or tuning hyperparameters. Some researchers have been calling to move away from this model-centric approach, and to focus on systematically changing data to improve performance of our solutions. In other words, taking a data-centric approach to AI."
+        },
+        {
+            "type": "P",
+            "content": "In practice, we see many organisations and projects still struggling to unlock the full potential of data. In this blogpost, we describe our view on how to maximise the value of data to drive better performance of ML models while minimising the cost of doing so. It goes without saying that a having a training data set that is representative of what the model will later see in the “real world” is of crucial importance. In this blogpost, we will focus particularly on three other important areas — data labelling, data quality and data augmentation."
+        },
+        {
+            "type": "P",
+            "content": "In a second blogpost we will look at the topic of data from a different angle: how can we unblock use cases that lack (usable) data through data anonymisation, synthetic data or external data. More on this later!"
+        },
+        {
+            "type": "H1",
+            "content": "Data Labelling"
+        },
+        {
+            "type": "P",
+            "content": "Labelling, i.e. creating an annotated training dataset for the model to train on, is often a crucial step when starting a Machine Learning project. This step, and especially the quality of the labelling, can have a strong influence on the performance of a model."
+        },
+        {
+            "type": "P",
+            "content": "Let’s look at an example. In one of our projects on text classification, we needed to reach an accuracy of 80% in order for the solution to have practical business value. The first model only reached an accuracy of 65%, and we had two options to improve on this — improving the model, or improving the labels (the data). By trying out more complex and costly models, an accuracy of 68% could be reached — still far off the business goal. The second option turned out much more effective — improving the quality of the labels allowed us to reach 87%. Why? We realized that in the first iteration the labels were inconsistent — two different labellers only agreed in 69% of the cases on the correct label. This of course made it impossible for the model to learn meaningful patterns and make accurate predictions given that even people didn’t agree on what the right labels should be."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "58b5b3444abb9e3ba4c3cc3f165e4bea.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/0*AsG2zoUzM30AffU5",
+            "caption": "Visualisation of example (confusion matrices)"
+        },
+        {
+            "type": "P",
+            "content": "The example above demonstrates the importance of consistent labelling to build high performant ML models. We have collected 3 considerations to take into account to ensure high quality, cost-effective labelling:"
+        },
+        {
+            "type": "H2",
+            "content": "1. Selecting an appropriate labelling tool and/or workforce provider"
+        },
+        {
+            "type": "P",
+            "content": "There are many different labelling tools and providers available on the market — choosing the right one for your labelling efforts is essential to ensure quality and boost the efficiency of your labelling efforts."
+        },
+        {
+            "type": "P",
+            "content": "The selection of your labelling tool or provider depends strongly on the use case(s) and needs. You will need to look at the different modalities and features a tool offers (e.g. for images & video, natural language, etc.) and make sure they are aligned with your current and potentially future needs. Some providers offer not only the tool, but also outsourcing of the actual labelling activity — this can be a very cost-efficient way to label, unless specific domain knowledge is required. Furthermore, you will need to consider the ease of setting up the labelling environment, as well as privacy and security of the tool. Last but not least, different pricing models can be found on the market, from free open-source tools to commercial solutions with e.g. pay-per-user, pay-per-annotation or monthly flat rate pricing."
+        },
+        {
+            "type": "P",
+            "content": "We did a comparison of some open source tools for labelling structured data in the past. The insights can be found here."
+        },
+        {
+            "type": "H2",
+            "content": "2. Ensuring consistency of labelling through clear guidelines"
+        },
+        {
+            "type": "P",
+            "content": "Ensuring quality and consistency is key to building a high performing ML model. Different labellers however often have different labelling conventions, as seen in our example above. What can help here are clear guidelines for your labellers. These guidelines should contain instructions on how to label, as well as “golden examples” and expected difficult or rare cases."
+        },
+        {
+            "type": "P",
+            "content": "Also make sure to include both machine learning and domain experts from the very start of the project and define an approach together. If possible, it is helpful to paint the overall picture of the project to the labellers, as this allows them to make better judgement calls or know which concerns to raise."
+        },
+        {
+            "type": "P",
+            "content": "Finally, reaching a label accuracy/consistency of 100% is typically unattainable, either because the problem is inherently ambiguous and/or depending on the size of the dataset it’s impossible for labellers to avoid making mistakes. Therefore it’s essential to get an understanding of the quality/consistency of the annotations given that these imply an upper limit on the quality of the model. Having a label strategy that requires multiple people to label the same data not only helps to improve the quality/consistency, but also provides insights into the actual quality of the labels."
+        },
+        {
+            "type": "H2",
+            "content": "3. Taking an iterative approach"
+        },
+        {
+            "type": "P",
+            "content": "While high quality is important, efficiency is too. Labelling is often a resource-intensive process. It therefore makes sense to take an iterative approach to labelling. Start off with 5% and review/discuss problems and improvements. This way you can ensure that no labelling efforts are going to waste. The ability to indicate uncertainty when labelling can help to spot assumptions and seek additional insights from domain experts on difficult cases."
+        },
+        {
+            "type": "P",
+            "content": "Let’s look also at the bigger picture — you can have important efficiency gains in later iterations by limiting additional labelling efforts to data that will lead to the biggest improvements in model performance. Embeddings can be used to help visualise the data, cluster similar data together and find cases where your model has the most difficulties with. These visualisations can lead to a better understanding of your model and data and enable you to iteratively improve the model with more targeted labelling efforts."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "eef785ea5b10708fa706a68556626a40.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*jnpvWcLpGW5X-h2JBXQL6Q.png",
+            "caption": "Embeddings (Source: https://labelbox.com/blog/stop-labeling-data-blindly/)"
+        },
+        {
+            "type": "H2",
+            "content": "Find more tips and tricks on Data labelling from our research:"
+        },
+        {
+            "type": "UL",
+            "items": [
+                "Effective Image Labelling for CV",
+                "Quick Tip Timeseries Labelling (comparison of tooling)"
+            ]
+        },
+        {
+            "type": "H1",
+            "content": "Data Quality"
+        },
+        {
+            "type": "P",
+            "content": "The second topic we want to address in the context of improving our models with data is data quality. Consistent and high quality labels are of course part of data quality, but there are also other dimensions to take into account — for example making sure the data being fed into a ML model does not contain errors, missing data or outliers. Data quality has a great impact on model performance and improving it is often a very necessary step in the ML workflow."
+        },
+        {
+            "type": "P",
+            "content": "Let’s look at a short example to demonstrate this. For one of our projects, we needed to extract information from scanned text documents. OCR (optical character recognition) is the first step in this process, however some things usually get mixed up, such as zeros & O’s. Such a mix-up in the OCR process often means that a subsequent model cannot detect the mixed-up inputs as a data point anymore, diminishing the performance of the model. Improving data quality, in this case by doing OCR correction (automatically removing common OCR errors), led to a significant increase in performance of the model."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "d3425fd1334d6963bf628126343f43f3.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*j5k1mInPBWnOigR8mx5LUA.png",
+            "caption": "Example of OCR correction (Source: ML6 Hugging Face Space)"
+        },
+        {
+            "type": "H2",
+            "content": "1. Understanding your data is key"
+        },
+        {
+            "type": "P",
+            "content": "At ML6, we have multiple default steps to improving data quality, depending on the Machine Learning domain a project is in. One thing that all projects have in common though is that a high quality data set starts with a good understanding of the data. Data exploration is key to building up this understanding, and is therefore often a first step when starting an ML project."
+        },
+        {
+            "type": "P",
+            "content": "Visualising the data is always a good starting point, from looking at the distribution and potential anomalies within structured data, to comparing embedding spaces for language or computer vision. Naturally, understanding your data is not a one-off thing to do. After training a model, we need to identify types of data that the algorithm performs poorly on, and iteratively improve upon these difficulties."
+        },
+        {
+            "type": "H2",
+            "content": "2. Automating the process as much as possible to boost efficiency"
+        },
+        {
+            "type": "P",
+            "content": "Improving data quality is often tedious work (some say 80% of time working on an ML project is data cleaning). Therefore, we try to automate it as much as possible — smartly using Machine Learning or other automated techniques, to help us be most efficient in improving data quality."
+        },
+        {
+            "type": "P",
+            "content": "Within our ML pipelines, we want new data to automatically run through some checks and visualisations. Some widely applicable tools that can help with most use cases are BigQueryML with automated anomaly detection that easily help you spot outliers in your data. TFDV for easy visualisations of your dataset and for detecting changes over time, and finally GreatExpectations for integrating validation rules based on business logic. We are also always testing new frameworks and methods to keep improving and automating. A very promising framework/approach we are currently investigating is PClean, a domain-specific probabilistic programming language for Bayesian Data Cleaning."
+        },
+        {
+            "type": "H2",
+            "content": "Find more tips and tricks on Data Quality from our research here:"
+        },
+        {
+            "type": "UL",
+            "items": [
+                "Dutch OCR corrector",
+                "TFDV for schema validation & Training-Serving Skew + Drift Detection"
+            ]
+        },
+        {
+            "type": "H1",
+            "content": "Data Augmentation"
+        },
+        {
+            "type": "P",
+            "content": "As our third topic, let’s look at Data augmentation. Data augmentation is a set of techniques aiming to artificially increase the size of your dataset by creating small variations on existing data points. This has two main benefits: First, we increase the size of our dataset, resulting in more examples for our model to train on. Secondly, the robustness of our model increases and we decrease the risk of overfitting and bias, because the model has to learn to ignore the transformations we have introduced and understand the underlying data instead of memorising it."
+        },
+        {
+            "type": "P",
+            "content": "The latter was for instance a very important part of a vacancy-candidate matching project we did. In that project it was very important to make our models bias free by augmenting the training data to remove as much bias as possible, by eg. gender swapping in CVs and vacancies."
+        },
+        {
+            "type": "H2",
+            "content": "Developing a good data augmentation strategy"
+        },
+        {
+            "type": "P",
+            "content": "When starting an ML project, it is important to take some time to set up and develop a good data augmentation strategy. The approach to data augmentation differs from use case to use case, however, in general we follow three guiding principles:"
+        },
+        {
+            "type": "OL",
+            "items": [
+                "Strong baselines: Machine learning is an iterative process — make changes, train, evaluate and repeat. Consequently, it is important to have a good starting point, so that iterations can be compared to that baseline to quickly figure out what works — this applies also to data augmentation.",
+                "Knowing your model: Some models are developed with specific data preparation in mind — disregarding this might negatively impact model performance. It is therefore important to know your model well.",
+                "Injecting expert knowledge where possible: The type of data augmentation you do might vary depending on the dataset and subtle differences between use cases. Expert knowledge can help to know which augmentations make sense to boost performance, and which ones might not."
+            ]
+        },
+        {
+            "type": "H2",
+            "content": "Find more (technical) tips and tricks on Data augmentation here:"
+        },
+        {
+            "type": "UL",
+            "items": [
+                "How to discover good data augmentation policies for ML:",
+                "Data augmentation using few-shot prompting on large Language Models",
+                "Transformer based data augmentation",
+                "Gender debiasing of documents using simple CDA"
+            ]
+        },
+        {
+            "type": "P",
+            "content": "With these considerations on data labelling, data quality and data augmentation, we hope to provide some pointers on how to start maximising the value of ML models by focusing on the data, while keeping the costs of doing so at bay."
+        },
+        {
+            "type": "P",
+            "content": "Keep posted for the second blog post in this series, where we will focus on data anonymisation, synthetic data and external data!"
+        }
+    ]
+}

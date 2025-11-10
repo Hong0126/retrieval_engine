@@ -1,0 +1,236 @@
+{
+    "title": "3D object detection in the real world",
+    "author": "Jan Van Looy",
+    "readTime": "9 min read",
+    "publishDate": "Feb 9, 2022",
+    "blocks": [
+        {
+            "type": "FIGURE",
+            "filename": "80f18d53c89969b3c35b439577e2b148.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*qAKV9LWxAh9cOTt87y3HsA.jpeg",
+            "caption": "Photo by Arisa Chattasa on Unsplash"
+        },
+        {
+            "type": "P",
+            "content": "Most computer vision applications today work with ‘flat’ two-dimensional images like the ones you find in this medium blogpost, to great success. The world is not flat, however, and adding a third dimension promises to not only increase performance but also make possible entirely new applications. With 3D data becoming more and more widely available that time may very well be now. Some smartphones now feature Lidar sensors (acronym for “light detection and ranging”, sometimes called “laser scanning”) while other cameras use RGB-D cameras (an RGB-D image is the combination of a standard RGB image with its associated “depth map”) like Kinect or Intel RealSense. 3D data allows a rich spatial representation of the sensor’s surroundings and has applications in robotics, smart home devices, driverless cars, medical imaging and many other industries."
+        },
+        {
+            "type": "P",
+            "content": "In this blogpost, Regis Loeb explores Meta (Facebook)’s 3DETR and its predecessor Votenet which present a clever approach to recognizing objects in a 3D point cloud of a scene (see [1], [2] and [3] for the research articles). These methods go beyond existing methods in that they fully account for available depth information without increasing compute cost in a prohibitive manner. The models’ objective is to use point clouds (preprocessed from RGB-D images) and estimate oriented 3D bounding boxes as well as semantic classes of objects."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "61f34faeb7459fef959df56bac0ae96b.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/0*rX6Pc5iQtjkGgYt9",
+            "caption": "Depth map from Kinect sensor"
+        },
+        {
+            "type": "P",
+            "content": "3D data"
+        },
+        {
+            "type": "P",
+            "content": "Several formats are available for 3D data: RGB-D images, polygon meshes, voxels and point clouds. A point cloud is simply an unordered set of coordinate triplets (x, y, z). This format has become very popular as it preserves all the original 3D information and does not use any discretization or 2D projection. Fundamentally, 2D based methods cannot provide accurate 3D position information which is problematic for many critical applications like robotics and autonomous driving."
+        },
+        {
+            "type": "P",
+            "content": "Hence applying machine learning techniques directly to point cloud inputs is very appealing: it avoids geometric information loss that occurs when 2D projections or voxelizations are performed. Thanks to the rich feature representations inherent in 3D data, deep learning on point clouds has attracted a lot of interest over the past few years."
+        },
+        {
+            "type": "P",
+            "content": "There are challenges however. The input’s high dimensionality and unstructured nature as well as the small size of available datasets and their levels of noise poses difficulties. Moreover, point clouds are by nature occluded and sparse: some parts of the 3D objects are simply hidden to the sensor or the signal can be missed or blocked. Furthermore, point clouds are by nature irregular, making 3D convolution very different from the 2D case."
+        },
+        {
+            "type": "P",
+            "content": "To carry out our tests we chose the SUN RGB-D dataset. It includes 10,335 RGB-D images of indoor scenes (bedrooms, furniture stores, offices, classrooms, bathrooms, labs, conference rooms, …). These scenes have been annotated with 64,595 oriented 3D bounding boxes around 37 types of objects including chairs, desks, pillows, sofas, … (see [4], [5], [6] and [7] for details on the various sources of the dataset and the methodologies used to create it)."
+        },
+        {
+            "type": "P",
+            "content": "Data preprocessing"
+        },
+        {
+            "type": "P",
+            "content": "The conversion of RGB-D images to cloud points is done via a linear transformation of 2D coordinates and depth values at given coordinates in the image while taking into account intrinsic characteristics of the camera. Basic trigonometric considerations lead to the mathematical formulation of this linear transformation (see [8] for a more detailed explanation). The following image illustrates the operation. The preprocessing can be done using Matlab functions like in the Facebook team’s code (some code changes are necessary to get it to work with the free version Octave, which significantly slows down the preprocessing) or using the Open3D open-source library (see [9] for a link to the library’s homepage)."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "3f8d9d5f83440cd5ba2e5c66c21f245b.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/0*t8E6q-koNO5s6NF7",
+            "caption": "From depth map to point cloud (image by yodayoda Inc. in [8])"
+        },
+        {
+            "type": "P",
+            "content": "Pointnet++ and VoteNet"
+        },
+        {
+            "type": "P",
+            "content": "The first methodology VoteNet [1] uses Pointnet++ [3] as a backbone (both by Charles R. Qi). Pointnet++ takes a point cloud as an input and outputs a subset of the input cloud but each point has more features and is enriched with context about local geometric patterns. This is similar to convolutional neural networks except that the input cloud is subsampled in a data-dependent way: the neighborhood around a particular point is defined by a metric distance and the number of points in that neighborhood is variable. The following image (extract from [3]) illustrates the Pointnet++ architecture."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "86f1f17943ac01286f12f3480c3d312f.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:639/0*4sZ7-MK8JV3og9Yv",
+            "caption": null
+        },
+        {
+            "type": "P",
+            "content": "The Pointnet layers on this image create abstractions of every local region (defined by a fixed radius). Each local region is transformed into a vector composed of its centroid and enriched features creating an abstract representation of the neighborhood. In our particular case, the raw input point cloud is made of a variable number (20,000 or 40,000) of triplets (x, y, z), the output of the Pointnet++ backbone is a set of 1,024 points of dimension 3+256. Each Pointnet layer in the backbone is simply a multilayer perceptron (1 or 2 hidden layers each)."
+        },
+        {
+            "type": "P",
+            "content": "The VoteNet methodology for 3D object detection uses the output of Pointnet++ and applies “Deep Hough Voting”, a method which is illustrated by the following image (extract from [1])."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "259c0b11508c690dca05ec8f9bc11deb.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/0*u2Hw3IZ-TGi064Zf",
+            "caption": null
+        },
+        {
+            "type": "P",
+            "content": "Each point (with its enriched features) output by the backbone is fed into a shared multilayer perceptron to generate a vote (the “voting module”): this voting neural network outputs a displacement triplet between a point (its input) and the centroid of the object it belongs to (if any). It is trained to minimize the norm of that displacement and adds some extra features supposed to help the vote aggregation."
+        },
+        {
+            "type": "P",
+            "content": "As shown in the image above, the votes are then clustered. Each cluster is fed to a “proposal and classification module” (two multilayer perceptrons in practice) which outputs a prediction vector including: an objectness score, bounding box parameters and semantic classification scores. Each of those three elements contributes to a loss function (so 4 in total if we add the vote regression loss mentioned above): an objectness cross-entropy loss, a bounding box estimation loss and a class prediction loss."
+        },
+        {
+            "type": "P",
+            "content": "3DETR"
+        },
+        {
+            "type": "P",
+            "content": "The 3DETR method (described in [2]) is a pure transformer-based approach with hardly any modification compared to the vanilla transformer architecture which is quite remarkable. The 3DETR architecture is described in the following image (extract from [6])."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "12151179414e556831a1cb896f9bb8a0.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/0*uXCk8h6TkoW4ybxm",
+            "caption": null
+        },
+        {
+            "type": "P",
+            "content": "The transformer encoder receives inputs from a subsampling + set aggregation layer like in the Pointnet++ backbone described above except that the operation is applied only once in this case instead of several times in Pointnet++. The transformer encoder then applies several layers of self-attention and non-linear projections (in our case 3 multihead attention layers with 8 heads each). No positional embedding is necessary as this information is already included in the inputs. The self-attention mechanism is permutation-invariant and allows the representation of long range dependencies. This being said, the self-attention layers in the encoder can be modified with a mask in order to focus on local patterns rather than global ones."
+        },
+        {
+            "type": "P",
+            "content": "The decoder, then, is composed of several transformer blocks (8 in our case). It receives queries and predicts 3D bounding boxes. The queries are generated by sampling some points (128 in our case) from the input cloud and feeding them into a positional embedding layer followed by a multilayer perceptron."
+        },
+        {
+            "type": "P",
+            "content": "Data augmentation is used during training by applying random sub-sampling, flipping, rotation and random scaling of the point cloud."
+        },
+        {
+            "type": "P",
+            "content": "Example"
+        },
+        {
+            "type": "P",
+            "content": "This is an example of RGB-D image from the SUN RGB-D dataset."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "cb6bb4ff3bc11b8bd4f091ab8bec9329.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:591/0*1W7UnAys4fBFLNs3",
+            "caption": "Input RGB image with 2D bounding boxes"
+        },
+        {
+            "type": "FIGURE",
+            "filename": "2d2f4886fc53feada882da3f8d97d8b1.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:591/0*wmoeaR007sRYW4AT",
+            "caption": "Input depth map"
+        },
+        {
+            "type": "P",
+            "content": "The image then gets preprocessed into a point cloud of 20,000 or 80,000 points. You can use MeshLab to visualize all sorts of 3D data including point clouds."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "febcd71cea6a82fb8d0cffc8b82bdae4.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:550/0*y6R8Rp2ZBdTFk9qg",
+            "caption": "Processed into a point cloud"
+        },
+        {
+            "type": "P",
+            "content": "The VoteNet or 3DETR algorithm can now predict bounding boxes (and object classes)."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "3b927d3e0adc31214bf1ab5552d6d9af.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:583/0*hulKColdP2Vfy4Tz",
+            "caption": "Predicted bounding boxes"
+        },
+        {
+            "type": "P",
+            "content": "Performance"
+        },
+        {
+            "type": "P",
+            "content": "The most widely used metric for assessing the performance of 3D object detection techniques, is the mean average precision (mAP): average precision (AP) is the area under the Precision-Recall curve and mean average precision (mAP) is its average over all object classes. An IoU (Intersection over Union) threshold is fixed at 0.25 or 0.5 giving us AP25 or AP50 metrics. This controls the desired overlap between predicted bounding boxes and ground-truth bounding boxes."
+        },
+        {
+            "type": "P",
+            "content": "We have trained the VoteNet model for 180 epochs (as suggested by the authors of [5]) on the SUN RGB-D training set and got an AP25 of 57% on the test set (similar to [5]). Our VoteNet model is of reasonable size with around 1 million trainable parameters."
+        },
+        {
+            "type": "P",
+            "content": "The 3DETR model is larger with 7 million trainable parameters and it needs to be trained for 360 epochs to reach an AP25 of 57% on the SUN RGB-D dataset. This would have taken several days of training. Luckily, the authors of [6] have made public a model that has been pre-trained for 1080 epochs on SUN RGB-D. We have tested it and got the same AP25 as VoteNet i.e. 57%. A version of the 3DETR model with masked self-attention in the encoder is available as well and gets a slightly better performance. It should be noted that, according to the authors of [6], the performance gain is more important on another dataset (ScanNetV2 see more on this dataset below)."
+        },
+        {
+            "type": "P",
+            "content": "Transfer learning"
+        },
+        {
+            "type": "P",
+            "content": "An important consideration is the ability to fine-tune pre-trained models like those provided by the authors of [5] and [6] on our clients’ data. This is particularly important in the case of 3D object detection where data is difficult to annotate, occluded and noisy."
+        },
+        {
+            "type": "P",
+            "content": "We tested the transferability of a VoteNet trained on the ScanNetV2 dataset to the SUN RGB-D dataset. ScanNetV2 (see [10] for details) is an annotated dataset of 1,200 3D meshes reconstructed from indoor scenes. It does include 18 object categories While both SUN RGB-D and ScanNetV2 belong to a similar domain of indoor scenes, they are in effect quite different: scenes in ScanNetV2 cover larger surfaces, are more complete and hold more objects. Vertices in the ScanNetV2 dataset are sampled to create input point clouds."
+        },
+        {
+            "type": "P",
+            "content": "We used a VoteNet model pre-trained on ScanNetV2 for 180 epochs. We kept as much as we could from this model: the backbone module, the voting module and all the proposal and classification module except its last output layer. Interestingly it took only 30 epochs of fine-tuning on SUN RGB-D for this model to achieve the same performance as the same VoteNet model trained from scratch on SUN RGB-D for 180 epochs."
+        },
+        {
+            "type": "P",
+            "content": "This is an encouraging result that makes us confident that our pre-trained models can easily be transferred to ML6 clients’ data from other types of indoor domains with no need for large annotated datasets."
+        },
+        {
+            "type": "P",
+            "content": "Links"
+        },
+        {
+            "type": "P",
+            "content": "[1] Deep Hough Voting for 3D Object Detection in Point Clouds"
+        },
+        {
+            "type": "P",
+            "content": "[2] https://openaccess.thecvf.com/content/ICCV2021/html/Misra_An_End-to-End_Transformer_Model_for_3D_Object_Detection_ICCV_2021_paper.html"
+        },
+        {
+            "type": "P",
+            "content": "[3] PointNet++: Deep Hierarchical Feature Learning on Point Sets in a Metric Space"
+        },
+        {
+            "type": "P",
+            "content": "[4] NYU Depth Dataset V2 — Nathan Silberman"
+        },
+        {
+            "type": "P",
+            "content": "[5] Berkeley 3-D Object Dataset"
+        },
+        {
+            "type": "P",
+            "content": "[6] SUN3D dataset"
+        },
+        {
+            "type": "P",
+            "content": "[7] SUN RGB-D"
+        },
+        {
+            "type": "P",
+            "content": "[8] From depth map to point cloud. How to convert a RGBD image to points… | by yodayoda | Map for Robots | Medium"
+        }
+    ]
+}

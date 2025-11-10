@@ -1,0 +1,466 @@
+{
+    "title": "Can AI generate truly original logos?",
+    "author": "Jan Van Looy",
+    "readTime": "19 min read",
+    "publishDate": "Aug 2, 2022",
+    "blocks": [
+        {
+            "type": "FIGURE",
+            "filename": "1c39bcc82babbe1e01403201402bbfae.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*4kzxjQMI3yT98CznHukgsQ.jpeg",
+            "caption": "Photo by Luca Bravo on Unsplash"
+        },
+        {
+            "type": "P",
+            "content": "It is estimated that people are exposed to over five thousand ad messages per day. Companies, products, organizations all try to represent themselves in a visually appealing and distinctive way. Large players sometimes spend huge sums of money to develop their brand but the rest of us often have to bootstrap and turn to online logo creators such as Looka or Tailor Brands as a starting point. These services allow you to create a logo in just a few clicks by selecting text, visual elements and style characteristics. Putting together a logo is generally free but if you want to download a high-quality, vectorized version you have to pay a small sum."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "dacb39f9ff07aa6e546721940278cd38.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:512/0*j5u5xdareErUOpRv",
+            "caption": "Proposed logos for a ‘design company’"
+        },
+        {
+            "type": "P",
+            "content": "Logo generators serve a specific market and the resulting logos look slick. However, the generation process is largely ‘template-based’ whereby a fixed number of visual elements such as icons, fonts and colors are combined in predetermined ways."
+        },
+        {
+            "type": "P",
+            "content": "In a way, template-based logo generators are comparable to clever, interactive cookbooks. But what if you could have an actual chef to come to your house and cook a unique meal instead? Generative AI models such as OpenAI’s DALL-E 1 and 2 and Google’s Imagen and Parti have shown that they are able to combine and integrate complex concepts and translate them into high quality visual representations, if not indistinguishable from human creativity then closely akin to it. What if we could make a specialized generative AI model to generate truly creative and meaningful logos, not clever combinations of premade elements but as good as the real thing? On top of this, hidden within logos is a common symbolic understanding of the significance and meaning they try to convey (semiotics). Could we get an AI model to comprehend this meaning and not simply create “attractive” logos, but logos which fit with our human expectations and conventions? This blogpost documents the development of a proof-of-concept demonstrator of a DALL-E-like model for generating logos. We discuss data collection, preprocessing, caption generation, model training and results. If you want to jump straight to the interactive demo you can go to Replicate."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "d2bf745da7a73698ba70161ab2508480.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:512/0*Guq-czgQsgWkrXlx",
+            "caption": "‘Teddy bears working on new AI research on the moon in the 1980s’ (DALL-E 2)"
+        },
+        {
+            "type": "FIGURE",
+            "filename": "492623bd9a51a8b37f0ef11052a77931.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:475/0*s3UupTNYoJ0kp1zc",
+            "caption": "‘A dragon fruit wearing a karate belt in the snow.’ (Imagen)"
+        },
+        {
+            "type": "FIGURE",
+            "filename": "7ce7cf69c23f479311a88bbff8bf3f94.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:510/0*wbSPWpux0ejUZqEu",
+            "caption": "‘A photo of a frog reading the newspaper named “Toaday” written on it. There is a frog printed on the newspaper too’ (Parti)"
+        },
+        {
+            "type": "H1",
+            "content": "The model"
+        },
+        {
+            "type": "P",
+            "content": "Before we dive into the data preparation process, which will take up the largest part of this blogpost, it is useful to briefly stand still at the model we set out to use as it determined many of our subsequent decisions."
+        },
+        {
+            "type": "P",
+            "content": "When we started this project, DALL-E 1 was state of the art in text-based image generation so it was the logical choice. More specifically, we chose to start from minDALL-E, an open source PyTorch implementation of a smaller DALL-E variant combining the original pre-trained VQGAN with a 1.3b parameter GPT-like transformer trained on 14 million image-text pairs."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "a3ccfe48cd522df463c4dd66799c7023.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*dpx9-4_05RQdNXe3xcMrcw.png",
+            "caption": "minDALL-E model architecture (visual based on source)"
+        },
+        {
+            "type": "P",
+            "content": "Without going too much into detail, minDALL-E is comprised of two parts:"
+        },
+        {
+            "type": "OL",
+            "items": [
+                "An ‘image tokenizer’ (VQGAN) which uses an encoder-decoder architecture to learn to translate the images in the dataset to and from a selection of 16x16 grid of image tokens selected from a fixed codebook containing 16k codes.",
+                "An ‘image token predictor’, a GPT-like transformer which takes the text tokens of the captions as input and based on those learns to predict the image tokens as encoded by the image tokenizer"
+            ]
+        },
+        {
+            "type": "P",
+            "content": "At training time, you first need to train the image tokenizer (VQGAN) to reconstruct the images in the dataset based on image tokens. Once this is done, you can train the image token predictor (GPT) to sequentially predict which image tokens should be there given the provided text tokens (predict the image based on the caption)"
+        },
+        {
+            "type": "P",
+            "content": "At inference time, when a logo is to be generated, the input prompt is converted to text tokens which are used by the transformer (GPT) to predict image tokens which are then translated to a new, previously unseen image by the decoder of the image tokenizer."
+        },
+        {
+            "type": "H1",
+            "content": "Data collection"
+        },
+        {
+            "type": "P",
+            "content": "The starting point of our data collection is the Wikipedia-based Image Text Dataset (WIT) which consists of over 11m images with rich text descriptions and metadata which allows us to filter relatively easily on logos. Other useful open datasets we found include the Large Logo Dataset (LLD, 120k logos) and the WebLogo-2M Dataset (2m logos with weak labels). These are further complemented by logos we collected automatically online from public websites using Selenium. Recently the Laion-5b (5b image-text pairs) became available which we do not yet use for this exploration but which could prove a useful addition for the future."
+        },
+        {
+            "type": "H1",
+            "content": "Image pre-processing"
+        },
+        {
+            "type": "P",
+            "content": "The first step is to convert all images to the jpeg file format and adjust the size. A challenge we encounter here is that some file types allow for transparent backgrounds and our model requires jpeg files (without transparency). In order to solve this we need to cleverly guess the correct background color based on the edges of the logo and fill it in before converting the image. This is often far from easy and further manual cleaning turned out to be necessary."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "54a31de8f5ebc0e904dc44e26f00af46.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:512/0*xVhLaqJXxzuiPda4",
+            "caption": "A lot of not very useful whitespace and tiny fonts"
+        },
+        {
+            "type": "FIGURE",
+            "filename": "62538cd3ece5e31e588e6f4bce7a9787.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:512/0*A7_Q7D2De6L7cVdp",
+            "caption": "Removing ‘blackspace’ to maximize logo area"
+        },
+        {
+            "type": "P",
+            "content": "Second, our model requires 256x256px jpg images which is not very large for a logo, especially when it contains a lot of text. Moreover, many of the files we collected contain a significant amount of whitespace around the logos which is of course wasted in terms of information and needs to be trimmed. For this we use the Python imaging library to calculate the difference between the logo image and an image with just the background color and crop to that area. Too small images are removed and the others converted to the right shape and size."
+        },
+        {
+            "type": "H1",
+            "content": "Filtering and selection"
+        },
+        {
+            "type": "P",
+            "content": "One thing we quickly notice is that the data we have collected cannot be used as such but that serious filtering and cleaning is required. First of all, for text-based image generation you need pairs of images and text. Some information can be derived from the images themselves but if you want to link the logo with a company or product, industry, or with other brand information, you need metadata and preferably also contextual information. This immediately rules out some of the open datasets."
+        },
+        {
+            "type": "P",
+            "content": "Second, images of logos are often real-world pictures of objects with logos on them like cars or buildings. Furthermore, some images of logos are not even logos as you would think of them such as historical emblems and paper stamps. As we want to generate clean logos more or less ready to be used on a website for example, we want to filter these out."
+        },
+        {
+            "type": "P",
+            "content": "A very useful heuristic for detecting non-logo images is to look at file size. Logos are digital images that are made up of a limited number of colors, which occur in blocks of multiple pixels. This means that they are very easy to compress. Compressed images with a very small file size are most likely to be ‘empty’ or contain large white bands and those with a large file size most likely contain high frequency information, which is typical for real world images. We thus choose a lower and upper threshold and keep only the images in between."
+        },
+        {
+            "type": "P",
+            "content": "Finally, many items are duplicates or near duplicates (occasional variants for example), neither of which you wish to have too many in your dataset to avoid bias. For duplicate detection, we use a pretrained CNN trained on ImageNet, which contains general purpose representations in their final layers. We encode all the images of our (already filtered) dataset with the model and store their embeddings. We then calculate the distances between these embeddings to find the semantic similarity between each pair of images. If the embeddings of two images are close together these have very similar content."
+        },
+        {
+            "type": "P",
+            "content": "Through trial and error we learn that we need to combine multiple techniques for filtering and cleaning, iteratively, and often we need to go back to them after further preprocessing is done to perform further cleaning. Real-world data wrangling can be an ugly business. We apply various techniques to reduce low quality data in multiple steps. This way we end up with a dataset of a little over 140k distinct logo images with contextual information."
+        },
+        {
+            "type": "H1",
+            "content": "Extracting metadata from images"
+        },
+        {
+            "type": "P",
+            "content": "A good logo mostly represents a clever interplay between text, font, colors and visuals. In order to allow this, we need to add the relevant information to the captions of the logos so that the model is able to learn the correct associations. A first step then is to extract the precise text from the logo. We test several options and then choose the Google Cloud Vision API OCR service which, when using the text_detection mode, is highly capable of extracting text from a wide range of images including traffic signs and logos."
+        },
+        {
+            "type": "P",
+            "content": "We also want to allow the user to choose the most important colors in the logo but this information is only rarely available in the metadata or the surrounding text. Hence we decide to extract the background and the most important foreground colors from the images themselves using Colorgram, Color Thief and Python Image Library. We define a list of desired color names and match the extracted colors with those.."
+        },
+        {
+            "type": "P",
+            "content": "Furthermore, often a distinction is made between different types of logos, some of which we wanted to be able to generate in a targeted fashion. In order to do this we trained a classifier to predict 6 different logo types: lettermark, wordmark, symbol, abstract mascot and emblem, (as discussed here). Then we manually labeled 600 logos using Labelbox and fine-tuned an out-of-the-box classifier MobileNetV2."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "97f320751352cc23dc2fd4febd187074.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:512/0*TGPH2gV2ZTtcJcrL",
+            "caption": "Types of logos (source)"
+        },
+        {
+            "type": "H1",
+            "content": "Extracting metadata from text"
+        },
+        {
+            "type": "P",
+            "content": "We extract keywords from a description of the company or organization behind the logo via a pre-trained sentence-transformer underlying a KeyBERT architecture. The rationale is that these keywords are identifiers of what the organization stands for and how it wants to be perceived. Both of these aspects are very likely to be reflected in the design of the logo (i.e. a tech company that wants to be perceived as modern and innovative will likely opt for a minimalistic logo whereas a bank that wants to be perceived as stable & trustworthy will opt for a traditional-looking emblem)."
+        },
+        {
+            "type": "P",
+            "content": "Some examples of organizations along with the top keywords we extracted for them"
+        },
+        {
+            "type": "UL",
+            "items": [
+                "Goldman Sachs: Banking, Markets, Trust, Shareholders, Finance",
+                "Apple: Diverse, Innovation, Opportunities, Commitment, Inclusion",
+                "United Nations: Humanitarian, Government, Citizens, Rights, Peace",
+                "Harvard: Institution, Discipline, Teaching, Excellence, Oldest"
+            ]
+        },
+        {
+            "type": "H1",
+            "content": "Using ClipCap for full caption generation"
+        },
+        {
+            "type": "P",
+            "content": "Ideally, you would have one or more human-generated descriptions for every logo but labeling 140k images would be prohibitively expensive. As we are bootstrapping, we will try auto-captioning using ClipCap, a system cleverly combining CLIP and GPT2 to come up with descriptions for previously unseen images in the wild."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "2d312e26c94ba5cb25764b484379dc76.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*ZlLbFQBk4aCt7Q00AB1sxw.png",
+            "caption": "ClipCap architecture: mapping CLIP embeddings to GPT2 prefix embeddings (source)"
+        },
+        {
+            "type": "P",
+            "content": "ClipCap is fine-tuned on the smaller Conceptual Captions dataset which contains a bit over 3m image-text pairs, most of which are pictures of scenes, objects or landscapes, not logos. Despite this, it provides acceptable results when applying it to logos with in some cases no more than the observation that we were dealing with ‘a logo’ yet in other out of the box ClipCap recognizes style characteristics, visual elements or even provides something like an interpretation."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "4ad7f7380d3a6e19d7f7b86d091b815a.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*lLVGpJFcMrEunyHxjT9Ygg.png",
+            "caption": "Examples of ClipCap auto-captions"
+        },
+        {
+            "type": "P",
+            "content": "The way a caption is made is by sequentially producing the text token by token by using the GPT2 decoder network of ClipCap. At each step, this model outputs a probability distribution of words that are appropriate for the caption. Since we get this distribution, we have multiple options of constructing our caption. The most simple (and boring) method is to always take the word with the highest probability (and smallest amount of entropy). This is of course a bit short-sighted, because the best word at a certain point is not necessarily the best overall word."
+        },
+        {
+            "type": "P",
+            "content": "An alternative to this method is to sample from the output probability distribution. This gives us more variable captions because the word with the highest probability is not always very informative and by including some less obvious words we can get more interesting sentences. Moreover, by adding a temperature parameter we can manipulate the degree of ‘adventurism’ of the sampling mechanism. A lower temperature makes the model more confident so it will more often choose the safer, high-probability option; a higher temperature evens out the distribution more which will lead to more variable selections (see figure below)."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "1bfc387106e3fc0b9783936eab8e725d.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*mTJZpe7YGV_5snUdr54uEQ.png",
+            "caption": "Effect of temperature parameter on probability distribution"
+        },
+        {
+            "type": "P",
+            "content": "Another extension of this sampling technique, which is called beam search, is to construct multiple sequences (or beams) instead of just one, and in the end look at which sequence has the best overall score. By changing this beam size we make a tradeoff between required compute and quality of the caption."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "6dd56570b236792c3f060b8b4a76413f.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:512/0*vnu_DyEpfbnmQgeQ",
+            "caption": "Beam search: constructing multiple beams (source)"
+        },
+        {
+            "type": "P",
+            "content": "In the end, for the captioning part of the pipeline, larger images generally yield better results as does making use of beam search with size 5 and adjusting the temperature to 0.3. This produces a nice combination of truthful but creative and semantically rich descriptions."
+        },
+        {
+            "type": "H1",
+            "content": "Rule-based caption generation"
+        },
+        {
+            "type": "P",
+            "content": "A final data wrangling challenge is to combine all the information we gathered into sets of coherent yet at the same time sufficiently variable captions of close to 64 text tokens to train our model on. After rereading the DALL-E paper and checking the blogpost again, we decide that it is best to fill the available 64 text tokens to the limit so as to give the model as much information as possible to work with when predicting image tokens."
+        },
+        {
+            "type": "P",
+            "content": "For each logo, we have the following information at our disposal:"
+        },
+        {
+            "type": "UL",
+            "items": [
+                "OCRed text from logo",
+                "Colors: foreground and background",
+                "Logo style",
+                "Company name",
+                "Industry",
+                "Keywords (derived from surrounding text or metadata)",
+                "ClipCap-generated captions"
+            ]
+        },
+        {
+            "type": "P",
+            "content": "Next we create a script to generate permutations of sentences reshuffling the available information elements as much as possible to avoid position and order bias while maintaining some semblance of natural language. We also distinguish between multiple phases to be able to limit bias as some terms are more prevalent than others, like colors for example. Each phase contains ten generated captions from which the model selects one at training time."
+        },
+        {
+            "type": "H1",
+            "content": "Fine-tuning the ‘image tokenizer’ (VQGAN)"
+        },
+        {
+            "type": "P",
+            "content": "As a starting point, we use the standard minDALLE pretrained weights. The first step is to finetune VQGAN. This VQGAN model has already been trained on a large variety of data, which includes but is not limited to computer graphics images such as logos. Although this encoder-decoder network can already reconstruct images pretty well, it can still do a lot better on logo images specifically. Real world data typically contain high-frequency information, since there is a lot of irregular variety in colors and textures within natural pictures. Logos on the other hand are generally built of planes of the same color, with relatively simple shapes."
+        },
+        {
+            "type": "P",
+            "content": "We want the VQGAN to give us sharp edges and nice even-colored planes to reconstruct our logos which requires some finetuning of the model. During the fine-tuning process we can clearly see the improvements on these aspects and we see the loss dropping with each epoch. We train the model for forty epochs until we are satisfied with the quality of the results. At that point the model is not yet overfitting so further quality gains by additional training are possible."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "e9eb4c877309d6747c18826fc9ceed61.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:512/0*jisVn7KsJutWhDem",
+            "caption": "VQGAN image reconstruction after fine-tuning for (only) one epoch: original image (top) & reconstruction (bottom)"
+        },
+        {
+            "type": "FIGURE",
+            "filename": "6f119906422a87266fbb7023d98ddfac.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:512/0*v3j30CduNVsP-5w3",
+            "caption": "VQGAN image reconstruction after fine-tuning for 40 epochs: original image (top) & reconstruction (bottom)"
+        },
+        {
+            "type": "H1",
+            "content": "Fine-tuning the ‘image token predictor’ (GPT)"
+        },
+        {
+            "type": "P",
+            "content": "The general flow when training the DALL-E model is to encode a batch of image captions from the training set and learn to predict the discrete image tokens of VQGAN (see also model section above). Each of these tokens represents a separate class and this step is typically trained with the cross-entropy loss."
+        },
+        {
+            "type": "P",
+            "content": "In addition to this autoregressive image token prediction, to help learn meaningful text embeddings that capture the relations between the words, there is a language modeling loss, similar to that used to train the autoregressive decoder-only GPT models. This is added to the complete loss with a certain weight, to balance the effect of the language and image token prediction losses."
+        },
+        {
+            "type": "P",
+            "content": "When actually training this model for text-conditioned image generation, we quickly realize that our dataset is not that large and that our model is large enough to memorize much of it. This quickly leads to overfitting whereby, rather than deriving generalizable principles, the model learns the data by heart This allows it to achieve an excellent performance on seen data but a dismal one on unseen data which is of course not what we want!"
+        },
+        {
+            "type": "P",
+            "content": "There are three main ways of tackling overfitting: increasing the size of the training dataset, reducing the model size or applying regularization. As the first two are not an option we apply several regularization techniques to restrict the capability of the model to learn things by heart and force it to learn more useful representations that generalize to the test set. Techniques used include focal loss, gradient clipping, weight decay and caption variation which are all discussed more in detail below. With this adapted setup we fine-tune the model for 15 epochs until it starts to overfit."
+        },
+        {
+            "type": "H2",
+            "content": "Focal loss"
+        },
+        {
+            "type": "P",
+            "content": "First of all, we replace the cross entropy loss with one that is better suited for class-imbalanced datasets. But how is our dataset imbalanced, you might ask? Since we are not directly predicting the full image but rather segments (in the form of image tokens), some tokens occur much more often than others in logos, such as the token that represents a black or white background. These are much more frequent than an exotic image patch with text and multiple colors in it (while the latter is actually more important). So to reduce the effects of these dominant tokens (the safer bets), we implement the Focal Loss. This is an adapted cross entropy loss that puts more weight (in terms of loss) on tokens that are not predicted well (and thus have a lower probability) and reduces the weight of the classes that are already predicted with a decent probability. This shifts the focus of the model from trying to optimize the easier parts even more to actually tackling the harder challenges."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "74310ccafda05473ec18621dbaa69ba7.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:512/0*BcSqyPAlrTr4I9ZY",
+            "caption": "Focal loss reduces ‘attractiveness’ of predicting high-probability classes to reduce loss (source)"
+        },
+        {
+            "type": "H2",
+            "content": "Gradient clipping"
+        },
+        {
+            "type": "P",
+            "content": "A second regularization technique is gradient clipping which limits the size of the gradients during training and reduces the odds of the model going wild. In case some specific sample (or batch) gives a weird and/or absurdly high gradient that pushes the model weights in an unwanted direction, its impact is limited. Although gradients generally point in a favorable direction, we don’t want to make too big changes with each update."
+        },
+        {
+            "type": "H2",
+            "content": "Weight decay"
+        },
+        {
+            "type": "P",
+            "content": "Another technique that is applied to the gradients is weight decay. This is a well-known technique that is to include the size of the model weights in the loss function. The idea behind it is that, if we allow the model weights to assume any value, it has a really easy time to just learn all the training data. By restricting these weight sizes, by adding the amplitudes of the weights to the loss with the L2 loss, the model weights stay within reasonable bounds and get a better chance of learning features that are widely usable and contain actual useful information that can be used during inference."
+        },
+        {
+            "type": "H2",
+            "content": "Caption variation"
+        },
+        {
+            "type": "P",
+            "content": "A final important technique we use is to increase the variety of captions that are associated with each image. As discussed in the caption generation section, we are able to generate a list of captions for each image and we randomly assign one each training epoch. This way, the model doesn’t get the chance to just learn the direct mapping from text to image but rather has to learn the semantic information within the captions."
+        },
+        {
+            "type": "H1",
+            "content": "Failure: character embeddings"
+        },
+        {
+            "type": "P",
+            "content": "Not everything we try works out as planned though. We define separate character embeddings to be able to steer the generation of text inside the logo by adding it to the textual input. The main reason is to have a clear indication for the model which text is actually in the image and not part of its semantic content."
+        },
+        {
+            "type": "P",
+            "content": "Although this seems like a reasonable approach, in practice it is very difficult for the model to learn this type of complex information (characters, fonts, casing, colors, size, direction etc.). Even though it has 1.3B parameters, it is still relatively small and has a hard time including this new type of information in its predictions. When looking at the original DALL-E paper and other large multimodal models, it is clear that the capabilities of the models scale with the size of the model and that such complex behavior arises when going bigger and badder (called the scaling laws)."
+        },
+        {
+            "type": "P",
+            "content": "A second reason is that we have a relatively small dataset with ‘only’ 140k images and that the text information in a logo often contains a brand name and is therefore unique. This allows the model to quite easily start to associate texts one on one with images and start to overfit. This results in a degradation of the model performance and mode collapse (meaning that the model generates the same samples over and over)."
+        },
+        {
+            "type": "H1",
+            "content": "Results"
+        },
+        {
+            "type": "P",
+            "content": "Overall, we are very pleased with the resulting outputs knowing that this is the first working version of a proof of concept demonstrator. Below you can find a few example prompts with each time forty (non cherry-picked) generated logos as ordered by non-fine-tuned CLIP."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "093cdfbd593bca6db925ca40847f9d82.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:512/0*1VTTZkUE0_jN2SZr",
+            "caption": "‘An emblem logo of a sports clothing brand without text’ (our model)"
+        },
+        {
+            "type": "FIGURE",
+            "filename": "de91c15547c6b9c9a2cd040928dc6140.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:512/0*GT67acNXsXImA8yd",
+            "caption": "‘A gold and green logo of an Indian restaurant featuring the Taj Mahal’ (our model)"
+        },
+        {
+            "type": "FIGURE",
+            "filename": "8939dde1525bcb66e43072e69559648d.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:512/0*p3xk-aNQzvYDmyUu",
+            "caption": "‘A logo for a Paris cafe featuring the eiffel tower’ (our model)"
+        },
+        {
+            "type": "FIGURE",
+            "filename": "55319855797abf440424b3dcc1a0f40a.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:512/0*wh5qtiUSqGIEdNzS",
+            "caption": "‘A logo of a Japanese noodle bar with a bowl of steaming hot noodles’ (our model)"
+        },
+        {
+            "type": "P",
+            "content": "Some observations we made are the following:"
+        },
+        {
+            "type": "UL",
+            "items": [
+                "The model generates unique, previously unseen logos. There are some logos that look vaguely familiar but when we try to find them using reverse image search we utterly fail to do so.",
+                "The model correctly generates logos according to the semiotic codes implied in the captions such as style, type, industry etc.",
+                "The fine-tuning has turned it from a generic image generator into a logo generator. When being asked to generate non-logos, it will do that in a very logo-like style. Also, the quality of the logos generated by the fine-tuned model are much more refined and qualitative than those using the original weights. Some of the real-world knowledge from the original training seems to have been retained by the model, however, for example when you ask it for specific visual elements like a cup of coffee or the Taj Mahal, it is able to integrate that.",
+                "The model is able to creatively combine visual elements like fonts, images and color. The colors are balanced and generally fit the topic. Text is embedded in the visual elements and sometimes cleverly interacts with them like when the Eiffel Tower is used as a character.",
+                "Longer, more informative, more descriptive, more concrete prompts lead to better outputs. When providing little information the output rather seems undirected.",
+                "The model is fast. It takes around a second per logo when generating a batch of twenty logos on an NVIDIA P100 gpu.",
+                "The text looks like gibberish. Even when you ask specifically for certain characters, the model fails to produce it (for now, see conclusion section)."
+            ]
+        },
+        {
+            "type": "P",
+            "content": "If we compare with logos generated with the original minDALL-E (below) we notice that our approach yields more diverse, consistent and visually appealing results. When we compare with the recent laion-ai / erlich diffusion model, we notice that our approach is faster and more ‘creative’ in that the generated logos are more diverse. The erlich-generated logos are much better at dealing with text and are closer to an end product however."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "c73959cc6c8b5a2d1b323446018c7214.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:512/0*SNjQJeAn4EcaNO8H",
+            "caption": "‘A logo of a coffee shop featuring a coffee cup’ (our model)"
+        },
+        {
+            "type": "FIGURE",
+            "filename": "65bfcbddef221de3ee4f17d409ddbce6.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:512/0*qMgRLHJZ0XN1kd7y",
+            "caption": "‘A logo of a coffee shop featuring a coffee cup’ (original minDALL-E without fine-tuning)"
+        },
+        {
+            "type": "FIGURE",
+            "filename": "c029946ff60451bae3a6812a8f1861db.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:512/0*qRqE7yH5Kn9_0nbd",
+            "caption": "‘A logo of a coffee shop featuring a coffee cup’ (laion-ai / erlich)"
+        },
+        {
+            "type": "H1",
+            "content": "Conclusions"
+        },
+        {
+            "type": "P",
+            "content": "We are convinced that AI-driven logo generation will soon be a reality (and that AI will drive a range of other complex creative processes). Our exercise covered here has shown that advanced generative AI models such as DALL-E can create unique, high quality output, fitting with human understanding & semiotics; essentially capable of rivaling human creativity."
+        },
+        {
+            "type": "P",
+            "content": "We make this statement even based on our relatively “small” model, and have a strong conviction that further extension and fine-tuning of our dataset will contribute to making our results ready for use in the real world. Beyond the dataset, further improvements can be made, for instance by using a latent diffusion model, through targeted pre-training e.g. for fonts and icons, by using a fine-tuned ML-based caption generator, and through fine-tuning CLIP to order the results."
+        },
+        {
+            "type": "P",
+            "content": "Finally, this experiment has once again demonstrated the speed with which AI can evolve and learn. This suggests that user input, coupled with existing domain knowledge will be an essential driver of success. This poses a challenge to existing creative processes, which often lack clear success drivers and KPIs (i.e. How Brands Grow — Distinctive Brand Assets for an attempt to make this measurable). Lacking a clear design language (what is “minimal” to you?) and scoring model (a “good” vs. “bad” logo) will comparatively make the learning journey for AI more difficult. Regardless, adding relevant (& tested) classifiers to the existing database, and learning from user input and implicit feedback will be key. Interestingly, if managed well, we believe this might actually drive a new era in making marketing more scientific."
+        },
+        {
+            "type": "H1",
+            "content": "Demo"
+        },
+        {
+            "type": "P",
+            "content": "You can test the interactive demo on Replicate."
+        },
+        {
+            "type": "H1",
+            "content": "Acknowledgements"
+        },
+        {
+            "type": "P",
+            "content": "I would like to thank Bert Christiaens, Karel Haerens, Mathias Leys, Elina Oikonomou and Matthias Cami for their work on the demo and this blogpost and Daan Raemdonck for sharing his domain expertise. We would also like to thank the Vlaams Supercomputer Centrum (VSC) and Tim Jaenen from the Research Foundation Flanders (FWO) for the use of their infrastructure. Finally, special thanks goes to ML6 for making this project possible."
+        }
+    ]
+}

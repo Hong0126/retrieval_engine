@@ -1,0 +1,332 @@
+{
+    "title": "The Art of Pooling Embeddings 🎨",
+    "author": "Mathias Leys",
+    "readTime": "8 min read",
+    "publishDate": "Jun 20, 2022",
+    "blocks": [
+        {
+            "type": "FIGURE",
+            "filename": "099bbf315dd3bac57a816b44bd17f757.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:469/1*0Nfmq7BsNDZXBO3aRr3Oww.jpeg",
+            "caption": null
+        },
+        {
+            "type": "H1",
+            "content": "Introduction"
+        },
+        {
+            "type": "P",
+            "content": "There are some questions that everyone has asked themselves at least once in their life: “what is the meaning of life?”, “what happens after you die?” and of course: “what is the purpose of sentence embeddings?”. Or is it just me?"
+        },
+        {
+            "type": "P",
+            "content": "Jokes aside, sentence embeddings can be a bit of an unintuitive concept at first glance."
+        },
+        {
+            "type": "BLOCKQUOTE",
+            "content": "Think about it: Why would you need a compressed representation of the information in a sequence when you have access to all information present in that sequence?"
+        },
+        {
+            "type": "P",
+            "content": "In other words, couldn’t you just use your token embeddings to do whatever you were going to use your sentence embedding for? You would base your decision on much more and more granular information so it stands to reason that this is the better option? … Right?"
+        },
+        {
+            "type": "FIGURE",
+            "filename": "4d26d831c5c2fdd9e64ae6bf67b69599.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:480/0*ftMxfz-103TNkLNx.gif",
+            "caption": null
+        },
+        {
+            "type": "P",
+            "content": "If the above paragraph made you second-guess everything you know about NLP, then this blogpost is for you."
+        },
+        {
+            "type": "P",
+            "content": "In this post, you’ll find that sentence embeddings are very simple in design. However, you will also find that this apparent simplicity hides a surprising amount of complexity and nuance."
+        },
+        {
+            "type": "H1",
+            "content": "What are sentence embeddings?"
+        },
+        {
+            "type": "P",
+            "content": "Let’s not get too ahead of ourselves just yet. Before we get to the “Why”, let’s first discuss the “What” and make sure that we really understand what sentence embeddings even are first."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "210839c79707079e33dbf0eed1f9d971.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:480/0*k9rgIwZ_AxlK0AFO.gif",
+            "caption": null
+        },
+        {
+            "type": "P",
+            "content": "Sentence embeddings play a completely analogous role to token-level embeddings with the main difference being that, as the name suggests, there is only one embedding for the entire sequence rather than one embedding per token."
+        },
+        {
+            "type": "P",
+            "content": "The process of converting a sequence of embeddings into a sentence embedding is called “pooling”. Intuitively, this entails compressing the granular token-level representations into a single fixed-length representation that is supposed to reflect the meaning of the entire sequence."
+        },
+        {
+            "type": "P",
+            "content": "The fact that sentence embeddings are compressions is very important to always keep in the back of your mind. This is, for instance, the reason why you likely wouldn’t get sentence embeddings that can grasp the fine details in very long texts. The compression would simply be too lossy to still capture this level of granularity."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "1f0d372f7791b94c4e6a1c28d65dd9dd.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:480/0*Zt-H12BSCfUhATUW.gif",
+            "caption": null
+        },
+        {
+            "type": "P",
+            "content": "Note that transformers will also truncate any input sequence longer than a max_seq_length (the exact value varies from model to model but is often 512)."
+        },
+        {
+            "type": "BLOCKQUOTE",
+            "content": "Sentence embeddings are inherently compressions of the information in a sequence of text and compressions are inherently lossy. This implies that sentence embeddings are representations with a lower level of granularity."
+        },
+        {
+            "type": "P",
+            "content": "Consider the following simple example: you have a text that consists of 200 tokens and are using a language model that produces 512-dimensional embeddings. The resulting embeddings will be 200 distinct 512-dimensional arrays. The sentence embedding will, by contrast, represent the information in the sequence in only one single 512-dimensional array."
+        },
+        {
+            "type": "H1",
+            "content": "Pooling methods"
+        },
+        {
+            "type": "P",
+            "content": "Now that we have a solid grasp of how pooling is used in computing sentence embeddings, let’s take a more formal look into what goes on behind the scenes."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "d9626e71de6a65ea7c9a195916a07db6.jpg",
+            "src": "https://miro.medium.com/v2/0*PGn_H5X7TM0bdio4.gif",
+            "caption": null
+        },
+        {
+            "type": "P",
+            "content": "More formally, pooling entails adding a layer on top of your language model that performs some aggregating function (think mean, max, etc.)."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "a9d3376754a1c3860f2a5abb58eeb556.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:263/1*I8uc9PO0ai_o4LJX7tnLbQ.jpeg",
+            "caption": "A pooling layer aggregates token-level embeddings into one sentence-level embedding"
+        },
+        {
+            "type": "P",
+            "content": "Theoretically, you could use any aggregating function in your pooling layer. In practice, we notice that two methods are predominantly used:"
+        },
+        {
+            "type": "P",
+            "content": "☝️ CLS poolingThe first commonly used pooling method is CLS pooling. Essentially, this method entails appending a special <CLS> token to the start of every sequence. This special token is meant to capture the sequence-level information. Therefore, the pooling layer aggregates by simply taking the CLS token embedding and using this as the sentence embedding."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "c11f5c4d7a23128440044c2a7ff7f9ea.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:271/1*T3A4AHF41MieOkZWOyK19g.jpeg",
+            "caption": "CLS pooling aggregates by taking the token embedding of a special CLS token"
+        },
+        {
+            "type": "P",
+            "content": "During the training process, some sentence-level classification task based on this CLS embedding will tune the CLS token representation via backpropagation. FYI: hence the name CLS (Classification) token."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "7d6b0a05980fffb58a88228ed8259dc9.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:480/0*3qLvuRtIobBGkZF8.gif",
+            "caption": null
+        },
+        {
+            "type": "P",
+            "content": "For instance, in BERT’s pre-training process, this task is NSP (Next Sentence Prediction)."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "514d3050a687937a64f48d41204fae56.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*xAURCpWZuhcvrzjEQhOevw.png",
+            "caption": "Visual representation of BERT’s Next Sentence Prediction (NSP) training task"
+        },
+        {
+            "type": "P",
+            "content": "It is evident that the CLS embedding needs to have been fine-tuned on some (sentence-level) task. However, not every language model does this in its original pre-training procedure."
+        },
+        {
+            "type": "P",
+            "content": "As discussed, BERT performs NSP in its original training process so a pre-trained BERT produces meaningful CLS representations out-of-the-box."
+        },
+        {
+            "type": "P",
+            "content": "However, for instance RoBERTa does not use NSP in its pre-training process nor does it perform any other task that tunes the CLS token representation. Therefore, it does not produce meaningful CLS representations out-of-the-box."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "0d1159d7a2dfb7f92f03c71145377768.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:480/0*QTNnTzclYrnkvb_g.gif",
+            "caption": null
+        },
+        {
+            "type": "P",
+            "content": "If you want to use CLS pooling on RoBERTa, you will need to fine-tune its CLS representation on some task first."
+        },
+        {
+            "type": "P",
+            "content": "🔔 Nitpick alert 🔔If we’re being pedantic, RoBERTa doesn’t even have a CLS token. It has a start of sequence <s> token that you can use for the same purpose."
+        },
+        {
+            "type": "P",
+            "content": "✌️ Mean poolingThe second commonly used pooling method is mean pooling."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "62c7a06d46495532f37ea0747bd43b19.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:374/0*-AIpWNCl0k-vacEx.gif",
+            "caption": null
+        },
+        {
+            "type": "P",
+            "content": "As the name suggests, it aggregates by taking the element-wise arithmetic mean of the token-level embeddings. Mean pooling should not be confused with nice pooling which aggregates by politely asking the token embeddings."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "a98280fdd71490c14491225b124f0dae.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:263/1*TS_8YjY4LY5epCvJRHJ6pg.jpeg",
+            "caption": "Mean pooling aggregates by taking the element-wise arithmetic mean"
+        },
+        {
+            "type": "P",
+            "content": "Besides this, max pooling and mean_sqrt_len pooling are also sometimes used but much less frequently."
+        },
+        {
+            "type": "P",
+            "content": "These pooling methods work completely analogously to mean pooling except for the fact that they aggregate by taking the element-wise max and by taking the element-wise mean divided by the square root of the number of token in the sequence respectively."
+        },
+        {
+            "type": "P",
+            "content": "There is unfortunately no clear consensus on which pooling method to use although HuggingFace uses CLS pooling by default for sequence classification taks, so make of that what you will."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "252395f1cd65ef886ad85cfe361db739.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*SL1gLbgosi52IrLfTtujUA.gif",
+            "caption": null
+        },
+        {
+            "type": "H1",
+            "content": "Why use sentence embeddings?"
+        },
+        {
+            "type": "P",
+            "content": "Now that we have a clear view on the main mechanisms behind sentence embeddings, we can finally get back to the question at hand:"
+        },
+        {
+            "type": "BLOCKQUOTE",
+            "content": "Why would you need a compressed representation of the information in a sequence when you have access to all information present in that sequence?"
+        },
+        {
+            "type": "FIGURE",
+            "filename": "4956f836d3de6d3a14ac8520ffa25e6d.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:480/1*vOsH7AkAYj7I2mfPZznmlw.gif",
+            "caption": null
+        },
+        {
+            "type": "P",
+            "content": "☝️ The whole is greater than the sum of its partsAristotle — a notorious fan of sentence embeddings — once said “the whole is greater than the sum of its parts”. This quote applies well to this situation."
+        },
+        {
+            "type": "P",
+            "content": "Sure, the token embeddings of a sequence represent much more information but does the sentence embedding capture the same information? Or does it grasp information that relates to the sequence as a whole rather than the individual constituents? Spoiler alert: it’s the latter."
+        },
+        {
+            "type": "P",
+            "content": "Sentence embeddings are trained for tasks that require knowledge of the meaning of a sequence as a whole rather than the individual tokens. Some concrete examples of such tasks are: 👉 Sentiment analysis👉 Semantic similarity (in sentence transformers’ pre-training)👉 NSP (in BERT’s pre-training)👉 …"
+        },
+        {
+            "type": "P",
+            "content": "Therefore, it makes perfect intuitive sense to opt to use a sentence embedding for these tasks over token embeddings. Empirically, we also notice that sentence-level transfer outperforms word-level transfer on such tasks."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "b1232da53a7a2f6154fe1bd28d48bb09.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:346/0*P4wdJA9M-fcIzXbq.gif",
+            "caption": null
+        },
+        {
+            "type": "P",
+            "content": "✌️ Sometimes you just need fixed-length representationsFor some tasks, it just makes sense to use fixed-length embeddings. Take sequence clustering for instance. How would you go about clustering sentences based on a token embedding group of variable length representing each sentence? Here, it just makes sense to have a single fixed-length representation per sentence."
+        },
+        {
+            "type": "H1",
+            "content": "A note on similarity measures"
+        },
+        {
+            "type": "P",
+            "content": "Congrats, at this point you should be comfortable with the most important concepts related to sentence embeddings!"
+        },
+        {
+            "type": "FIGURE",
+            "filename": "f2874a757e4682de639f54d3820b38a7.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:268/0*JGkpI6bTlVRfc3_T",
+            "caption": null
+        },
+        {
+            "type": "P",
+            "content": "We can round off by quickly taking a look at embedding similarity measures."
+        },
+        {
+            "type": "P",
+            "content": "Many sentence-level tasks (e.g., semantic search, clustering, etc.) rely on some notion of “closeness” of sentence embeddings or rather a notion of similarity."
+        },
+        {
+            "type": "P",
+            "content": "There is a wide range of possible similarity measures but the most commonly used one when talking about sentence embeddings is cosine similarity."
+        },
+        {
+            "type": "P",
+            "content": "The idea here is that you see the cosine of the angle between the embeddings as a measure of similarity between the embeddings. If the angle between the embeddings is small, the cosine will be close to 1 and as the angle grows, the cosine of the angle decreases."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "585d81e49d2dd823ae402c595e91eac2.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:432/1*UjclkUVirGhjFxeU7xGUEg.png",
+            "caption": "cosine similarity for two-dimensional embeddings"
+        },
+        {
+            "type": "P",
+            "content": "Euclidean distance and the dot product are also both commonly used when working with sentence embeddings, just not really with sentence transformers as these are specifically designed with cosine similarity in mind. If you are curious about sentence transformers, feel free to check out our blogpost on that topic here."
+        },
+        {
+            "type": "P",
+            "content": "As mentioned before, there exists a very wide range of similarity measures such as Manhattan distance, Minkowski distance or Chebyshev distance just to name a few. However, unless you really know what you’re doing, I would strongly advice you to just stick to using cosine similarity."
+        },
+        {
+            "type": "H1",
+            "content": "Conclusion"
+        },
+        {
+            "type": "P",
+            "content": "In this blogpost we studied the art of pooling."
+        },
+        {
+            "type": "P",
+            "content": "👉 We found that sentence embeddings are rather simple by design but their interpretation is not immediately clear."
+        },
+        {
+            "type": "P",
+            "content": "👉 We discussed in-depth how sentence embeddings are created via different pooling methods."
+        },
+        {
+            "type": "P",
+            "content": "👉 Then, we found that sentence embeddings are meant to represent the meaning of the sequence as a whole and that this information is not necessarily fully present in the individual token embeddings."
+        },
+        {
+            "type": "P",
+            "content": "👉 Finally, we rounded off our discussion by briefly covering embedding similarity measures which are commonly needed when using sentence embeddings."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "f4c723983671dd5f1ebdcd38e6b70aa7.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:480/0*wKeDgEVfaDXBYLLv.gif",
+            "caption": "That’s all folks"
+        }
+    ]
+}

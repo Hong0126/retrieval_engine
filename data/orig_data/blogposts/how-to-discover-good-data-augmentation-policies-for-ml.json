@@ -1,0 +1,175 @@
+{
+    "title": "How to discover good data augmentation policies for ML",
+    "author": "Arne Vandendorpe",
+    "readTime": "8 min read",
+    "publishDate": "Apr 26, 2022",
+    "blocks": [
+        {
+            "type": "P",
+            "content": "In previous blogposts, we have talked about how to choose a camera for your computer vision project and how to correctly label the data captured with that camera. So let’s assume that, at this point, we have our labeled dataset ready to go. We can now go one step further and dive into the practice of data augmentation, i.e. increasing the size of our dataset by creating small variations on existing data points."
+        },
+        {
+            "type": "P",
+            "content": "In this blogpost, we give a brief refresher (or primer) on what data augmentation is. Then we move on to motivating why we are still talking about a concept so well-established and generally accepted today and situate it in the context of the recent topic of Data-centric AI . Finally, we share how we at ML6 approach data augmentation."
+        },
+        {
+            "type": "BLOCKQUOTE",
+            "content": "“Give a man a large dataset and he will the have data to train a strong model. Teach a man good data augmentation practices and he will have data for a lifetime.”"
+        },
+        {
+            "type": "H1",
+            "content": "A primer/refresher on data augmentation"
+        },
+        {
+            "type": "P",
+            "content": "(If you are already familiar with the concept of data augmentation, this short section is not for you. Feel free to skip ahead to the next section and I’ll meet you there.)"
+        },
+        {
+            "type": "P",
+            "content": "The practice of data augmentation aims to increase the size of your dataset by taking an existing data point and transforming it in such a way that we end up with a new, but still realistic data point. The benefits are twofold:"
+        },
+        {
+            "type": "OL",
+            "items": [
+                "We increase the size of our dataset, resulting in more examples for our model to train on and learn from.",
+                "The robustness of our model increases and we decrease the risk of overfitting, because the model has to learn to ignore the transformations that we have introduced by understanding the underlying data instead of memorizing it."
+            ]
+        },
+        {
+            "type": "P",
+            "content": "A quick example helps make things clear: Imagine we are training a model to detect birds. In the example below, we have an image of a bird on the left that is taken from our original dataset. On the right we have three transformations of the original image that we would still expect our model to interpret as a bird. The first two are straightforward: A bird is a bird, whether it is flying east or west, upward or downward. In the third example, the head and body of the bird has been artificially occluded. This image would thus nudge our model to focus on feathery wings as a feature of birds."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "23eb8c25f2109b41fd23dd24a0e76466.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*jAH9zJoueczpyLl-IwdlhQ.png",
+            "caption": "Example of basic data augmentation techniques: Horizontal Flip, Random Rotate and Partial Occlusion"
+        },
+        {
+            "type": "P",
+            "content": "If you are interested in a more detailed introduction to data augmentation and the many transformations that are commonly used, we advise to check out one of the many good resources out there like this and this."
+        },
+        {
+            "type": "H1",
+            "content": "Data-Centric AI"
+        },
+        {
+            "type": "P",
+            "content": "Data augmentation techniques for machine learning, especially for computer vision, have been around for a very long time and have been proven to work time and time again. Even one of the earliest successes with convolutional neural networks, Yann LeCun’s LeNet-5 (published in 1998), already advocates “artificially generating more training patterns using random distortions”. Hence, it might seem as if promoting data augmentation to machine learning practitioners is like preaching to the choir. So why are we?"
+        },
+        {
+            "type": "P",
+            "content": "Well, we are in good company: Andrew Ng, the co-founder and former head of Google Brain, is spearheading a shift in AI research and usage towards what he coined “Data-Centric AI” and away from the practice of “Model-Centric AI” that has dominated research over the years. The central idea is that a disproportional amount of time is spent researching model architectures, while research into cleaning, augmenting and MLOps practices for data is far less popular and deserves more attention. For more information check out Andrew’s talk (or slides)."
+        },
+        {
+            "type": "BLOCKQUOTE",
+            "content": "“machine learning has matured to the point that high-performance model architectures are widely available, while approaches to engineering datasets have lagged.”"
+        },
+        {
+            "type": "P",
+            "content": "He also launched the first Data-Centric AI Competition. In traditional Kaggle competitions you are asked to train and submit a model using a fixed dataset. Here, the format is inverted and each participant is asked to submit a dataset that is then used to train a fixed model."
+        },
+        {
+            "type": "P",
+            "content": "Even though Data-Centric AI spans a wider range of practices and concepts than just data augmentation, it is still an important part of it. So by extension: we are not beating a dead horse by raising the topic of data augmentation once again in this blogpost."
+        },
+        {
+            "type": "H1",
+            "content": "Practical data augmentation"
+        },
+        {
+            "type": "P",
+            "content": "So far, we have briefly glossed over what data augmentation is and we have established that it is still a hot topic. Now then, on to business (value)."
+        },
+        {
+            "type": "P",
+            "content": "Of course, every use case we tackle and every dataset we use or build has its own unique subtleties. However, there are in general three guiding principles we live by: strong baselines, knowing your model and injecting expert knowledge where possible:"
+        },
+        {
+            "type": "OL",
+            "items": [
+                "Strong Baselines"
+            ]
+        },
+        {
+            "type": "P",
+            "content": "Machine learning is an iterative process: make changes, train, evaluate and repeat. Consequently it is important to have a good starting point, so that subsequent iterations can be compared to that baseline to quickly figure out what works and what does not. This approach also applies to data augmentation."
+        },
+        {
+            "type": "P",
+            "content": "One particularly interesting development in that regard is Google’s AutoAugment. They formulate the problem of finding the best augmentation policy for a dataset as a discrete search problem. In their paper they show the optimal discovered augmentation policies for datasets: CIFAR-10, SVHN and ImageNet. Okay great, problem solved then? Well, not quite. Finding such an optimal augmentation policy for a sufficiently large search space requires a lot of compute power. Because of this, running AutoAugment on your own dataset is not a viable option. But, there’s good news. The authors of AutoAugment argue that learnt policies are transferable between datasets, e.g. an optimal policy for ImageNet performs well on other datasets similar to ImageNet. We can see an obvious parallel to transfer learning where pretrained weights from one dataset often produce good results on other datasets as well. As a result, an AutoAugment policy can be used as a strong baseline across a wide span of datasets."
+        },
+        {
+            "type": "P",
+            "content": "Since its publication, improvements to make AutoAugment less compute-intensive like Fast AutoAugment and RandAugment have been proposed, but the central idea has remained the same: Automatically searching a good augmentation policy for a given dataset. There is also a version of AutoAugment that is completely aimed at object detection."
+        },
+        {
+            "type": "P",
+            "content": "Still not convinced? Note that the one of the winning teams in the Data-centric AI competition we mentioned earlier, Synaptic-AnN, used exactly this strategy as part of their winning solution. They remarked that the competition’s dataset (Roman Numerals) bore some resemblance to the SVHN (Street View House Numbers) dataset for which there is a learnt AutoAugment policy, which they used a starting point to improve upon:"
+        },
+        {
+            "type": "BLOCKQUOTE",
+            "content": "“We explored the viability of using AutoAugment to learn the augmentation technique parameters, but due to limited computational resources and insufficient data, the results of the paper on the SVHN dataset were used on the competition dataset. We observed that augmentation techniques such as Solarize and Invert were ineffective and hence removed them from the final SVHN-policy. This method resulted in a significant performance boost and was chosen because the SVHN dataset is grayscale and has to do with number representations (housing plates). We also explored other auto augment policies based on CIFAR10 and ImageNet, but these were not as effective as SVHN.”"
+        },
+        {
+            "type": "P",
+            "content": "We conclude this discussion with two examples of how to use AutoAugment, one for a Tensorflow dataset and one for a PyTorch dataset."
+        },
+        {
+            "type": "P",
+            "content": "Tensorflow example:"
+        },
+        {
+            "type": "P",
+            "content": "In this example we use Google’s implementation of AutoAugment as part of their AutoML repository that can be used by default when training or finetuning EfficientDet. We use it to apply one of the learnt policies to the PASCAL VOC tensorflow dataset for object detection:"
+        },
+        {
+            "type": "CODE",
+            "content": "# install dependenciespip install tensorflowpip install tensorflow_addons# clone automlgit clone https://github.com/google/automl.gitcd automl/efficientdet"
+        },
+        {
+            "type": "P",
+            "content": "PyTorch Example"
+        },
+        {
+            "type": "CODE",
+            "content": "pip install torchpip install numpypip install \"opencv-python-headless<4.3\"pip install -q -U albumentationspip install pillow# download CIFAR-10 policy from albumentations-benchmark repositorywget \\ https://raw.githubusercontent.com/albumentationsteam/autoalbument-benchmarks/main/albumentations_configs/cifar10_autoalbument.json"
+        },
+        {
+            "type": "P",
+            "content": "We can now use cifar10_tranform as we would any other PyTorch transform."
+        },
+        {
+            "type": "H1",
+            "content": "2. Know your model"
+        },
+        {
+            "type": "P",
+            "content": "If you thought waving the term Data-centric AI around would excuse you completely from having to understand your model, you are mistaken. Some models are developed with a specific data preparation in mind. Disregarding this, might negatively impact your model performance."
+        },
+        {
+            "type": "P",
+            "content": "A prime example of this is YOLOv4, which is still a very popular model for object detection. One of the contributions that plays a part in the model’s success is the so-called Bag of Freebies (BoF). This consists of techniques that improve the model performance without affecting the model at inference time, including data augmentation. The augmentation transforms that were actually included in BoF, based on ablation experiments, are CutMix and Mosaic Data Augmentation. Hence these augmentations are as much a part of the model as the model architecture itself."
+        },
+        {
+            "type": "H1",
+            "content": "3. Expert knowledge"
+        },
+        {
+            "type": "P",
+            "content": "Years of “model-centric AI” have made highly performant model architectures and pretrained weights a commodity. On top of that, research developments along the lines of AutoAugment have made strong augmentation baselines widely applicable. So is there still room for expert knowledge in this story? Can a seasoned ML practitioner still make a difference and squeeze every last drop of performance out of the data? We believe the answer is a resounding “yes”."
+        },
+        {
+            "type": "P",
+            "content": "Let’s again take a look at the solution of Synaptic-AnN. After having used the AutoAugment policy for the SVHN dataset, they noted the key differences between SVHN and their dataset and concluded that some augmentations did not make sense for their dataset: Solarize and Invert. This strategy resulted in a significant performance boost."
+        },
+        {
+            "type": "P",
+            "content": "Similarly, a lot of use cases we tackle at ML6 have very specific datasets and not respecting the subtle differences between them would result in leaving model performance on the table. Consider for example automatic quality control on a manufacturing line. Computer vision application in manufacturing typically allow to have a very controlled environment: There is constant lighting, a fixed angle of view, a fixed distance to the object… Consequently, it is unnecessary to use augmentations to make our model invariant to lighting conditions, viewing angles or object scale. Instead we should focus on augmentations that produce plausible variations of the defects we are trying to detect."
+        },
+        {
+            "type": "P",
+            "content": "In conclusion, when you have gathered and labeled the dataset for your next ML project, take some time to set up and develop a good data augmentation strategy. Start by applying a strong baseline strategy and iterate upon it by factoring in expert knowledge by understanding your data and use case. Finally, take the time to understand the inner workings of your model to make sure that your augmentation strategies are aligned with it."
+        }
+    ]
+}

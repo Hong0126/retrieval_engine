@@ -1,0 +1,227 @@
+{
+    "title": "Potential applications of discrete diffusion models",
+    "author": "Bert Christiaens",
+    "readTime": "6 min read",
+    "publishDate": "Aug 30, 2022",
+    "blocks": [
+        {
+            "type": "H1",
+            "content": "Introduction"
+        },
+        {
+            "type": "P",
+            "content": "In this blogpost, we’ll examine the applications of using VQGAN combined with Discrete Absorbing Diffusion models from the amazing paper:"
+        },
+        {
+            "type": "BLOCKQUOTE",
+            "content": "Unleashing Transformers: Parallel Token Prediction with Discrete Absorbing Diffusion for Fast High-Resolution Image Generation from Vector-Quantized Codes."
+        },
+        {
+            "type": "P",
+            "content": "If you are curious about the clever techniques that made this possible, the paper itself and our technical blogpost will definitely be something for you! In the technical blogpost we gave an overview of the previous SOTA generative models, to then arrive at a new class of models, the diffusion models. We went in depth on the architecture of the Discrete Absorbing Diffusion models. In this blogpost, we will take a step back and look how we can leverage the characteristics of this model for creative purposes."
+        },
+        {
+            "type": "H1",
+            "content": "Recap technical blogpost"
+        },
+        {
+            "type": "P",
+            "content": "In the technical blogpostI we discussed two models:"
+        },
+        {
+            "type": "UL",
+            "items": [
+                "VQGAN, a model that represents data in a 16x16 grid of discrete latent codes and is able to decode them back to image space",
+                "the Discrete Absorbing Diffusion model, a transformer model that learns which combinations of discrete latent codes result in realistic and consistent images"
+            ]
+        },
+        {
+            "type": "P",
+            "content": "In the technical blogpost we saw that a discrete diffusion model doesn’t generate these latent codes from left-to-right, such as an autoregressive model, but can generate them in a random order."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "1ea578d22b96606251ef585efe954315.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/0*1eBrTyDYer0gIpdT.gif",
+            "caption": "Out-of-order generation of latent codes"
+        },
+        {
+            "type": "P",
+            "content": "This out-of-order and bidirectional sampling allows us to use novel techniques to edit and generate images:"
+        },
+        {
+            "type": "UL",
+            "items": [
+                "Image generation from scratch",
+                "Conditional image generation",
+                "Image inpainting",
+                "Stitching images",
+                "Generating larger images"
+            ]
+        },
+        {
+            "type": "H1",
+            "content": "Image generation from scratch"
+        },
+        {
+            "type": "P",
+            "content": "As in most generative models, we can generate images from scratch. The diffusion model starts with an empty 1I6x16 grid, denoted by MASK tokens, and iteratively generates tokens to fill up the grid. Once every code is generated, the VQGAN decoder uses these generated codes to create globally coherent images competitive with other generative models."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "ef54f66b6d1181ed8854d7a9e9fea90e.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*TtLn0PROKhf536pNKc69qw.png",
+            "caption": "Faces generated from scratch by sampling from a discrete diffusion model trained on the FFHQ dataset"
+        },
+        {
+            "type": "FIGURE",
+            "filename": "3758af1e313679b3aceb6a26cbb8dbd3.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*Lh1OrPh8F4onxeloSpMHMg.png",
+            "caption": "Churches generated from scratch by sampling from a discrete diffusion model trained on the LSUN churches dataset"
+        },
+        {
+            "type": "H1",
+            "content": "Conditional image generation"
+        },
+        {
+            "type": "P",
+            "content": "Now let’s talk about conditional image generation. This is a fancy way to say that we choose a part of the image, to steer the generation of the rest of the image."
+        },
+        {
+            "type": "P",
+            "content": "With the existing autoregressive models, it is possible to use conditional image generation based on a partial image. The idea here is to give the model the top part of an image as context and then further complete the content by predicting the next pixels one-by-one in a top-to-bottom, left-to-right fashion. Instead of predicting pixels, we could also predict discrete codes in a unidirectional manner, which is an idea that was explored in the paper: Taming transformers for high-resolution image synthesis."
+        },
+        {
+            "type": "P",
+            "content": "Impressive, right? However, it is only possible to condition on the top part of an image, due to the unidirectional nature of autoregressive models."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "82cf2c31d7d315ca243ad9ee509b92a2.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*oCSVaDedCRuNli-LRwoWug.png",
+            "caption": "Unidirectional prediction in autoregressive models"
+        },
+        {
+            "type": "P",
+            "content": "That’s where our diffusion model can do better! We can encode an image with the VQGAN encoder, giving us a grid of latent variables. Then we choose which parts of the image we want to keep and let the model generate everything around it."
+        },
+        {
+            "type": "P",
+            "content": "This is a big improvement in flexibility compared to autoregressive models since we are no longer restricted to specific parts of an image. As a demonstration, in the following figure we want to keep the tower in the middle with different generated backgrounds. We keep the codes in the middle region 🏯, replace the other codes with the MASK value and ask the model to generate multiple new images."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "64600da61a897e39c6e53ef12a88560f.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*TSw-1o76kw92X6nnhe-xUw.gif",
+            "caption": "Left: generated image with fixed region in the middle. Right: full generated image"
+        },
+        {
+            "type": "P",
+            "content": "As you can see, the content and structure of the middle region stays fixed for the most part, only adapting slightly to better fit the surrounding pixels. Feels great to tell the model what to do 😎!"
+        },
+        {
+            "type": "H1",
+            "content": "Regenerating image regions (inpainting)"
+        },
+        {
+            "type": "P",
+            "content": "Similar to the conditional image generation, we can also perform image inpainting 🎨🖌."
+        },
+        {
+            "type": "P",
+            "content": "Let’s suppose we generate an image and we like most of it, except for one region that feels just not quite right. No problem, we can simply mask out the latent codes from the grid that correspond to this unwanted region and let the diffusion model regenerate them. To show how this works, let’s generate some new mouths for! By regenerating these codes multiple times, we can get many variations."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "b52c2ed6a9c3f1c9c0deadc1e53b42d1.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*dcyOR0X4XrY9Lo4DNeZRNw.png",
+            "caption": "Regeneration of a region of the image while keeping the other content fixed"
+        },
+        {
+            "type": "P",
+            "content": "Very cool! We get 9 new images with exactly the same hair, eyes and background but with completely different mouths 👄 ."
+        },
+        {
+            "type": "H1",
+            "content": "Stitching images together"
+        },
+        {
+            "type": "P",
+            "content": "Now the real fun can start. Due to the grid structure of the VQGANs latent space, the codes learned by the VQGAN are highly spatially correlated to the content of the generated images. This means that the latent codes that correspond to the region of the eyes of a generated face will contain information about the eyes."
+        },
+        {
+            "type": "P",
+            "content": "Okay, but now what? Let’s take the latent codes of the 👀 of image A and codes of the 👄 of image B. We now paste them in a grid and mask out all the other tokens and have our diffusion model do what it’s best at."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "d21cea70a8884fee57e2ebf01cf4eaff.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*u9R1r6q0FKcN-MFMBw7mCA.png",
+            "caption": "The latent variables corresponding to the mouth and eyes are taken from the left faces and put into an empty grid with masked tokens. The masked tokens are predicted by the diffusion model and decoded into the face on the right."
+        },
+        {
+            "type": "P",
+            "content": "We see that the diffusion model has nicely filled in the masked regions to create a coherent face while staying true to the original look of the mouth and eyes."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "5677e6628be10c488e17c1ed45fc0e90.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*vr_cQok_Ssu25ImGKTeUXQ.png",
+            "caption": "Comparison of the eye and mouth regions from the source (left) and generated (right) images."
+        },
+        {
+            "type": "P",
+            "content": "Let’s get creative and apply this idea to a model trained on churches. The pope wants you to build a new church and particularly loves the base of the famous Notre Dame in Paris and the tower from the magnificent Sint-Baafs cathedral in Ghent. No problem, you can just take out the codes corresponding to wanted regions and paste them onto an empty latent space."
+        },
+        {
+            "type": "P",
+            "content": "All that is left is to ask the diffusion model to fill in the empty regions and decode them with VQ-VAE and you can easily generate an endless amount of new churches that comply with the constraints."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "e578af69a046fa82d557ea7a427fa28c.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*5LCI5JfZZFIZPcnPant_0w.gif",
+            "caption": "Left: generated image with highlighted masked region. Right: full generated image"
+        },
+        {
+            "type": "P",
+            "content": "As you can see, the content of the towers and the base stays the same and the model realistically fills in the rest. The pope is very happy with the results and gives you a VIP ticket to skip the line at Saint Peter’s gates. Job well done! If you want some crazier results, you can adjust the sampling temperature of the diffusion model to get some more variation (while trading off some global consistency)."
+        },
+        {
+            "type": "H1",
+            "content": "Generating larger images"
+        },
+        {
+            "type": "P",
+            "content": "The last cool application of this model is that it allows us to generate images that are larger than the images the model was trained on. This is accomplished by dividing the latent space of the larger image into multiple overlapping grids that match the original 16x16 shape. At each prediction step we compute the probabilities of new tokens and aggregate them across the different grids."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "c2f9a20b5145dac01a5bc50249681f5d.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*Jg_Mbna5jSp9uQaJ6Qszcw.gif",
+            "caption": "The process of producing larger images than trained on. The latent grid is divided into smaller grids that each calculate the probabilities of their masked tokens. These probabilities are aggregated across the grids to get a probability map of the original size, from which a new code can be sampled. Afterwards, the full grid of codes is decoded by the VQGAN decoder."
+        },
+        {
+            "type": "P",
+            "content": "This trick allows us to generate globally consistent images, even though the model was never trained for it."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "e8e3a66b07bd12a7bf0129598342ab4c.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*u2H2-nqt1i-WFLH4MwHUsw.jpeg",
+            "caption": "Generated images of higher resolution"
+        },
+        {
+            "type": "H1",
+            "content": "Conclusion"
+        },
+        {
+            "type": "P",
+            "content": "In this blogpost we have discussed how the bidirectional and iterative nature of the recently emerging diffusion models, combined with the discrete representations of VQGANs and the long-range modelling capabilities of transformers allows us to have more control over the latent space. This architecture produces high-quality and consistent images while adding the ability to edit images in a conceptual discrete space."
+        },
+        {
+            "type": "P",
+            "content": "Keep an eye out, because it’s not the last you’ll see of these diffusion models (in fact, various amazing new papers have been released while writing this post, such as DALL-E 2, ImageGen, Stable Diffusion…). And don’t forget to check out the technical blogpost to learn what happens behind the scenes!🤓"
+        }
+    ]
+}

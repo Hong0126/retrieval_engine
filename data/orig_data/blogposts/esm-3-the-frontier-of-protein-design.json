@@ -1,0 +1,214 @@
+{
+    "title": "ESM 3 — The Frontier of Protein Design?",
+    "author": "Nicholas Sujecki",
+    "readTime": "8 min read",
+    "publishDate": "Jul 8, 2024",
+    "blocks": [
+        {
+            "type": "P",
+            "content": "TL;DR"
+        },
+        {
+            "type": "P",
+            "content": "ESM-3 offers us sequence, structure and function design all unified in a single model. It appears performant across all three domains, yet remains under an elusive non-commercial license…"
+        },
+        {
+            "type": "FIGURE",
+            "filename": "470c76eb8a2980678c4231abc6b3dbbb.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:875/1*2zqSr2krUzhGW2aGsjbD3Q.png",
+            "caption": "Models understand bio better than ever, but they’re not yet perfect (an AI-generated model of a ‘3D protein structure’)."
+        },
+        {
+            "type": "P",
+            "content": "Introduction"
+        },
+        {
+            "type": "P",
+            "content": "Protein structure prediction and design play pivotal roles across many scientific and industrial fields, impacting drug discovery, enzyme engineering, and biotechnology. Traditionally, these endeavours have been hindered by the complexities of accurately predicting how amino acid sequences fold into functional three-dimensional structures. This challenge stems from the vast conformational space proteins can adopt and the subtle interactions governing their stability and function. ESM-3 is a new approach that leverages advanced ML techniques to unify sequence, structure and function prediction. If these concepts are unfamiliar to you and you’d like further clarity, there’s a good overview here. Models in the past have only been capable of achieving this to a limited extent, and have instead had to specialise within a domain to achieve the best performance. ESM-3 not only enhances our understanding of protein biology but also holds promise for accelerating the discovery and design of novel proteins with tailored functions."
+        },
+        {
+            "type": "P",
+            "content": "Understanding ESM3"
+        },
+        {
+            "type": "P",
+            "content": "ESM3 is the newest development in the realm of deep learning and protein science. It stands for “Evolutionary Scale Modeling version 3,” a state-of-the-art language model designed by researchers at EvolutionaryScale to predict and generate protein structures."
+        },
+        {
+            "type": "H1",
+            "content": "Architecture"
+        },
+        {
+            "type": "P",
+            "content": "Evolution?"
+        },
+        {
+            "type": "P",
+            "content": "I’m sure we’re all familiar enough with evolution as a general concept — yeah, that thing the guy with the crazy hair kept preaching that we’re all related to monkeys or something — well the E in ESM has all this and a little more going for it."
+        },
+        {
+            "type": "P",
+            "content": "Evolutionary data is used to inform protein design by embedding it into the model through training data. In less vague terms, the idea is that functionally important parts of proteins are conserved through evolution, so by including known evolutionary patterns in the training data, the model learns to recognise and conserve the patterns critical for protein function and structure."
+        },
+        {
+            "type": "P",
+            "content": "In your ‘E’ models this typically comes from using Multiple Sequence Alignments (MSAs) of amino acids as training data. As with all things there are other ways, but MSAs remains popular for good reason. This was first used in earlier ESM models, such as ESM-1b and ESM2, which at the time were groundbreaking for their plausible generation via this technique. ESM3 has continued the tradition, and stands true as a shining beacon of the E in its name."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "6083827b5816d0e17b4cdeccebd9ab1b.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:491/1*8F2Sxrj56QU_G-0eflVA7g.png",
+            "caption": "MSAs: aligning sequences together pairwise on the basis of similar regions with in them."
+        },
+        {
+            "type": "P",
+            "content": "Input Track Processing"
+        },
+        {
+            "type": "P",
+            "content": "ESM-3 has three separate input tracks for sequence, structure and function, allowing each to be prompted partially or in full. These tracks are processed separately before being combined into a single latent space, making the model not only capable of answering all three tasks, but also grants it an understanding of the protein domain unique only to itself."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "f88c449194d9da4cf3cac52cf8f6f2aa.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:875/1*18BazXIJg8M8i1skCVwKhQ.png",
+            "caption": "Sequence, Structure and Function prediciton visualised."
+        },
+        {
+            "type": "P",
+            "content": "Bidirectional Transformer Architecture"
+        },
+        {
+            "type": "P",
+            "content": "ESM3 incorporates bidirectional transformers as the scheme of its architecture. The advantages of bidirectional transformers is they enable comprehensive information exchange between all positions in the sequence, that is both backwards and forwards, enabling ESM-3 to effectively contextualise each amino acid based on both preceding and succeeding residues, giving a more holistic view of secondary and tertiary structural elements."
+        },
+        {
+            "type": "P",
+            "content": "Geometric Attention"
+        },
+        {
+            "type": "P",
+            "content": "Attention may be all that you need, but it never hurts to have a little more, right? ESM3 implements a Geometric Attention layer, which is stacked with sequence attention to produce contextual embeddings that consider both. In essence, amino acids are represented as a set of three-dimensional coordinates and put into distance matrices. Amino acids closer to one another get higher attention scores, allowing the model to selectively attend to spatially proximal residues in the protein structure and their potential interactions."
+        },
+        {
+            "type": "P",
+            "content": "Chain of Thought Generation"
+        },
+        {
+            "type": "P",
+            "content": "In generation, ESM-3 first defines a backbone and works from an iterative-refinement approach that alternates between sequence and structure. This ensures both correct structure and sequence generation, and results in a comprehensive understanding of the entire protein over sequence, structure and function prediction."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "382ec5371ef1b640a0791f3700942413.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:639/1*VDg32VY86dpaNhTTiuJXzg.png",
+            "caption": null
+        },
+        {
+            "type": "P",
+            "content": "Discrete Autoencoder for Structures"
+        },
+        {
+            "type": "P",
+            "content": "Where traditional methods treat sequences as a single, continuous input, ESM-3 discretises each protein into smaller arrangements of atoms and residues. By breaking down the structural complexity into discrete tokens, ESM3 further enhances its ability to capture fine-grained details such as atomic interactions, spatial arrangements, and geometric features."
+        },
+        {
+            "type": "H1",
+            "content": "Achievements"
+        },
+        {
+            "type": "P",
+            "content": "All-In-One"
+        },
+        {
+            "type": "P",
+            "content": "As mentioned before, the resulting architecture makes ESM-3 capable of sequence, structure and function prediction. It is a generative masked language model and will iteratively sample masked positions until they’re all unmasked."
+        },
+        {
+            "type": "P",
+            "content": "Most paragons in their field, such as AlphaFold, have always focused on one specified output type, which in this case is structures to address that pesky old folding problem. It hasn’t been until more recently with the use and fine-tuning of Large Language Models (LLMs) that we’ve seen the natural language capabilities of such models augment the ability to receive and return various input types. An example, ProGen2 from 2022, is able to accept sequences with some functional annotations as inputs and can return the same. As impressive as this is, it still only combines sequence with some functional capability. With this in mind, the value of ESM3’s 3-in-1 flexible multi-input/multi-output track can not be understated."
+        },
+        {
+            "type": "P",
+            "content": "Fluorescent Protein"
+        },
+        {
+            "type": "P",
+            "content": "As an example the paper cites a fluorescent protein — esmGFP, which our remaining-anonymous head of bio described only as a “really bad example” (I didn’t ask why) — generated by ESM3 with only a 58% sequence identity to the nearest known fluorescent protein. Where 58% may seem like a pretty unsuspecting number, the important part here is that a low similarity is good, showcasing ESM3’s ability to plausibly generate ‘distant’ proteins."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "6b5f328e418708d8b368667a0934274b.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:875/1*P_NkxQUr8VOIJQsL1RA3Gg.jpeg",
+            "caption": "Flourescent esmGFP, as from the ESM-3 paper."
+        },
+        {
+            "type": "P",
+            "content": "Where previous models have been constrained by the bounds of known protein sequences, ESM3 pushes generative possibilities into unknown territory, opening a vast design space that previous methods haven’t been able to access. This not only has the potential to expand our understanding of protein structure-function relationships but also opens new avenues for designing novel biomolecules with tailored functionalities. Through such capabilities, ESM3 may just provide us with the innovative solutions required for complex biomedical changes."
+        },
+        {
+            "type": "P",
+            "content": "Performance and Validation"
+        },
+        {
+            "type": "P",
+            "content": "You can ignore the upcoming numbers if you aren’t familiar, they’re just to appease the acronym lovers hiding in the wings. ESM-3 is capable of producing high confidence structure generations (pTM > 0.8, pLDDT > 0.8) that share a low sequence and structural similarity to the training set (sequence identity < 20%, TM-score 0.52 ± 0.10). Below is a full table of results for structure generation, where it shows ESM-3 models largely out-perform ESMFold, while still falling short of AlphaFold2."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "67fcd24d224f990170cad3deb85bce80.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:875/0*iTmdd1dj0HlyeJj3",
+            "caption": "Structure generation performance over a number of benchmarks."
+        },
+        {
+            "type": "P",
+            "content": "ESM3’s generated sequences produce structures with realistic foldability (TM-score 0.52 ± 0.10) that are reliable on a lower level (pLDDT 0.84), as well as coming from a diverse range of sequences that share little similarity (mean pairwise sequence identity of 0.155). While not directly compared in the paper, it is worth noting that ESM3s TM-scores are much lower than some of its predecessors, such as the aforementioned ProGen2 which has a mean TM-Score of 0.72. It is worth noting that this may be from ESM3’s tendency to generate new proteins that are ‘distant’ from known ones, which would adversely affect its TM-Scores."
+        },
+        {
+            "type": "P",
+            "content": "Functionally, ESM3s generated proteins maintain coordination and active sites with high designability (pTM > 0.8, scTM 0.96 ± 0.04) and shows a strong ability to follow complex prompts including sequence, structure coordinates, secondary structure (SS8), solvent-accessible surface area (SASA), and function keywords. The table below shows how well ESM-3 predicts each modality, given the others as inputs."
+        },
+        {
+            "type": "P",
+            "content": "Modality"
+        },
+        {
+            "type": "FIGURE",
+            "filename": "680347e9a43da2ce4b7f9c0f7f43c2c5.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:860/0*ZTE94a7MVudjULlr",
+            "caption": "How well the model predicts each modality, given the others. Lower values are better."
+        },
+        {
+            "type": "P",
+            "content": "Some Critiques"
+        },
+        {
+            "type": "P",
+            "content": "Results, Schmeults, amiright? ESM3 may not perform as well across all benchmarks as models specifically tuned for that task, and it’s hard to expect it to with everything else it does. There’s also the question of size, where out-performance of ESMFold begins at the price of 7B parameters. It’s worth noting that many models tuned to a particular domain, such as ESM-2, are still really really good at that particular task, and they tend to do it with a hell of a lot less parameters. Unless there’s a specific need for in-built structure generation and function prediction as well, it makes one wonder why 98B parameters is justifiable over 650M."
+        },
+        {
+            "type": "P",
+            "content": "And there is the question of access… At the moment EvolutionaryScale are keeping ESM-3 tight to their chests, meaning it’s strictly available under a non-commercial license, meaning hardly anyone can use it. With our hands all over ESM-3 we could get a better understanding of its capabilities and limitations, though for now we’ll just have to go with what they’ve given us — it appears to be a completely performant model over the sequence, structure and functional domains, without a particular expertise in any."
+        },
+        {
+            "type": "P",
+            "content": "Let’s hope that in future our benevolent overlords at EvolutionaryScale change their minds and open their models to the masses. At the end of the day, what have they got to lose?"
+        },
+        {
+            "type": "P",
+            "content": "Conclusion"
+        },
+        {
+            "type": "P",
+            "content": "Only time will tell if the proteins ESM3 makes are a little too distant from those known to us to be practically useful. Has mother nature evolved this way for a reason, or is she simply missing the point? Until ESM3 unlocks the secrets to reverse ageing and cure every disease on Earth, we‘ll never know. To ensure you’re as up to date as can be with all that is Machine Learning, make sure to stay tuned, and if you’re interested in any of our work you can find it here."
+        },
+        {
+            "type": "P",
+            "content": "For more information, or if you think you could’ve done a better job and want to tell me why, you can find me here: nicholas.sujecki@ml6.eu."
+        },
+        {
+            "type": "P",
+            "content": "Good luck out there."
+        }
+    ]
+}

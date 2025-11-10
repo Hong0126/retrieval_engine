@@ -1,0 +1,238 @@
+{
+    "title": "A practical guide to image-based anomaly detection using Anomalib",
+    "author": "Sebastian Wehkamp",
+    "readTime": "10 min read",
+    "publishDate": "Mar 31, 2022",
+    "blocks": [
+        {
+            "type": "FIGURE",
+            "filename": "ca620bd7002572f3326cf5b73f7f053a.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:480/1*Ro-2P0Jl3sfSCgkivZJ7SA.gif",
+            "caption": "Human intelligence-based anomaly detection in The Simpsons"
+        },
+        {
+            "type": "P",
+            "content": "In industrial manufacturing processes, quality assurance is an important topic. Therefore, small defects during production need to be detected reliably. This is what anomaly detection aims for, detecting anomalous and defective patterns which are different from the normal samples. This problem faces a number of unique challenges:"
+        },
+        {
+            "type": "OL",
+            "items": [
+                "It is often difficult to obtain a large amount of anomalous data",
+                "The difference between a normal sample and an anomalous sample can be very small",
+                "The type of anomalies is not always known beforehand"
+            ]
+        },
+        {
+            "type": "P",
+            "content": "These challenges make training a traditional classifier difficult and require special methods in order to solve them."
+        },
+        {
+            "type": "P",
+            "content": "Unsupervised anomaly detection and localization methods can be categorized as discriminative and generative methods."
+        },
+        {
+            "type": "P",
+            "content": "Discriminative methods attempt to model the decision boundary between anomalous samples and nominal samples. These methods generally extract the embeddings from an image and compare them to the reference embeddings from the “good” images. The distance is used as the anomaly score. These methods give decent results for anomaly detection but often lack interpretability as you don’t know which part of the image caused the image to be anomalous. An example of such a method is SPADE which runs K-nearest neighbor (K-NN) clustering on the complete set of embedding vectors at test time. This means that the inference complexity scales linearly with the training set size. High inference speed is often important in manufacturing which reduces the usefulness of this method greatly."
+        },
+        {
+            "type": "P",
+            "content": "Generative methods attempt to model the actual distribution of each class from which can then be sampled e.g. to generate new images. Anomaly detection approaches using these models are based on the idea that the anomalies cannot be generated since they do not exist in the training set. Autoencoder-based approaches try to detect anomalies by comparing the output of an autoencoder to its input. A high reconstruction error should indicate an anomalous region. GAN-based approaches assume that only positive samples can be generated. Although these generative methods are very intuitive and interpretable, their performance is limited by the fact that they sometimes have good reconstruction results for anomalous images too."
+        },
+        {
+            "type": "H1",
+            "content": "State of the art methods"
+        },
+        {
+            "type": "P",
+            "content": "This section will discuss three state-of-the-art methods more in depth. Two discriminative approaches, and one generative approach are described. These methods were chosen as they represent the state-of-the-art in anomaly detection while having a practical implementation available."
+        },
+        {
+            "type": "H2",
+            "content": "PaDiM"
+        },
+        {
+            "type": "P",
+            "content": "Before PaDiM, several discriminative approaches had been proposed which either require deep neural network training which can be cumbersome or they use K-NN on a large dataset which reduces the inference speed greatly. These two challenges might hinder the deployment of the algorithms in an industrial environment. Patch Distribution Modeling (PaDiM) aims to solve these challenges. They use a pre-trained CNN (ResNet, Wide-ResNet, or an EfficientNet) for embedding extraction based on ImageNet classification. The image gets divided into patches and embeddings are extracted for each patch. PaDiM uses all of the layers of the pre-trained CNN. This is done in order to capture both global contexts and fine grained details. As there might be a lot of redundant information in there they subsample the embeddings by random selection. Interestingly, this worked as good as dimensionality reduction techniques like PCA while being faster. The assumption is that all embedding vectors are sampled from a multivariate Gaussian distribution. They estimate the sample mean and sample covariance parameters of this distribution for every patch. The result is that each patch in the set of training images is described by a multivariate Gaussian distribution."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "52fb49b2c7a5b3821e6aec526ae7cb48.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/0*zosUuRmgW5A2dH6i.jpg",
+            "caption": "PaDiM architecture overview."
+        },
+        {
+            "type": "P",
+            "content": "The anomaly score during inference now gets assigned based on the Mahalanobis distance between the embedding of a test patch and the learned distribution for that patch location. The final anomaly score is the maximum of the anomaly map. The result is an algorithm which does not have the scalability issue of the KNN based methods as there is no need to sort a large amount of distance values to get the anomaly score of a patch."
+        },
+        {
+            "type": "H2",
+            "content": "PatchCore"
+        },
+        {
+            "type": "P",
+            "content": "Similarly to PaDiM, PatchCore divides the images in to patches. The idea of PatchCore is that if a single patch is anomalous the whole image can be classified as anomalous. PatchCore tries to solve the same challenges PaDiM faces. The goal of PatchCore is threefold:"
+        },
+        {
+            "type": "OL",
+            "items": [
+                "Maximize nominal information available at test time. PaDiM limits patch level anomaly detection to Mahalanobis distance measures specific for each patch. In PatchCore, the features extracted during training phase are stored in a memory bank which is equally available to all patches at test time.",
+                "Reducing biases towards ImageNet classes. Similar to PaDiM, a pre-trained CNN is used for the embedding extraction. A downside of this is the biases towards ImageNet classes. To reduce this bias only mid-level features are used as lower level features are generally too broad and higher level features are to specific to ImageNet.",
+                "Retain high inference speeds. PatchCore introduces coreset subsampling which approximates the structure of the original dataset while reducing the size greatly. This decreases the cost of a a nearest neighbor search resulting in increased inference speeds."
+            ]
+        },
+        {
+            "type": "P",
+            "content": "During training, embeddings are extracted using a pre-trained CNN, sub-sampled using coreset subsampling, and stored in a memory bank. During inference a nearest neighbor search is performed on the memory bank. This architecture is depicted in the image below."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "fb476e725ed11f8cdbd39b29b06d2e4c.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/0*W2_J0AOQVYQZYMzK.jpg",
+            "caption": "PatchCore architecture overview."
+        },
+        {
+            "type": "H2",
+            "content": "CFlow-AD"
+        },
+        {
+            "type": "P",
+            "content": "So far we have talked about discriminative models. The last model in this comparison is a different type, it is a generative model. A generative model tells you how likely the occurrence of a given example is. For example, models that predict the next word in a sequence are typically generative models because they can assign a probability to a sequence of words. Types of generative networks used for anomaly detection include Variational AutoEncoders (VAE), Generative Adversarial Networks (GANs), and normalized flows. CFlow-AD is based on the last type of networks, normalized flows."
+        },
+        {
+            "type": "P",
+            "content": "CFlow-AD is based on a conditional normalizing flow network. Normalized flow networks can be compared to VAEs with a couple of favorable mathematical properties. For an excellent explanation of normalized flows, see this blog. Similar to the previous approaches an encoder is used which is pre-trained on ImageNet. The embedding vectors are then encoded using a conventional positional encoding (PE) into conditional vectors, hence Conditional Flow. The decoder is a normalized flow decoder which estimates the likelihood of the encoded features. The estimated multi-scale likelihoods are upsampled to input size and summed to produce the anomaly map. This process is depicted below."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "abc203890c21ab007499079ebece8274.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:615/0*OMsqTiH8u0ncCli-.jpg",
+            "caption": "CFlow-AD architecture overview."
+        },
+        {
+            "type": "H1",
+            "content": "Performance tests"
+        },
+        {
+            "type": "P",
+            "content": "Official implementations for all of these methods are available on GitHub. However, there is a novel open-source Python library called Anomalib which implements all of the above algorithms in an easy to access manner. Anomalib contains a set of anomaly detection algorithms, a subset of which was presented above. The library aims to provide components to design custom algorithms for specific needs, experiment trackers, visualizers, and hyperparameter optimizers all aimed at anomaly detection."
+        },
+        {
+            "type": "H2",
+            "content": "Dataset"
+        },
+        {
+            "type": "P",
+            "content": "A popular dataset for anomaly detection in manufacturing processes is the MVTec dataset with factory defects. It contains over 5000 high-resolution images divided into ten different object and five texture categories. Each category comprises a set of defect-free training images and a test set of images with various kinds of defects as well as images without defects. The experiments below will be conducted on the Screw object and the Carpet texture categories."
+        },
+        {
+            "type": "H2",
+            "content": "Metric"
+        },
+        {
+            "type": "P",
+            "content": "The metric used for comparison is the the Area Under Receiver Operating Characteristic curve (AUROC) where the true positive rate is the percentage of pixels correctly classified as anomalous."
+        },
+        {
+            "type": "H2",
+            "content": "Getting started with Anomalib"
+        },
+        {
+            "type": "P",
+            "content": "In order to use Anomalib you will need at least Python 3.8+ and a clone of the repository. Install the requirements located in the requirements folder. It is also possible to install the library using pip install anomalib, however due to the active development of the library this is not recommended until release v0.2.5. The models are located in anomalib\\models\\ModelName where each of the models are implemented and there is an accompanying config.yaml This config file contains information about the dataset (by default MVTec), model parameters, and the train/test parameters. For the experiments below the default model, train, and test parameters were used. By default all models expect the MVTec dataset in datasets\\MVTec. You can download the dataset here."
+        },
+        {
+            "type": "P",
+            "content": "After installing the requirements, setting up the dataset, and modifying the config file as desired you can train a specific model using:"
+        },
+        {
+            "type": "CODE",
+            "content": "python tools/train.py --model <ModelName>"
+        },
+        {
+            "type": "P",
+            "content": "The resulting weights and test images will be stored in results\\<ModelName>. If you already have a trained model you can run inference on a new image using:"
+        },
+        {
+            "type": "CODE",
+            "content": "python tools/inference.py \\    --model_config_path <path/to/model/config.yaml> \\    --weight_path <path/to/weight/file> \\    --image_path <path/to/image>"
+        },
+        {
+            "type": "H2",
+            "content": "Results"
+        },
+        {
+            "type": "P",
+            "content": "This section will compare the implementation of the three models discussed earlier and compare it to the results in their respective papers. The MVTec dataset contains 10 object and 5 texture classes. The comparison will compare the AUROC of the three models and will be run on the Screw object class (320 train images) and the Carpet texture class (245 train images). All tests are run on a Google Colab with a Nvidia K80, 2 threads, and 13Gb RAM. The resulting tables are shown below."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "38bf0706ecbca4a5ab3f616403ad0111.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*CGvNzDpXMa4pMaW_N7c_zQ.png",
+            "caption": "AUROC comparison for the Screw object class"
+        },
+        {
+            "type": "FIGURE",
+            "filename": "af94fe21bd87c8f1f8653cab58939647.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*fUyQBWk-d8UCHsuFRFHCjw.png",
+            "caption": "AUROC comparison for the Carpet texture class"
+        },
+        {
+            "type": "P",
+            "content": "*The original PaDiM paper only published average results for all classes on the image level"
+        },
+        {
+            "type": "P",
+            "content": "As expected the results of the Anomalib implementation are very similar to the implementations in the original papers. Two example outputs of PaDiM are shown below."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "a4097526fe2368cbec5904e82d8012bf.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*T2vXPTNX8dJ7dAsKu_uAug.png",
+            "caption": "PaDiM output of the Screw object class"
+        },
+        {
+            "type": "FIGURE",
+            "filename": "71569fc3f5e6aea12bcd9b79b1536a78.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*215iLo7ZGy44QrV-c4T46w.png",
+            "caption": "PaDiM output of the Carpet texture class"
+        },
+        {
+            "type": "P",
+            "content": "Besides the performance results, speed is also an important factor when deploying the models in real-life scenarios. The table below contains both the training time and the inference speed on the test set (Screws). Note that these results were obtained using the default Anomalib config file and could be improved e.g. by changing the CNN backbone, batch-size, or sub-sample size."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "5765b95b4fcf1e6f0ad693c0bc76de78.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*FEuQQWsAYpotkhkEmntLrA.png",
+            "caption": "Train and inference speeds of PaDiM, PatchCore, and CFlow-AD"
+        },
+        {
+            "type": "P",
+            "content": "A significant difference can be seen in the training time which can be explained using the model descriptions above. All of the models use a pre-trained CNN as an encoder after which PaDiM randomly selects a number of features and creates the multivariate Gaussian distributions. PatchCore has similar functionality however uses coreset subsampling which requires more training time. CFlow-AD was a generative model based on normalizing flows. This means that the decoders will have to be adapted to the training set which increases the training time significantly."
+        },
+        {
+            "type": "P",
+            "content": "When comparing the inference speed, PaDiM is again the quickest as for each patch you only have to compute the Mahalanobis distance to the learned distribution. PatchCore has more information available in the memory bank and runs nearest neighbors which is slower. For CFlow, similar to during training, the use of the generative network requires more from the GPU and has a lower inference speed. Note that this speed comparison was done using the default config file which might not be the perfect configuration for all situations. The CFlow-AD paper for example notes that with a lighter encoder (MobileNetV3L or ResNet-18) they obtained 12 fps on a GTX 1080."
+        },
+        {
+            "type": "H1",
+            "content": "Summary"
+        },
+        {
+            "type": "P",
+            "content": "In this blogpost we compared three state-of-the-art anomaly detection methods, PaDiM, PatchCore, and CFlow-AD. Where PaDiM and PatchCore take the discriminative approach CFlow-AD uses a generative normalizing flow network in order to detect the anomalies. When comparing the results, the performance of all three is very similar. In recent literature PaDiM is considered as a baseline and both PatchCore and CFlow-AD try to improve on this and succeed in most areas except for the speed. Due to its simplicity PaDiM trains quickly and, using the default configs, has the highest inference speed. Because of the implementation it might be more sensitive to orientation/rotation which is something PatchCore for example tries to solve. Like always, the decision of the perfect model depends on the situation, however Anomalib provides easy access to these models allowing you to make this decision."
+        },
+        {
+            "type": "H1",
+            "content": "Future work"
+        },
+        {
+            "type": "P",
+            "content": "The current highest performer on the MVTec dataset is FastFlow. At the time of writing this blogpost Fastflow was not available in Anomalib however a branch with a preliminary implementation already existing suggesting that it is coming soon. Fastflow uses Normalizing Flows similar to CFlow-AD and tries to improve on this."
+        },
+        {
+            "type": "P",
+            "content": "Google Cut-Paste introduces a two stage framework. The algorithm is called CutPaste because of a simple data augmentation strategy that cuts an image patch and pastes the patch at a random location of a large image which serves as an anomaly. A CNN is trained using this augmentation in a self-supervised manner. In the second stage they adopt one-class classification algorithms such as OneClass SVM using the embeddings of the first stage."
+        }
+    ]
+}

@@ -1,0 +1,369 @@
+{
+    "title": "Who spoke when: Choosing the right speaker diarization tool",
+    "author": "Philippe Moussalli",
+    "readTime": "8 min read",
+    "publishDate": "Sep 7, 2022",
+    "blocks": [
+        {
+            "type": "BLOCKQUOTE",
+            "content": "This blogpost is derived from its interactive version on Hugging Face Spaces. You can continue reading there if you want the benefits of playing around with multiple examples or to test some diarization tools on your own audio samples."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "58b433dd428f99c48d2a22b7aacedad4.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*vlK0QyQU4MizY6FMQZvWLQ.png",
+            "caption": "Illustration of speaker diarization"
+        },
+        {
+            "type": "P",
+            "content": "With the increase in applications of automated speech recognition systems (ASR), the ability to partition a speech audio stream with multiple speakers into individual segments associated with each individual has become a crucial part of understanding speech data."
+        },
+        {
+            "type": "P",
+            "content": "In this blog post, we will take a look at different open source frameworks for speaker diarization and provide you with a guide to pick the most suited one for your use case."
+        },
+        {
+            "type": "P",
+            "content": "Before we get into the technical details, libraries and tools, let’s first understand what speaker diarization is and how it works!"
+        },
+        {
+            "type": "H1",
+            "content": "🗣️ What is speaker diarization?️"
+        },
+        {
+            "type": "P",
+            "content": "Speaker diarization aims to answer the question of “who spoke when”. In short: diariziation algorithms break down an audio stream of multiple speakers into segments corresponding to the individual speakers."
+        },
+        {
+            "type": "P",
+            "content": "By combining the information that we get from diarization with ASR transcriptions, we can transform the generated transcript into a format which is more readable and interpretable for humans and that can be used for other downstream NLP tasks."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "a819c4e642932194f37b3653fdf03835.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*LhJIQly3bH3pAS0OnK04DA.png",
+            "caption": "Workflow of combining the output of both ASR and speaker diarization on a speech signal to generate a speaker transcript."
+        },
+        {
+            "type": "P",
+            "content": "Let’s illustrate this with an example. We have a recording of a casual phone conversation between two people. You can see what the different transcriptions look like when we transcribe the conversation with and without diarization."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "2685d03ac5ec64e5b887e4bac8e68c10.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*918Vvgx5K27eAM2ymD9cbg.png",
+            "caption": null
+        },
+        {
+            "type": "P",
+            "content": "By generating a speaker-aware transcript, we can more easily interpret the generated conversation compared to a generated transcript without diarization. Much neater no? ✨"
+        },
+        {
+            "type": "P",
+            "content": "But what can I do with those speaker-aware transcripts? 🤔"
+        },
+        {
+            "type": "P",
+            "content": "Speaker-aware transcripts can be a powerful tool for analyzing speech data:"
+        },
+        {
+            "type": "UL",
+            "items": [
+                "We can use the transcripts to analyze individual speaker’s sentiment by using sentiment analysis on both audio and text transcripts.",
+                "Another use case is telemedicine, where we might identify the <doctor> and <patient> tags on the transcription to create an accurate transcript and attach it to the patient file or EHR system.",
+                "Speaker diarization can be used by hiring platforms to analyze phone and video recruitment calls. This allows them to split and categorize candidates depending on their response to certain questions without having to listen to the recordings again."
+            ]
+        },
+        {
+            "type": "P",
+            "content": "Now that we’ve seen the importance of speaker diarization and some of its applications, it’s time to find out how we can implement diarization workflows on our audio data."
+        },
+        {
+            "type": "H1",
+            "content": "📝 The workflow of a speaker diarization system"
+        },
+        {
+            "type": "P",
+            "content": "Building robust and accurate speaker diarization workflows is not a trivial task. Real world audio data is messy and complex due to many factors, such as having a noisy background, multiple speakers talking at the same time and subtle differences between the speakers’ voices in pitch and tone."
+        },
+        {
+            "type": "P",
+            "content": "Moreover, speaker diarization systems often suffer from domain mismatch where a model on data from a specific domain works poorly when applied to another domain."
+        },
+        {
+            "type": "P",
+            "content": "All in all, tackling speaker diarization is no easy feat. Current speaker diarization systems can be divided into two categories: Traditional systems and End-to-End systems. Let’s look at how they work:"
+        },
+        {
+            "type": "H1",
+            "content": "Traditional diarization systems"
+        },
+        {
+            "type": "P",
+            "content": "Those consist of many independent submodules that are optimized individually, namely being:"
+        },
+        {
+            "type": "UL",
+            "items": [
+                "Speech detection: The first step is to identify speech and remove non-speech signals with a voice activity detector (VAD) algorithm.",
+                "Speech segmentation: The output of the VAD is then segmented into small segments consisting of a few seconds (usually 1–2 seconds).",
+                "Speech embedder: A neural network pre-trained on speaker recognition is used to derive a high-level representation of the speech segments. Those embeddings are vector representations that summarize the voice characteristics (a.k.a voice print).",
+                "Clustering: After extracting segment embeddings, we need to cluster the speech embeddings with a clustering algorithm (for example K-Means or spectral clustering). The clustering produces our desired diarization results, which consists of identifying the number of unique speakers (derived from the number of unique clusters) and assigning a speaker label to each embedding (or speech segment)."
+            ]
+        },
+        {
+            "type": "FIGURE",
+            "filename": "62fae831d2ed65122f2598eadad94139.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*SCLo2lPhAXJsxdX_Lw2CPA.png",
+            "caption": "Process of identifying speaker segments from speech activity embeddings."
+        },
+        {
+            "type": "H1",
+            "content": "End-to-end diarization systems"
+        },
+        {
+            "type": "P",
+            "content": "Here, the individual submodules of the traditional speaker diarization system can be replaced by one neural network that is trained end-to-end on speaker diarization."
+        },
+        {
+            "type": "P",
+            "content": "Advantages"
+        },
+        {
+            "type": "P",
+            "content": "➕ Direct optimization of the network towards maximizing the accuracy for the diarization task. This is in contrast with traditional systems where submodules are optimized individually but not as a whole."
+        },
+        {
+            "type": "P",
+            "content": "➕ Less need to come up with useful pre-processing and post-processing transformation on the input data."
+        },
+        {
+            "type": "P",
+            "content": "Disadvantages"
+        },
+        {
+            "type": "P",
+            "content": "➖ More effort needed for data collection and labelling. This is because this type of approach requires speaker-aware transcripts for training. This differs from traditional systems where only labels consisting of the speaker tag along with the audio timestamp are needed (without transcription efforts)."
+        },
+        {
+            "type": "P",
+            "content": "➖ These systems have the tendency to overfit on the training data."
+        },
+        {
+            "type": "H1",
+            "content": "📚 Speaker diarization frameworks"
+        },
+        {
+            "type": "P",
+            "content": "As you can see, there are advantages and disadvantages to both traditional and end-to-end diarization systems. Building a speaker diarization system also involves aggregating quite a few building blocks and the implementation can seem daunting at first glance."
+        },
+        {
+            "type": "P",
+            "content": "Luckily, there exists a plethora of libraries and packages that have all those steps implemented and are ready for you to use out of the box 🔥."
+        },
+        {
+            "type": "P",
+            "content": "I will focus on the most popular open-source speaker diarization libraries. All but the last framework (UIS-RNN) are based on the traditional diarization approach. Make sure to check out this link for a more exhaustive list of different diarization libraries."
+        },
+        {
+            "type": "H1",
+            "content": "1. pyannote"
+        },
+        {
+            "type": "P",
+            "content": "👉 Arguably one of the most popular libraries out there for speaker diarization."
+        },
+        {
+            "type": "P",
+            "content": "👉 Note that the pre-trained models are based on the VoxCeleb datasets which consists of recordings of celebrities extracted from YouTube. The audio quality of those recordings are crisp and clear, so you might need to retrain your model if you want to tackle other types of data like recorded phone calls."
+        },
+        {
+            "type": "P",
+            "content": "➕ Comes with a set of available pre-trained models for the VAD, embedder and segmentation model."
+        },
+        {
+            "type": "P",
+            "content": "➕ The inference pipeline can identify multiple speakers speaking at the same time (multi-label diarization)."
+        },
+        {
+            "type": "P",
+            "content": "➖ It is not possible to define the number of speakers before running the clustering algorithm. This could lead to an over-estimation or under-estimation of the number of speakers if they are known beforehand."
+        },
+        {
+            "type": "H1",
+            "content": "2. NVIDIA NeMo"
+        },
+        {
+            "type": "P",
+            "content": "👉The Nvidia NeMo toolkit has separate collections for Automatic Speech Recognition (ASR), Natural Language Processing (NLP), and Text-to-Speech (TTS) models."
+        },
+        {
+            "type": "P",
+            "content": "👉 The models that the pre-trained networks were trained on VoxCeleb datasets as well as the Fisher and SwitchBoard dataset, which consists of telephone conversations in English. This makes it more suitable as a starting point for fine-tuning a model for call-center use cases compared to the pre-trained models used in pyannote. More information about the pre-trained models can be found here."
+        },
+        {
+            "type": "P",
+            "content": "➕ Diarization results can be combined easily with ASR outputs to generate speaker-aware transcripts."
+        },
+        {
+            "type": "P",
+            "content": "➕ Possibility to define the number of speakers beforehand if they are known, resulting in a more accurate diarization output."
+        },
+        {
+            "type": "P",
+            "content": "➕ The fact that the NeMo toolkit also includes NLP related frameworks makes it easy to integrate the diarization outcome with downstream NLP tasks."
+        },
+        {
+            "type": "H1",
+            "content": "3. Simple Diarizer"
+        },
+        {
+            "type": "P",
+            "content": "👉 A simplified diarization pipeline that can be used for quick testing."
+        },
+        {
+            "type": "P",
+            "content": "👉 Uses the same pre-trained models as pyannote."
+        },
+        {
+            "type": "P",
+            "content": "➕ Similarly to Nvidia NeMo, there’s the option to define the number of speakers beforehand."
+        },
+        {
+            "type": "P",
+            "content": "➖ Unlike pyannote, this library does not include the option to fine tune the pre-trained models, making it less suitable for specialized use cases."
+        },
+        {
+            "type": "H1",
+            "content": "4. SpeechBrain"
+        },
+        {
+            "type": "P",
+            "content": "👉 All-in-one conversational AI toolkit based on PyTorch."
+        },
+        {
+            "type": "P",
+            "content": "➕ The SpeechBrain Ecosystem makes it easy to develop integrated speech solutions with systems such ASR, speaker identification, speech enhancement, speech separation and language identification."
+        },
+        {
+            "type": "P",
+            "content": "➕ Large amount of pre-trained models for various tasks. Check out their HuggingFace page for more information."
+        },
+        {
+            "type": "P",
+            "content": "➕ Contains comprehensible tutorials for various speech building blocks to easily get started."
+        },
+        {
+            "type": "P",
+            "content": "➖ Diarization pipeline is still not fully implemented yet but this might change in the future."
+        },
+        {
+            "type": "H1",
+            "content": "5. Kaldi"
+        },
+        {
+            "type": "P",
+            "content": "👉 Speech recognition toolkit that is mainly targeted towards researchers. It is built with C++ and used to train speech recognition models and decode audio from audio files."
+        },
+        {
+            "type": "P",
+            "content": "👉 Pre-trained model is based on the CALLHOME dataset which consists of telephone conversation between native English speakers in North America."
+        },
+        {
+            "type": "P",
+            "content": "👉 Benefits from large community support. However, mainly targeted towards researchers and less suitable for production ready-solutions."
+        },
+        {
+            "type": "P",
+            "content": "➖ Relatively steep learning curve for beginners who don’t have a lot of experience with speech recognition systems."
+        },
+        {
+            "type": "P",
+            "content": "➖ Not suitable for a quick implementation of ASR/diarization systems."
+        },
+        {
+            "type": "H1",
+            "content": "6. UIS-RNN"
+        },
+        {
+            "type": "P",
+            "content": "👉 A fully supervised end-to-end diarization model developed by Google."
+        },
+        {
+            "type": "P",
+            "content": "👉 Both training and prediction require the usage of a GPU."
+        },
+        {
+            "type": "P",
+            "content": "➕ Relatively easy to train if you have a large set of pre-labeled data."
+        },
+        {
+            "type": "P",
+            "content": "➖ No-pretrained model is available, so you need to train it from scratch on your custom transcribed data."
+        },
+        {
+            "type": "P",
+            "content": "Phew 😮‍💨, that’s quite some different frameworks! To make it easier to pick the right one for your use case, I’ve created a simple flowchart that can get you started on picking a suitable library depending on your use case."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "ac93ed8e2940e96ddea3ae35f61942cf.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*6uXGAXbAc0JdDL-wJakHFw.png",
+            "caption": "Flowchart for choosing a framework suitable for your diarization use case."
+        },
+        {
+            "type": "H1",
+            "content": "🤖 Demo"
+        },
+        {
+            "type": "P",
+            "content": "Alright, you’re probably very curious at this point to test out a few diarization techniques yourself. Below is an example of diarization of this audio sample using the pyannote framework."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "5322cf950a2f7df4356f863962ead0ef.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*A1yitY2qO7LfpU6rD-CnGQ.png",
+            "caption": "Audio diarization of provided sample using the pyannote framework"
+        },
+        {
+            "type": "P",
+            "content": "Make sure to check out the interactive version of this blogpost on Hugging Face space to test out diarization on your own audio samples with different diarization frameworks."
+        },
+        {
+            "type": "H1",
+            "content": "💬 Conclusions"
+        },
+        {
+            "type": "P",
+            "content": "In this blogpost we covered different aspects of speaker diarization."
+        },
+        {
+            "type": "P",
+            "content": "👉 First we explained what speaker diarization is and gave a few examples of its different areas of applications."
+        },
+        {
+            "type": "P",
+            "content": "👉 We discussed the two main types of systems for implementing diarization system with a solid (high-level) understanding of both traditional systems and end-to-end systems."
+        },
+        {
+            "type": "P",
+            "content": "👉 Then, we gave a comparison of different diarization frameworks and provided a guide for picking the best one for your use case."
+        },
+        {
+            "type": "P",
+            "content": "👉 Finally, we provided you with an example to quickly try out a few of the diarization libraries."
+        },
+        {
+            "type": "P",
+            "content": "I hope you had a good time reading this article and learned some new stuff along the way."
+        },
+        {
+            "type": "H1",
+            "content": "About ML6"
+        },
+        {
+            "type": "P",
+            "content": "We are a team of AI experts and the fastest-growing AI company in Belgium. With offices in Ghent, Amsterdam, Berlin, and London, we build and implement self-learning systems across different sectors to help our clients operate more efficiently. We do this by staying on top of research, innovation and applying our expertise in practice. To find out more, please visit www.ml6.eu."
+        }
+    ]
+}

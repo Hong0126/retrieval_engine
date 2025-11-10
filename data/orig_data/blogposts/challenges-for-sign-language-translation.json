@@ -1,0 +1,158 @@
+{
+    "title": "Challenges for Sign Language Translation",
+    "author": "Aayush Singh",
+    "readTime": "10 min read",
+    "publishDate": "Aug 31, 2022",
+    "blocks": [
+        {
+            "type": "FIGURE",
+            "filename": "571be5a5ef4badf37251abd5df6e849f.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/0*bukuFEYpAiV5Bjc5",
+            "caption": "Photo by Jo Hilton on Unsplash"
+        },
+        {
+            "type": "BLOCKQUOTE",
+            "content": "Wouldn’t it be cool if people without knowledge of Sign Language can understand Sign Language? Then what’s stopping us (researchers & developers) from achieving this goal?"
+        },
+        {
+            "type": "P",
+            "content": "The work in this blog was done as part of my internship at ML6 and MSc Thesis at TU Delft."
+        },
+        {
+            "type": "P",
+            "content": "Introduction to Sign Language"
+        },
+        {
+            "type": "P",
+            "content": "Sign Language (SL) is the primary language for the deaf and mute community. According to the World Federation of the Deaf , there are more than 70 million deaf people around the world that use sign language. It is a natural and complete language that has its own linguistic intricacies. Every spoken language has its own sign language, like American Sign Language (ASL), Chinese Sign Language (CSL), German Sign Language (DGS), and so on. In total, there are around 300 different sign languages. Sign languages are not a one-to-one mapping of spoken languages, they have their own definite grammar."
+        },
+        {
+            "type": "P",
+            "content": "For instance, a well-constructed question must be accompanied by the correct eyebrow position. When a person is asking questions related to who, where, what, why, and when, the eyebrows are expected in a certain position. If the question is regarding a yes/no situation, the eyebrows are expected in some particular way. SL does not only use hand gestures to communicate but also includes facial expressions, hand movements and positions, and body posture. Any change in them can change the entire meaning of the sign. That is why it is generally hard for someone with no knowledge of sign languages to understand them."
+        },
+        {
+            "type": "P",
+            "content": "All of these factors make translation into spoken language difficult. There are mainly two research areas going on in Sign Language interpretation, i.e. Sign Language Recognition (SLR) and Sign Language Translation (SLT), which we touch on later in the blog and utilize a state-of-the-art architecture for translation. We will also be discussing and listing down some of the crucial gaps in the architecture and current research setting for SLT in a real-time setting."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "fa9aa7fcc7b0ce7c544287d22df5fe10.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*Ja1YIVuwYcW25LnjaZKzjQ.png",
+            "caption": "Some facts about Sign Language (Image Source)"
+        },
+        {
+            "type": "P",
+            "content": "Sign Language Recognition and Translation"
+        },
+        {
+            "type": "P",
+            "content": "SLR is about recognizing actions from sign language. It is considered to be the naïve gesture recognition problem but not just limited to alphabets and numbers. It focuses on recognizing a sequence of continuous signs but disregards the underlying rich grammatical and linguistic structures of sign language that differ from spoken language. The main goal is to interpret the signs, isolated or in a continuous sequence."
+        },
+        {
+            "type": "P",
+            "content": "On the other hand, SLT is about interpreting sign language in terms of natural language with its grammar, keeping in mind the language. The primary objective of SLT is to translate sign language videos into spoken language forms, taking into account the different grammatical aspects of the language. It is a relatively new problem and is complex as it involves considering facial features and body postures as well along with hand movements and positions. The image below clearly presents the difference between Continuous SLR and SLT."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "19918cd42b2d5ae53c2e3fa656edc912.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*5OhbN5kTm_EXBHEwFowCQQ.png",
+            "caption": "Difference between SLR and SLT (image taken from [1])"
+        },
+        {
+            "type": "P",
+            "content": "SLT with VAC_CSLR + Transformer"
+        },
+        {
+            "type": "P",
+            "content": "There are several gaps and challenges in the current research landscape for SLT in real-time human interaction. To get a better idea of these gaps, we utilized a state-of-the-art architecture for Continuous SLR proposed in “Visual alignment constraint (VAC) for continuous sign language recognition (CSLR).” research paper by Min, Yuecong, et al [2]. To use of this architecture for the SLT problem, we added a two-layer transformer for translation over the VAC_CSLR architecture, as shown in the image below. Moreover, RWTH Phoenix Weather 14T dataset [3] was used to train both networks separately. This dataset is extracted from weather forecast airings of the German tv station PHOENIX. It has 9 different signers, gloss-level annotations with a vocabulary of 1,066 different signs and translations into German spoken language with a vocabulary of 2,887 different words."
+        },
+        {
+            "type": "P",
+            "content": "The architecture is based on a two-step, Sign-to-Gloss Gloss-to-Text, translation where the first step is to obtain glosses from the video sequence, and in the next step, the glosses are converted into spoken language sentences. After the training and testing phase, the model was utilized in a real-time setting. It was tested on the different videos with translation happening on the go, in sets of frames using OpenCV. MediaPipe was used to identify when to start and end a sign sequence."
+        },
+        {
+            "type": "P",
+            "content": "The first stage required utilizing the VAC_CSLR network to obtain glosses from the video sequences. The Visual Alignment Constraint network focuses on enhancing the feature extractor with alignment supervision by proposing two auxiliary losses: the Visual Enhancement (VE) loss and the Visual Alignment (VA) loss. The VE loss provides direct supervision for the feature extractor, which itself is enhanced with the addition of an auxiliary classifier on visual features to get the auxiliary logits. This auxiliary loss makes the feature extractor make predictions based on local visual information only."
+        },
+        {
+            "type": "P",
+            "content": "Then, to compensate for the contextual information that VE loss lacks, the VA loss is proposed. The VA loss is implemented as a knowledge distillation loss which regards the entire network and the visual feature extractor as the teacher and student models, respectively. The final objective function is composed of the primary Connectionist Temporal Classification (CTC) loss, the visual enhancement loss, and the visual alignment loss. In the second stage to obtain translation from glosses, a two-layered Transformer was used to maximize the log-likelihood over all gloss-text pairs.We referred to the original Transformer [4] implementation for more details."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "31c80819c44cc0996f2dbca8ecd59cf9.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*G0vDuMw-XYsSwETFDFXm1g.png",
+            "caption": "VAC_CSLR + Transformer Architecture"
+        },
+        {
+            "type": "FIGURE",
+            "filename": "b407e9f21176f091c3fb8754c0c36708.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*cirhD7Tv5kcEeh3ePy_vWg.png",
+            "caption": "VE loss, VA loss, and Total Loss (respectively, clockwise from top left)"
+        },
+        {
+            "type": "P",
+            "content": "Experiment Setup on the VAC_CLSR + Transformer Network"
+        },
+        {
+            "type": "P",
+            "content": "After hyper-parameter tuning and model validation, the model was applied to different videos from the published datasets and clips from various SL-friendly news channels. The videos were mainly selected from German SL sources as the models were trained on a German SL dataset. We utilized random videos from RWTH-Phoenix-Weather 2014, RWTH-Phoenix-Weather 2014-T dataset, and took SL snippets from Tagesschau, a news show in Germany, for evaluation. These videos were not very long, just a sentence long (so, up to 8–10 seconds)."
+        },
+        {
+            "type": "P",
+            "content": "In the translation pipeline, a video is broken down into frames of images and on every image a MediaPipe holistic model is run, which identifies key points from the image. If the identified key points contain left or right-hand key points then the SLR model starts taking frames for prediction. The set of frames is decided on the basis of key-point detection of the left or right hand from the MediaPipe holistic model i.e. till one of the hands is in the frame. After we get the glosses from the VAC model, these glosses are passed to the Transformer model which provides the spoken translations. The final translations were compared to the actual text for the SL video sequence."
+        },
+        {
+            "type": "P",
+            "content": "In addition to this, we also applied different transformations to the frames captured from videos. Here are the transformations that were applied:"
+        },
+        {
+            "type": "P",
+            "content": "★ Segmentation masks: A mask is used to segment an image. It is used to identify the parts of an image containing a particular object, in this case, a human. It was mainly used to avoid noise in the images, with the background being insignificant for prediction.★ Image rotation: It is a common image augmentation operation. The image is rotated at various angles to capture the different aspects of the image features in different orientations.★ Image resizing: In this, the size of the image was changed by the central cropping method at different dimensions.★ Image scaling: This is different from image resizing as it happens on the entire image by resampling. The images were scaled randomly between 0.5 to 1.5 interval."
+        },
+        {
+            "type": "P",
+            "content": "Short Demo"
+        },
+        {
+            "type": "FIGURE",
+            "filename": "1d4520de659b42254d9eb8731ade8549.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:427/1*0uPWZ4sxgocDVEARXYEtgg.gif",
+            "caption": null
+        },
+        {
+            "type": "P",
+            "content": "Gaps observed for real-time SLT"
+        },
+        {
+            "type": "P",
+            "content": "After several experiments on the architecture with different videos, we listed down the gaps we observed and which are important to improve SLT for real-world application. Here are the observed gaps:"
+        },
+        {
+            "type": "OL",
+            "items": [
+                "Limited number of datasets available:In current research for SL, almost all research papers mention the need for more data to progress the research quality. The datasets available are mostly of alphabets, numbers, and individual words. There are also datasets for Continuous SLR that contain gloss representations for the SL sequences, but, for SLT, spoken translations are also required. There are very few datasets that contain spoken translations as well in the dataset. The main reason is that the SLT problem is comparatively new and also for spoken translation annotations, human SL interpreters are required to translate the entire video dataset. It is important because the problem of SLT is crucial for real-world applications which connect people with SL knowledge to the ones that do not have this knowledge. Another aspect of the limited datasets available is that most of the SL corpora are either unavailable for use due to the presence of corrupted or unreachable data, or available under heavy restrictions and licensing terms. SL data is particularly challenging to anonymize due to the need for valuable facial and other physical features in signing videos, therefore restricting its open distribution.",
+                "Domain restricted data:Most of the benchmark datasets currently present are collected from a certain SL media source which is domain-specific. Like the current benchmark dataset for SLT, the RWTH-Phoenix-Weather 2014T dataset of German Sign Language, contains videos from the daily weather forecast airings of the German public TV station PHOENIX featuring sign language interpretation.If a model is trained on a domain-specific dataset, then it is possible that it has not generalized well and has a limited vocabulary i.e. vocabulary specific to the domain. Most of the open-source SL sources, like news channels, are domain-specific so, it becomes challenging to develop a dataset that is open-domain.",
+                "Lack of variety in datasets:In the available datasets, there has been a lack of variety in terms of the number of signers, physical orientation of signers, and camera viewpoints of signers. There has been an average of 10–20 signers across various datasets, with the RWTH-Phoenix-Weather 2014T Dataset having just 9 signers. An increased number of native signers gives a better understanding of sign representation. In SL there are different dialects, this makes variations in signs for the same word. So, it is possible that the same word or phrase can be signed in different ways by different people, or the sign sequence of the same word may differ from one region to another. Therefore, it is better to capture this variation as much as possible by selecting a variety of signers. Another aspect related to variety is the camera viewpoint from which the signer is captured for the dataset collection. Generally, for a real-time application, it is not necessary that the signer will always be captured from the front by the camera. Currently, more than 85% of the datasets do not have multiple views.",
+                "Architecture transferability across different SL:Recently, the amount of research related to SLR/SLT has been increasing. The architectures are capturing various aspects of an SL video sequence. However, after scrutinizing different results from these types of research it is quite apparent that the accuracy results (WER score and BLEU score[5]) are not similar when the same architecture is tried on a different language dataset. For example, for an SLT architecture proposed in one of the research papers, on RWTH-Phoenix-Weather 2014T dataset it got 22.17 BLEU; on Public DGS Corpus just 3.2 BLEU (the higher the better). Therefore, these results indicate that current architectures are not appropriate for real-world applications, either more data is needed for these models or approaches that are more linguistically sophisticated are required.",
+                "Hardware restrictions for deep architectures:Another technical gap that is worth mentioning is the limits of hardware for conventional deep learning architectures. The model architecture that has multiple layers with millions of parameters is expected to be heavy in size and might require high resources and computational power. Often the target devices have limited resources and it would be heavy to compute especially for a real-time application. It is an important aspect in the light of real-world applications as real-world applications are expected to be robust and swift in delivering outputs."
+            ]
+        },
+        {
+            "type": "P",
+            "content": "Conclusion"
+        },
+        {
+            "type": "P",
+            "content": "In this blog, we showed the identified gaps in the architectures for SLR/SLT by considering and exploiting existing state-of-the-art architectures. Our mentioned gaps suggest that there needs to be more advancement in architectures and datasets to achieve high-level real-world applications. We conclude that although the current architectures for SLR/SLT might not be fully equipped for a real-world application for SL interpretation, the progress in terms of datasets and architectures looks promising. As the problem of SLT at hand is difficult, various aspects of SL must be considered to solve this challenging problem."
+        },
+        {
+            "type": "P",
+            "content": "References"
+        },
+        {
+            "type": "P",
+            "content": "[1] Camgoz, Necati Cihan, et al. “Neural sign language translation.” Proceedings of the IEEE conference on computer vision and pattern recognition. 2018.https://openaccess.thecvf.com/content_cvpr_2018/papers/Camgoz_Neural_Sign_Language_CVPR_2018_paper.pdf[2] Min, Yuecong, et al. “Visual alignment constraint for continuous sign language recognition.” Proceedings of the IEEE/CVF International Conference on Computer Vision. 2021. https://arxiv.org/abs/2104.02330[3] Necati Cihan Camgöz, Simon Hadfield, Oscar Koller, Hermann Ney, Richard Bowden, Neural Sign Language Translation, IEEE Conf. on Computer Vision and Pattern Recognition, Salt Lake City, UT, 2018. https://www-i6.informatik.rwth-aachen.de/~koller/RWTH-PHOENIX-2014-T/[4] Vaswani, Ashish, et al. “Attention is all you need.” Advances in neural information processing systems 30 (2017). https://proceedings.neurips.cc/paper/2017/hash/3f5ee243547dee91fbd053c1c4a845aa-Abstract.html[5] Papineni, Kishore, et al. “Bleu: a method for automatic evaluation of machine translation.” Proceedings of the 40th annual meeting of the Association for Computational Linguistics. 2002. https://aclanthology.org/P02-1040.pdf"
+        }
+    ]
+}

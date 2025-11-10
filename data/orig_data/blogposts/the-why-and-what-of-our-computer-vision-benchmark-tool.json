@@ -1,0 +1,204 @@
+{
+    "title": "The Why and What of our Computer Vision Benchmark Tool",
+    "author": "Jérémy Keusters",
+    "readTime": "10 min read",
+    "publishDate": "Nov 15, 2022",
+    "blocks": [
+        {
+            "type": "FIGURE",
+            "filename": "56d55e453c028e55f45baab23c813004.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*ii9826mO4tH-7dN_OuabuA.jpeg",
+            "caption": "Image designed by rawpixel.com / Freepik."
+        },
+        {
+            "type": "P",
+            "content": "Here at ML6, we work on a wide range of projects across various industries. Still, a large amount of vision projects require us to detect specific objects in images. To tackle this problem, we often make use of an object detection model. A lot of different models were released over the past few years, each with their own shape and flavour, forcing you to make a well-considered decision on which model to use for a specific use-case. To give you an idea of the magnitude: the popular website Papers With Code indexes 2,437 different papers about object detection models."
+        },
+        {
+            "type": "P",
+            "content": "Luckily for us, researchers use benchmarks to compare and score their models on various factors. The most popular benchmark nowadays for training and evaluating a new object detection model is the MS COCO (Microsoft Common Objects in Context) dataset. This set contains complex everyday scenes of common objects in their natural context. It contains 330 000 images, of which more than 200 000 are labelled using 80 different classes resulting in 2.5 million labelled instances."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "22bab1f1952ae12b9bba79d3799e877d.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*QnuuzHJ2Ac3xK8aZ-YQpvw.png",
+            "caption": "Some example images from the COCO dataset along with their annotations, taken from Lin et al."
+        },
+        {
+            "type": "P",
+            "content": "While it’s convenient that all state-of-the-art object detection models use the same dataset for comparison, it also introduces some negative side-effects. Researchers are often fixated on beating the state-of-the-art mAP score on the COCO dataset, virtually leading to an overfitting scenario where the focus no longer lays on creating an object detection model that focuses on doing well in general, but shifts towards doing well on the COCO dataset. Furthermore, evaluation results are usually limited to global measures such as mAP, missing a lower-level analysis of how a model for example performs on certain classes of objects. At the same time, we also notice that there’s still often a gap between the academic research context and putting these models into practice in the industry. This is mainly due to the difference between a clean research context environment and the often complex industry environment where things do not always go as planned."
+        },
+        {
+            "type": "P",
+            "content": "In an attempt to improve the aforementioned issues, we decided one year ago to build a framework for benchmarking object detection models using different datasets. This way, we can analyse if state-of-the-art models live up to their promises and can make a more confident decision when choosing a model for a specific client use-case. The goal of this tool is to build a bridge between the academic and industry context by challenging state-of-the-art models to prove that they also work in this industry context."
+        },
+        {
+            "type": "P",
+            "content": "In the remaining of this blogpost, we’ll first have a look at the high-level process of creating this benchmark and how we solved some of the issues we encountered. Afterwards, we will analyse and discuss the first results, which leads to some surprising preliminary conclusions on model performance across different classes."
+        },
+        {
+            "type": "H1",
+            "content": "Creating the benchmark"
+        },
+        {
+            "type": "P",
+            "content": "We first started to build a framework that allows for getting detection results from different models and evaluating them. We developed this framework using a combination of various technologies, including Google Cloud’s Vertex AI platform. Of course, we had to make sure that our benchmark was producing correct results, hence why we imported the COCO 2017 validation dataset to validate the correctness of the benchmark results."
+        },
+        {
+            "type": "H2",
+            "content": "Dataset"
+        },
+        {
+            "type": "P",
+            "content": "Once we knew that our framework was working, we focused on the dataset. We did not simply want to reproduce the existing results from papers, but instead wanted to challenge the models on a different dataset. Therefore, after some research, we decided to use the Google Open Images V6 dataset for comparing models."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "ae2788cabcdb803ec4da8c637edbe547.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*7H9KQFobeCyQ7HNo_ngrKw.png",
+            "caption": "Some example images from the Google Open Images dataset along with their annotations, taken from https://ai.googleblog.com/2020/02/open-images-v6-now-featuring-localized.html."
+        },
+        {
+            "type": "P",
+            "content": "The images in the Google Open Images (GOI) dataset are very diverse and often contain complex scenes with several objects. It contains detection, segmentation and even relationship annotations. An important difference compared to the COCO dataset is that the GOI dataset has 600 object classes, totalling 16 million bounding boxes in 1.9 million images. It is thus much larger and has more classes. However, most object detection models are trained and evaluated on the COCO dataset, which has only 80 classes. This means that we’ll need to map those 600 GOI classes to the 80 COCO classes if we want to use the publicly available pre-trained weights and don’t want to retrain any existing models. While doing this, we stumbled upon some issues:"
+        },
+        {
+            "type": "UL",
+            "items": [
+                "GOI classes overlap: With 600 GOI classes, one can already suspect that there might be some overlap between classes. For example: COCO has only a simple couch class, while GOI has couch, studio couch, sofa bed and loveseat classes. To fix this, we merged all the GOI classes into a single couch class and mapped this to the COCO couch class (and did the same for similar cases).",
+                "No perfect mapping possible: In COCO, there is a cup class that contains all drinking glasses, wine glasses, mugs, etc. However, in GOI, you have the following classes:Drink: contains literally everything that is a drink, so e.g. also bottles. The bounding box is also usually drawn around the liquid itself, instead of around the container holding the drink.Coffee cup: contains only coffee cups.Mug: contains only mugs, very similar to the ‘Coffee cup’ class. Large beer glasses are also annotated using this class funnily enough.This means that there is no perfect mapping possible between the COCO ‘cup’ class and any GOI class. As workaround, we settled for the ‘Mug’ class in this case.",
+                "Different labelling conventions: Each dataset has its own instructions and guidelines on how to label objects. For example: one can notice that in the GOI dataset, skis are sometimes labelled separately and sometimes as one big bounding box. In COCO, they are almost always labelled separately, even when close to each other. There is no quick solution for this issue.",
+                "Dataset specific features: In the GOI dataset, an annotation can have the special attribute ‘Group of’, indicating that the marked bounding box is a group of objects. Although this might make sense, it also complicates our mapping to COCO, as in COCO groups of objects are usually still labelled individually. This also means that the models on which we are going to benchmark are not specifically trained for recognising groups of objects with a single bounding box. To solve this, we prefer annotations that do not have the ‘Group of’ attribute, and only fall back to annotations with the ‘Group of’ attribute in case we don’t have enough annotations for a certain class."
+            ]
+        },
+        {
+            "type": "P",
+            "content": "Although these are all real issues, the impact of these will be rather low, as each model has to face the same challenges. After thorough analysis, we were able to create a list of mappings between the GOI classes and the COCO classes, which you can check out here."
+        },
+        {
+            "type": "P",
+            "content": "The format of this file is:"
+        },
+        {
+            "type": "CODE",
+            "content": "GOI class we want:COCO class to map to"
+        },
+        {
+            "type": "P",
+            "content": "For example:"
+        },
+        {
+            "type": "CODE",
+            "content": "Couch:couchStudio couch:couchSofa bed:couchLoveseat:couchTelevision:tvLaptop:laptop"
+        },
+        {
+            "type": "P",
+            "content": "The above example states that we want the ‘Television’ and ‘Laptop’ classes from the GOI dataset and map them to the ‘tv’ and ‘laptop’ COCO classes respectively. It also shows how we have taken into account the earlier explained ‘Couch’/’Studio couch’/’Sofa bed’/’Loveseat’ situation. We mark that we want all four classes from the GOI dataset, and then map them to the same ‘couch’ COCO class."
+        },
+        {
+            "type": "P",
+            "content": "With this mapping in place, we were ready to sample our images. We decided to sample at least 100 images for each of the 80 COCO classes from the GOI training set and use them in our CV Benchmark. We randomly shuffled all image annotations and, as mentioned earlier, we gave priority to the annotations that did not have the ‘Group of’ attribute. We ended up with 19,618 annotations across 7,887 images. However, we noticed that we only had 27 images that contained a toaster and 60 images that contained at least one hairdryer (73 hairdryer annotations in total). This already shows that having a dataset with a lot of classes may not always be the best option, as this also means that there are less images available for each class."
+        },
+        {
+            "type": "H2",
+            "content": "Models"
+        },
+        {
+            "type": "P",
+            "content": "For this benchmark, we started with four popular models that are regularly used at ML6:"
+        },
+        {
+            "type": "UL",
+            "items": [
+                "YOLOv4 (input size: 416x416 pixels)",
+                "EfficientDet D4 (input size: 1024x1024 pixels)",
+                "EfficientDet D0 (input size: 512x512 pixels)",
+                "SSD MobileNet V2 (input size: 320x320 pixels)"
+            ]
+        },
+        {
+            "type": "P",
+            "content": "All models were taken from TensorFlow Hub, except for YOLOv4, for which the Darknet weights were converted to a TensorFlow SavedModel format using hunlc007’s GitHub repository. Since we mapped our GOI dataset classes to the COCO classes, we do not need to retrain any of these models, as the standard weights are all already trained on the COCO 2017 dataset."
+        },
+        {
+            "type": "P",
+            "content": "We retrieved detection results for all our sampled images using each of the above listed models and evaluated the results against the ground truths according to the COCO evaluation guidelines. Once this was done, the results were automatically inserted into our interactive dashboard, as can be seen in the screenshot below."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "382d1cd32944637a9372145e567211ac.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*v1Uv-3T_ufXHW0m8XpffKA.png",
+            "caption": "ML6 Computer Vision Benchmark Dashboard."
+        },
+        {
+            "type": "H1",
+            "content": "Analysing the first results"
+        },
+        {
+            "type": "P",
+            "content": "Our dashboard allows us to analyse the performance of a model on a given dataset, both on average across all classes as well as for each class individually. We first take a look at the mAP (AP averaged over all classes) of each model and try to compare them against each other. The table below shows the calculated mAP for each model on our benchmark (which is a sample of the GOI dataset) together with the reported mAP on the COCO 2017 test set."
+        },
+        {
+            "type": "P",
+            "content": "Of course, we cannot compare these numbers directly, as they are about two different datasets. If we however look at the difference between the mAP on the ML6 benchmark and the COCO 2017 test set for each model and compare that, things do get interesting."
+        },
+        {
+            "type": "P",
+            "content": "For example, one can note that the mAP of YOLOv4 is 6.9% lower on the ML6 benchmark than on the COCO 2017 test set. This on itself is not remarkable, as the ML6 benchmark could be more difficult, leading to worse results. However, if you compare this with the fact that the mAP of SSD MobileNet V2 is 4.2% higher on the ML6 benchmark than on the COCO 2017 test set, one could say that SSD MobileNet V2 possibly generalises better than YOLOv4. Of course, we can’t substantiate these assumptions purely on this single experiment, but it could be interesting to investigate this further."
+        },
+        {
+            "type": "P",
+            "content": "We can also use our dashboard to analyse results for individual classes. This is particularly useful if we need to detect objects of a certain class for a client use-case, and want to see if a certain model outperforms others. But even if the class that we want to detect is not included, similar objects to our target class could still give us an estimation of how well a transfer learning approach would work."
+        },
+        {
+            "type": "P",
+            "content": "When we take a look at the ‘frisbee’ class for instance, it is interesting to see how SSD MobileNet V2 seems to fail to detect objects of this class, while the other models are doing quite well. SSD MobileNet V2 is a fast and small model, hence why the accuracy is lower, but this performance still seems to be subpar. The range here is 53.12, meaning that the AP difference between the worst performing and the best performing model in our benchmark is 53.12%."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "8af6c30035a0f3e875e6a309c0080066.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*2YSqswNUvm2c_MwTP89UbA.png",
+            "caption": "Evaluation results for the ‘frisbee’ class in our benchmark."
+        },
+        {
+            "type": "P",
+            "content": "Sometimes, it can also be the other way around. YOLOv4 for example fails completely on the ‘sandwich’ class, with an AP of only 18.31%, while SSD MobileNet V2 is doing relatively well with a score of 37.12%."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "edfcdeb4214cf3b675d617bd49bd9471.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*hLb903hVvruP0WI1zVD0vw.png",
+            "caption": "Evaluation results for the ‘sandwich’ class in our benchmark."
+        },
+        {
+            "type": "P",
+            "content": "The fact that YOLOv4 is performing bad on the ‘sandwich’ class sparked our interest into further investigating this, and in the end we found out that YOLOv4 seems to be performing subpar on almost all food classes. On the screenshot below, you can compare the results on the food classes. YOLOv4 is performing worse than MobileNetV2 on almost all of them, except for ‘broccoli’, where it performs slightly better, and ‘donut’, where it is a tie."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "6fecc04f9df3e05d9382595ac620eaac.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*1abt7TiJesXHVncuS29l7Q.png",
+            "caption": "Evaluation results for the food classes in our benchmark."
+        },
+        {
+            "type": "P",
+            "content": "The reason why a certain model is working better for a particular class or category of classes has probably to do with a mix of reasons such as architecture specifics, training procedures, etc. Although looking into those reasons is not in the scope of this blogpost, it could be an interesting topic to research in the future."
+        },
+        {
+            "type": "H1",
+            "content": "Conclusion"
+        },
+        {
+            "type": "P",
+            "content": "As you can see, the CV Benchmark already gives us interesting insights into how different models perform. The framework that we built allows us to be more critical against new state-of-the-art models and we believe that we have created a solid base that enables us to do more experiments, and possibly even make them publicly available in the future."
+        },
+        {
+            "type": "P",
+            "content": "Over time, we would like to extend it with more models, datasets and metrics. It would for instance be nice to visualise annotations that were not or wrongly detected, such that we can look into why a model is performing worse on a certain class. As for the datasets, we would like to sample images from various real-life customer use-cases, which will allow for a more realistic benchmarking exercise. When adding more models, we will also be able to compare models that were trained using the same input size, which allows us to make a better comparison. Of course, we are also interested in your opinion. What models would you like to see tested? Or do you have any suggestions for new features? Let us know in the comments!"
+        },
+        {
+            "type": "P",
+            "content": "Did we spark your interest and are you up for more? We’re always looking for people to join us in our mission to create impact with intelligent technology, so make sure to take a look at our careers page!"
+        }
+    ]
+}

@@ -1,0 +1,248 @@
+{
+    "title": "Advancements in Protein Design",
+    "author": "Nicholas Sujecki",
+    "readTime": "10 min read",
+    "publishDate": "Jul 17, 2024",
+    "blocks": [
+        {
+            "type": "FIGURE",
+            "filename": "645dc488ec635367b7dcf7c89f63183a.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:875/1*65twHqhwZcUFQijVSWSFNw.png",
+            "caption": "Paparazzi shot of me working on this article."
+        },
+        {
+            "type": "P",
+            "content": "For avid followers of the Protein design space, you’ll likely have come across our earlier blog detailing the ins and outs of the current state of affairs. Well, time inevitably marches on, and if there are few certainties in this universe, you can count on one being a continual development in Machine Learning. So given the recent advancements, enhancements and brute-forced micro-improvements, ML6 is back once again to give you the scoop on what exactly is “up” in the crazy, little intersection of Protein Design and ML. Though this time there’s a twist… We’ll specifically be focusing on updates in sequence generation, with some other notable mentions where appropriate."
+        },
+        {
+            "type": "P",
+            "content": "For the uninitiated, I’ll briefly explain why proteins hold such interest. If you’re already familiar, ctrl+f ahead to “Models”."
+        },
+        {
+            "type": "P",
+            "content": "What are proteins?"
+        },
+        {
+            "type": "P",
+            "content": "Proteins are fundamental molecules that play crucial roles in all biological systems. Composed of long chains of amino acids, proteins are involved in virtually every cellular process, making them indispensable for life. Amino acids are the building blocks of proteins and it’s their order and chemical properties that cause a protein to fold into a specific three-dimensional shape, which is critical for its function."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "b0bad033482e406ec3314a158d2b952d.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:413/0*gD880F0l669Dwjip",
+            "caption": null
+        },
+        {
+            "type": "P",
+            "content": "3D model of a Myoglobin protein."
+        },
+        {
+            "type": "P",
+            "content": "In humans alone proteins provide structural support for the skin and hair, enzymatic activity for digestion, haemoglobin in our blood for oxygen transportation, antibodies for immune defence. We wouldn’t even be able to move without them. While proteins in living organisms are primarily made up of The 20 Standard Amino Acids, A simple bacteria — E.coli — has over 4000 distinct proteins, so it’s no exaggeration to say there’s a lot of them."
+        },
+        {
+            "type": "P",
+            "content": "Why do I care?"
+        },
+        {
+            "type": "P",
+            "content": "Well, at the moment you very much may not, but I regret to inform you that you probably should. Because of the way of the natural world, enzymes are very often at the core of complex solutions. Enzymes are natural solutions to natural problems, so some of them could capture CO2 from our atmosphere or be used to break down waste pollutants like synthetic plastics and heavy metals. All of these innovations could come from our understanding of how to manipulate and use existing proteins, so if we learnt to “speak” fluent protein, the sky really would be the limit. For a more comprehensive overview please refer to our earlier work. For now, I hope the picture of what they are and why they interest us is clear."
+        },
+        {
+            "type": "P",
+            "content": "Machine Learning?"
+        },
+        {
+            "type": "P",
+            "content": "Machine Learning has really been influencing the protein design field since 2018 when DeepMind’s AlphaFold won the CASP13 competition. Since then the field has been exploding with new models and techniques, all eager to push us towards protein fluency. Most models are specialised to work within a particular domain of protein design:"
+        },
+        {
+            "type": "UL",
+            "items": [
+                "Protein Sequence Generation focuses on designing new proteins with a specific function or properties.",
+                "Protein Structure Prediction is predicting the 3D structure of a protein given an amino-acid sequence.",
+                "Protein Function Prediction involves inferring the function of a protein based on its sequence or structure."
+            ]
+        },
+        {
+            "type": "FIGURE",
+            "filename": "f88c449194d9da4cf3cac52cf8f6f2aa.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:875/1*18BazXIJg8M8i1skCVwKhQ.png",
+            "caption": "Sequential, Structural and Function representations, as from our previous blogpost."
+        },
+        {
+            "type": "P",
+            "content": "For the rest of the article we’ll be focusing primarily on Protein Sequence Generation, with some honourable mentions at the bottom for other models doing cool work. Protein Sequence Generation involves predicting novel amino acid sequences with some desired properties. As we briefly touched on earlier, there are a lot of proteins, and they way they fold into 3D shapes dictates a lot of whether they’re practical for use or not. The solution space is immense, and mother nature only chooses a small part of this to exploit. Because of this, we can’t simply brute force protein sequence generation, we need something a little smarter…"
+        },
+        {
+            "type": "P",
+            "content": "A Note on Benchmarks"
+        },
+        {
+            "type": "P",
+            "content": "Before we give you the goods, it’s worth giving a quick rundown of the common metrics used to evaluate a generated protein sequence string. If you’re like me and hold no love for acronyms, then hopefully this will help enhance your understanding:"
+        },
+        {
+            "type": "UL",
+            "items": [
+                "RMSD (Root Mean Square Distance) measures the average distance between matching points on two protein shapes. Smaller numbers mean the shapes are more similar, like measuring how closely two sculptures match each other.",
+                "TM Score also measures the similarity between two protein shapes, though it takes into account the length of the protein, making it more robust than RMSD.",
+                "H prob (Hinge Probability) measures how likely a protein is to allow different parts of the protein to move relative to one another. This is important for understanding the protein’s function and dynamics.",
+                "pLDDT (Predicted Local Distance Difference Test) shows how confident we are that a part of the predicted protein structure is correct. Higher scores mean we are more sure about that part. This score specifically comes from another ML model, AlphaFold.",
+                "SC-Perp (Side Chain Perpendicularity) checks if the side branches of a modelled protein are ideally positioned in respect to its backbone."
+            ]
+        },
+        {
+            "type": "P",
+            "content": "Models"
+        },
+        {
+            "type": "P",
+            "content": "For our models we have two main architecture categories: Diffusion and LLMs."
+        },
+        {
+            "type": "P",
+            "content": "Diffusion models are a class of generative models that iteratively refine protein sequences from a noisy or random initial state towards a coherent and functional sequence. These models draw inspiration from the physical process of diffusion, where molecules spread from areas of high concentration to low concentration over time."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "4f91b2f768d61e04e9d0e842e67579a2.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:875/1*LKzN9rXCTFrjPeuWytY-_w.png",
+            "caption": "An example protein diffusion process."
+        },
+        {
+            "type": "P",
+            "content": "EvoDiff"
+        },
+        {
+            "type": "P",
+            "content": "Diffusion models are great at creating new proteins by generating a wide variety of samples based on different inputs or goals. However, they mainly focus on protein structures, which limits the training data and their overall potential. EvoDiff changes this by using large-scale evolutionary data and a unique diffusion process to generate proteins based on their sequences, overcoming the limitations of structure-focused models. By incorporating multiple sequence alignments, EvoDiff captures evolutionary relationships and produces high-quality, diverse proteins, including those with flexible regions that other models can’t handle. This cutting-edge method ensures the creation of functional and structurally sound proteins, taking protein design beyond traditional approaches."
+        },
+        {
+            "type": "P",
+            "content": "TaxDiff"
+        },
+        {
+            "type": "P",
+            "content": "TaxDiff proposes a taxonomic-guided diffusion model that integrates taxonomic control features into the Denoise Transformer blocks of the diffusion model. This allows for controllable generation of protein sequences aligned with specific biological species classifications (tax-ids). Models like EvoDiff have made significant strides in generating protein sequences but struggle with uncontrollability in generating proteins meeting specific criteria. TaxDiff, on the other hand, demonstrates superior performance in generating biologically plausible protein sequences with controlled properties."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "7d2c5c4becc936b2a9f502fa407097c5.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:875/0*K7W_0QpOWenmxDWb",
+            "caption": "Results as taken from the TaxDiff paper."
+        },
+        {
+            "type": "P",
+            "content": "LLMs are deep learning models, typically based on transformer architectures, that are trained on large datasets of protein sequences. They learn the statistical properties and patterns in these sequences, enabling them to generate new sequences that are biologically plausible."
+        },
+        {
+            "type": "P",
+            "content": "ProLlaMA2"
+        },
+        {
+            "type": "P",
+            "content": "ProLLaMA is a groundbreaking Protein Large Language Model (ProLLM) designed to handle multiple tasks. It addresses key limitations of existing ProLLMs by introducing a two-stage training framework that integrates low-rank adaptation (LoRA) for efficient parameter utilisation and a multi-task PLP dataset to enhance the model’s ability to handle diverse tasks. This innovation allows ProLLaMA to excel in tasks like unconditional and controllable protein sequence generation, achieving state-of-the-art results. It marks the first ProLLM capable of simultaneously managing diverse tasks, as well as a generalised framework for adapting any regular LLM into a ProLLM. It’s build off a LlaMA-7B backbone, so it’s a big one."
+        },
+        {
+            "type": "P",
+            "content": "It is worth mentioning that both ProLlaMA and TaxDiff are from the same publishers and have both been released this year, so keep up the good work guys!"
+        },
+        {
+            "type": "FIGURE",
+            "filename": "927c3bd18ccdcd7a38bb0219c5aa2d25.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:875/0*dJ-_KECIHkfYjFct",
+            "caption": "Results as taken from the ProLlaMA2 paper."
+        },
+        {
+            "type": "P",
+            "content": "ProtLLM"
+        },
+        {
+            "type": "P",
+            "content": "Like ProLlaMA, ProtLLM also springs from a fine-tuned LlaMA model. It introduces a novel dynamic protein mounting mechanism that enables seamless processing of inputs containing multiple proteins interspersed with natural language text. Unique to ProtLLM is its protein-as-word language modelling approach, which includes a specialised protein vocabulary, allowing the model to predict both natural language and protein sequences from extensive candidate pools. The model is pre-trained on InterPT, a large-scale dataset integrating structured protein annotations and unstructured biological research papers, enhancing its understanding of proteins, which the publishers have made open-source. Experimental results demonstrate great performance across classic protein-centric tasks and its capability for zero-shot and in-context learning in protein-language applications sets it apart from existing specialised models."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "0df4063bfe00dd31400552e5accdc208.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:875/0*ybnIQwwHpN3HS_mh",
+            "caption": "Results as taken from the ProtLLM paper."
+        },
+        {
+            "type": "P",
+            "content": "Other Interesting Developments"
+        },
+        {
+            "type": "P",
+            "content": "The below models fall outside the scope of Protein Sequence Generation in one way or another, but all suggest interesting or novel contributions to the protein design space."
+        },
+        {
+            "type": "P",
+            "content": "ESM-3"
+        },
+        {
+            "type": "P",
+            "content": "Our first contestant in the ‘other’ category is the very recently release ESM-3. While working with protein sequences, this gets its own special place for working with structures and functions as well. It has three separate input tracks for sequence, structure and function that it processes separately before combining them into a single latent space. It also contains a separate attention mechanism for geometry, which it combines with the attention scores for sequences, and a novel generation approach which generates a backbone then iteratively refines between sequence and structure. This ensures both correct structure and sequence generation, and results in a comprehensive understanding of the entire protein over sequence, structure and function prediction."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "5e956578b2ac1f354c719d8e52be2b3e.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:875/1*KY-v7tZwsv8F_4fRigrAtw.png",
+            "caption": "Pick your poison, ESM-3 has you covered."
+        },
+        {
+            "type": "P",
+            "content": "One example the paper cites is a fluorescent protein, esmGFP, which shares only a 58% sequence identity to the nearest known fluorescent protein. Where 58% may seem like a pretty unsuspecting number, the important part here is that a low similarity is good, showcasing ESM3’s ability to plausibly generate ‘distant’ proteins."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "6b5f328e418708d8b368667a0934274b.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:875/1*P_NkxQUr8VOIJQsL1RA3Gg.jpeg",
+            "caption": "Fluorescent esmGFP, as from the ESM-3 paper."
+        },
+        {
+            "type": "P",
+            "content": "Pretty incredible stuff, right? It’s earnt its own blogpost, which you can find here."
+        },
+        {
+            "type": "P",
+            "content": "InstructPLM"
+        },
+        {
+            "type": "P",
+            "content": "While involving sequences, InstructPLM focuses more on finding sequences that ‘fold’ into a desired structure. Mutations play a pivotal role in driving evolutionary adaptations and enhancing genetic diversity. This variability forms the basis for protein engineering, where precise sequence design is crucial for creating effective enzymes, therapeutic proteins, and industrial biocatalysts. Recent advancements in deep learning have revolutionised protein design by formalising it as a multimodal learning problem. This adaptation aims to enhance the generalisation and reasoning capabilities of protein language models (pLMs), which are pre-trained on extensive protein sequence datasets to predict protein properties and simulate evolutionary sequences. InstructPLM introduces cross-attention mechanisms to align protein backbone encoders with language model decoders. This approach teaches pLMs to generate tailored to specific structural instructions, showcasing superior performance in sequence recovery and perplexity metrics. InstructPLM’s architecture integrates a protein language model decoder, a protein backbone encoder from existing design models, and a novel protein structure-sequence adapter, underscoring its efficacy in designing functional enzymes like PETase and L-MDH with enhanced activity levels and predicted structures."
+        },
+        {
+            "type": "P",
+            "content": "KnowledgeDesign"
+        },
+        {
+            "type": "P",
+            "content": "Another contender for protein design is KnowledgeDesign, which has achieved over 60% recovery on all major protein folding datasets (which is very very good). It significantly advances protein sequence design by integrating multimodal knowledge and confidence-aware refining techniques. The approach indicates potential for enhancing protein engineering capabilities, though is yet to be clinically tested."
+        },
+        {
+            "type": "P",
+            "content": "ESM-AA"
+        },
+        {
+            "type": "P",
+            "content": "ESM-AA provides an interesting use case for extending molecular modelling to the atomic level. It is not related to ESM3, they only incorporate similar ‘evolutionary’ techniques, hence the ‘E’ in both. ESM-AA innovates a code-switching technique that treats residues and atoms akin to different “languages,” enhancing the model’s versatility. The key to its effectiveness are two novel pre-training tasks: Multi-scale Masked Language Modeling (MLM) and Pairwise Distance Recovery (PDR). MLM not only masks residues but also atoms, requiring predictions at both scales. PDR tasks the model with recovering precise distances between corrupted atom coordinates, crucial for accurate structural understanding. Multi-scale Position Encoding (MSPE) accommodates residues and atoms, ensuring clarity in positional relationships crucial for molecular modelling tasks. By integrating these innovations into the Transformer architecture, ESM-AA efficiently handles both protein and small molecule tasks without additional models, making it a promising advancement in unified molecular modelling."
+        },
+        {
+            "type": "P",
+            "content": "Conclusion"
+        },
+        {
+            "type": "P",
+            "content": "The protein design space represents but a small crumb of the biscuit that makes up the ever-expanding universe of possibilities for Machine Learning, and the exciting advancements we’ve gone through today are but a smaller portion of that. Each new paper brings with it promising revelations that will one day hopefully bring us protein fluency. Until then, we will continue to monitor advancements while we convert them into valuable applications ourselves. To ensure you’re as up to date as can be with all that is Machine Learning, make sure to stay tuned, and if you’re interested in any of our work you can find it here."
+        },
+        {
+            "type": "P",
+            "content": "For more information, or if you simply want to say hi, you can find me here: nicholas.sujecki@ml6.eu."
+        },
+        {
+            "type": "P",
+            "content": "Ciao for now."
+        }
+    ]
+}

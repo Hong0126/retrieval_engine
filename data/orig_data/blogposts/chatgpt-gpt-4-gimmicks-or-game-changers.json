@@ -1,0 +1,276 @@
+{
+    "title": "ChatGPT & GPT-4: Gimmicks or game-changers?",
+    "author": "Mathias Leys",
+    "readTime": "8 min read",
+    "publishDate": "Apr 14, 2023",
+    "blocks": [
+        {
+            "type": "FIGURE",
+            "filename": "2c8d18a02049dc4ffe7dd8df0a5bda63.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:425/0*zG1O3y6UgN90mNbU.png",
+            "caption": "An artwork of ChatGPT — created by Stable Diffusion"
+        },
+        {
+            "type": "P",
+            "content": "The domain of artificial intelligence has been synonymous with exponential growth for the past 10 years. For an innovation to stand out in this field, where disruption is business-as-usual, it must be nothing short of spectacular. And spectacular is exactly how we can describe the recent progress in language understanding & generation through innovations such as ChatGPT and GPT-4."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "1bacc17fc8e57a6cefb511cbb6e3a966.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*-i4pduTQ_B1C0lupjjPhBw.png",
+            "caption": "Source: Our World in Data"
+        },
+        {
+            "type": "P",
+            "content": "All this is impressive but begs a simple question: what is in it for you?"
+        },
+        {
+            "type": "P",
+            "content": "In what follows, we will aim to answer exactly this question by discussing the disruptive potential of these technologies. We will also explore the limitations of these models and focus on how we can overcome these challenges. Because after all:"
+        },
+        {
+            "type": "BLOCKQUOTE",
+            "content": "“The pessimist sees difficulty in every opportunity. The optimist sees opportunity in every difficulty”"
+        },
+        {
+            "type": "H1",
+            "content": "Why now?"
+        },
+        {
+            "type": "P",
+            "content": "ChatGPT and GPT-4 have taken the world of natural language processing by storm. Enthusiasts see the dawn of human-level AI, researchers see nothing special and skeptics see a reason to start stockpiling toilet paper."
+        },
+        {
+            "type": "P",
+            "content": "Before we explore how we can leverage these breakthroughs to gain a strategic edge, let’s consider why we are seeing this progress in the first place."
+        },
+        {
+            "type": "P",
+            "content": "It will be a surprise to many that the working principle behind ChatGPT and GPT-4, called the “transformer”, has been around since 2017. As the “4” in GPT-4 suggests, what we are seeing now is not so much a radical shift in how to generate text as it is the culmination of 6 years worth of incremental improvements on the same method."
+        },
+        {
+            "type": "P",
+            "content": "In the words of Steve Jobs:"
+        },
+        {
+            "type": "BLOCKQUOTE",
+            "content": "“If you look really closely, most overnight successes took a long time”"
+        },
+        {
+            "type": "P",
+            "content": "That said, it still begs the question of why now?"
+        },
+        {
+            "type": "P",
+            "content": "The answer to that question is threefold:👉 Bigger and better👉 Incorporating human feedback with RLHF👉 People can’t buy what they don’t know"
+        },
+        {
+            "type": "H2",
+            "content": "Bigger and better"
+        },
+        {
+            "type": "P",
+            "content": "A simple truth about understanding natural language is that you have to account for a vast number of subtle nuances. If GPT-4’s parameter count is to be believed, we are talking about 100 trillion of these nuances."
+        },
+        {
+            "type": "P",
+            "content": "The bigger a model, the more capacity it has to understand finer and finer nuances. In turn, the evergrowing computational resources and available data on the internet allow us to leverage this capacity."
+        },
+        {
+            "type": "P",
+            "content": "It is a well-known secret in AI that the same model but bigger will inevitably be better. ChatGPT and especially GPT-4 are much bigger than their predecessors which has significantly boosted their performance."
+        },
+        {
+            "type": "P",
+            "content": "This trend has its limits though. Adding more capacity will fail to add value once we have reached enough parameters to capture even the finest nuances of human language. Needless to say, this limit is not yet in sight."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "37ec0b8a44e2a9f033ecb19afb6c0935.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*Lzs3pvKYWCu0IafqAMRTEQ.png",
+            "caption": "GPT-3 is huge but GPT-4 is more than 500 times bigger"
+        },
+        {
+            "type": "H2",
+            "content": "Incorporating human feedback with RLHF"
+        },
+        {
+            "type": "P",
+            "content": "The biggest difference between ChatGPT & GPT-4 and their predecessors is that they incorporate human feedback. The method used for this is Reinforcement Learning from Human Feedback (RLHF)."
+        },
+        {
+            "type": "P",
+            "content": "It is essentially a cycle of continuous improvement. The system generates a text; the user gives some implicit or explicit feedback about what it could do better (e.g., give a more detailed response); the system uses this information to become better."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "d53c9f574a6dc8c7179f748512b00619.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:512/1*w7B7nPq7kvqG3Otk4PCzZg.gif",
+            "caption": "Incorporating human feedback via RLHF"
+        },
+        {
+            "type": "P",
+            "content": "The idea of RLHF has also been around since 2017. 2017 was a great year for 2023 breakthroughs. It has not been widely used until recently because collecting human feedback was always seen as a bottleneck in the era of big data. After all, a computer can churn through significant proportions of the internet within a matter of days whereas we humans get distracted after reading half of one article."
+        },
+        {
+            "type": "P",
+            "content": "The only way to really leverage RLHF at scale would be if ChatGPT and GPT-4 had a massive user base that is providing constant feedback."
+        },
+        {
+            "type": "P",
+            "content": "It looks like that is where you and I come in."
+        },
+        {
+            "type": "H2",
+            "content": "People can’t buy what they don’t know"
+        },
+        {
+            "type": "P",
+            "content": "While the rise of ChatGPT may have seemed to come out of left field for many, the NLP community has made tremendous breakthroughs over the past years, many of which had the potential to garner a similar level of interest from the general public."
+        },
+        {
+            "type": "P",
+            "content": "Until now, however, these breakthroughs were never able to create real awareness among the wider public. In the words of Warren Buffett: “if you can’t communicate, it’s like winking at a girl in the dark — nothing happens”."
+        },
+        {
+            "type": "P",
+            "content": "What OpenAI has done masterfully is (i) packaging its technology in an accessible & intuitive application and (ii) spreading mass awareness about what they are doing."
+        },
+        {
+            "type": "P",
+            "content": "Partly to increase the adoption of AI in impactful use cases and position themselves as the frontrunner in the process.Partly to keep the RLHF flywheel spinning and make their products better and better."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "d0e6f668214d42ef3c8b00ab0fecfe39.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*Ad4J4m8p1kveg1iQ8lGOYg.png",
+            "caption": "RLHF flywheel"
+        },
+        {
+            "type": "H1",
+            "content": "The power of AI"
+        },
+        {
+            "type": "P",
+            "content": "Where AI models used to be targeted problem solvers, we are now seeing broad & versatile AI systems that have abilities ranging from creative writing to computer programming.We are moving from many individual tools in our AI toolbelt to a few AI Swiss Army knives."
+        },
+        {
+            "type": "P",
+            "content": "This new paradigm unlocks a plethora of possibilities to gain a competitive advantage. Even though the release of ChatGPT and GPT-4 is barely in the rearview mirror, we can already see early adopters embracing these technologies and leveraging their disruptive potential to position themselves at the forefront of their respective industries."
+        },
+        {
+            "type": "P",
+            "content": "Some concrete examples include:"
+        },
+        {
+            "type": "UL",
+            "items": [
+                "Customer support: Intercom leverages ChatGPT as a writing aid for support operators to accelerate and improve the customer support process (link). Soon, it will launch its customer support chatbot Fin (link) built on GPT-4 which will allow them to provide a fast & qualitative solution to a major problem faced by many businesses.",
+                "Education: Duolingo aims to revolutionize the language learning process by offering its new Duolingo Max application (link). It leverages GPT-4’s (multi-)language capabilities to offer a highly personalized yet scalable learning platform which is at the core of their strategy.",
+                "Technology: Whimsical integrated the creative potential of large language models in their AI mind maps (link). They provide a creative and collaborative experience to their users — significantly facilitating and speeding up the brainstorming process."
+            ]
+        },
+        {
+            "type": "P",
+            "content": "Looking beyond current use cases, we foresee ChatGPT and GPT-4 making a big impact on knowledge discoverability."
+        },
+        {
+            "type": "P",
+            "content": "We expect companies and governments to create a question-answering layer on top of their internal data to allow for the intuitive retrieval of knowledge present in the organization."
+        },
+        {
+            "type": "P",
+            "content": "In particular, we foresee an especially major impact in knowledge-driven sectors such as legal, media and government."
+        },
+        {
+            "type": "P",
+            "content": "To illustrate with some examples, this can:"
+        },
+        {
+            "type": "UL",
+            "items": [
+                "Allow legal firms to use the knowledge accumulated in past rulings & cases to make the most informed decisions going forwards.",
+                "Allow media companies to enable their users to derive the concrete insights they are looking for from its media coverage, thus creating a more engaging and personalized user experience.",
+                "Allow governments to turn their legislation from archaic archived documents into an interactive knowledge base that the wider public can query to remain informed."
+            ]
+        },
+        {
+            "type": "H1",
+            "content": "Is the sky the limit?"
+        },
+        {
+            "type": "P",
+            "content": "In order to fully understand the limitations of technologies like ChatGPT, it is important to understand their high-level working principle."
+        },
+        {
+            "type": "P",
+            "content": "Winston Churchill once said: “out of intense complexities, intense simplicities emerge”. In the case of ChatGPT and GPT-4, we argue quite the opposite: “out of intense simplicities, intense complexities emerge”."
+        },
+        {
+            "type": "P",
+            "content": "It will come as a surprise to many that really any modern text generation system works under a very simple premise. They are all systems that predict the next word in a sentence. Nothing more, nothing less."
+        },
+        {
+            "type": "P",
+            "content": "They start chaining words together one after another with the aim to construct the most statistically likely sequence of words, given the original prompt."
+        },
+        {
+            "type": "P",
+            "content": "At ML6, we like to visualize this process as a random walk of words."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "44ce7ac80acbdfbbceb17c90d9186e35.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/0*n2Bi2NfRpza-wSC3",
+            "caption": "A random walk of words"
+        },
+        {
+            "type": "P",
+            "content": "This implies that technologies like ChatGPT never truly reason about the message they want to convey. This lack of explicit reasoning leads to limitations in terms of reliability, controllability and ethics."
+        },
+        {
+            "type": "P",
+            "content": "Significant effort is being put into building guardrails around what these systems can produce in order to circumvent this fundamental issue. Another promising avenue is linking generated information to sources in order to allow for convenient fact-checking."
+        },
+        {
+            "type": "P",
+            "content": "Nevertheless, it is important to keep in mind that such remedies, while quite effective, are still symptomatic solutions that aim to patch a fundamental limitation."
+        },
+        {
+            "type": "P",
+            "content": "In the long term, we believe that we are still one paradigm shift away from having fundamentally trustworthy and reliable large language models; a paradigm where language is seen as more than a statistically likely sequence of words and text is generated starting from a preconceived idea."
+        },
+        {
+            "type": "P",
+            "content": "Furthermore, the current dependence on OpenAI (and Microsoft) should not be underestimated. While we believe that open-source alternatives to OpenAI’s services will inevitably appear, we should be mindful of the new barriers to entry in the era of large language models. For one, open-source initiatives will be confronted with the need for more computational resources in order to train models with a comparable size to ChatGPT and GPT-4. In addition, the lack of access to the human feedback OpenAI has amassed over time will pose a challenge to approaching comparable performance."
+        },
+        {
+            "type": "H1",
+            "content": "What’s in it for you?"
+        },
+        {
+            "type": "P",
+            "content": "In conclusion, technologies like ChatGPT and GPT-4 are here to stay."
+        },
+        {
+            "type": "P",
+            "content": "There will be businesses that perceive this as a threat to fight back against and who will inevitably get stuck in the status quo."
+        },
+        {
+            "type": "P",
+            "content": "There will be businesses that perceive this as an opportunity and who will gain a strategic edge over their competitors. The first of which are already showing themselves."
+        },
+        {
+            "type": "P",
+            "content": "We believe that the companies that:(i) Recognize both the power & limitations of large language models and (ii) Embed these technologies into their core business will succeed in establishing themselves as the frontrunners in the ever-evolving digital landscape."
+        },
+        {
+            "type": "P",
+            "content": "We will leave you with a last quote (promised) from Disney’s CEO Bob Iger:"
+        },
+        {
+            "type": "BLOCKQUOTE",
+            "content": "The riskiest thing we can do is just maintain the status quo"
+        }
+    ]
+}

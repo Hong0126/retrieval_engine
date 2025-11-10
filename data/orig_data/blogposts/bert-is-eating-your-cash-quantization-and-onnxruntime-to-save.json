@@ -1,0 +1,357 @@
+{
+    "title": "BERT is eating your cash: quantization and ONNXRuntime to save💰",
+    "author": "Thomas Dehaene",
+    "readTime": "7 min read",
+    "publishDate": "May 18, 2022",
+    "blocks": [
+        {
+            "type": "FIGURE",
+            "filename": "2cf56a905781818926eef94bfee3dcf1.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*NPrfwi60h89tX60Wv76fjA.png",
+            "caption": null
+        },
+        {
+            "type": "P",
+            "content": "In 2020, we have trained and open-sourced the first Dutch GPT2 model, in various sizes. Of course we wanted to share this with the world by open-sourcing the models, the code and a nice application that showcases its use."
+        },
+        {
+            "type": "P",
+            "content": "But this nice application comes at a cost, literally…"
+        },
+        {
+            "type": "H1",
+            "content": "As-is: HuggingFace 🤗 model powering a Python app"
+        },
+        {
+            "type": "P",
+            "content": "Currently, a HF model is hosted inside a Python Flask app, which uses the pipeline API from the HF library."
+        },
+        {
+            "type": "P",
+            "content": "A routing microservice routes to the correct model serving microservice depending on the user request if he wants to address the 117M parameter GPT2-small model or the 345M parameter GPT2-medium model."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "c22f1a4b8eb374da3b27d0fb0b3beaa8.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*UeYz_2R1mer8F3VlGLQjZg.png",
+            "caption": null
+        },
+        {
+            "type": "P",
+            "content": "PS: if you’re curious how we trained this Dutch GPT2 model: we outlined it perfectly (if we say so ourselves) in this blogpost. If you want to get freaky with these Dutch models yourself, you can find them on our HF Hub page."
+        },
+        {
+            "type": "P",
+            "content": "The final user-facing application looks as follows:"
+        },
+        {
+            "type": "FIGURE",
+            "filename": "aaaa19223a70cfb0ec729e47dd3e427f.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*lbIcBsTK6yiqI0QV4JtErw.gif",
+            "caption": "Try it for yourself at https://gpt2.ml6.eu/nl"
+        },
+        {
+            "type": "P",
+            "content": "The current setup has some difficulties though 😔:"
+        },
+        {
+            "type": "P",
+            "content": "The responses take some time to generate, especially with the medium-size model, reducing the user experience."
+        },
+        {
+            "type": "P",
+            "content": "Second, the container is quite big because of the large models, so we either have to:"
+        },
+        {
+            "type": "UL",
+            "items": [
+                "autoscale it to zero to keep the cost down, but then have a large startup time from a cold start 🕰️",
+                "let it run continuously, burning cash 💸"
+            ]
+        },
+        {
+            "type": "P",
+            "content": "So, in this blogpost we’re going to improve this model serving component by quantizing it to make it run smoother, hopefully without losing too much expressive quality."
+        },
+        {
+            "type": "H1",
+            "content": "Quantization to reduce the footprint"
+        },
+        {
+            "type": "P",
+            "content": "We’re not going to go into detail on what quantization is. If you wanna get a great primer on this: we wrote a blogpost on this and other model efficiency aspects here."
+        },
+        {
+            "type": "P",
+            "content": "TDLR: by reducing the precision of the weights in the Linear and Embedding layers from fp32 to int8 through a mapping action, the memory footprint of a model is greatly reduced!"
+        },
+        {
+            "type": "FIGURE",
+            "filename": "e5905378843f53f25ecfa97be07fef03.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*g4GEsAHiskAst3kb4JQ10Q.png",
+            "caption": "source: https://rasa.com/blog/compressing-bert-for-faster-prediction-2/"
+        },
+        {
+            "type": "P",
+            "content": "Quantization is quite an active field, so a number of libraries offer options to quantize your model:"
+        },
+        {
+            "type": "UL",
+            "items": [
+                "PyTorch, though only for quantizing the Linear layers",
+                "HuggingFace Optimum: an up and coming solution leveraging Intel NC and ONNX Runtime",
+                "ONNX Runtime (ORT) itself"
+            ]
+        },
+        {
+            "type": "P",
+            "content": "Even though we’re huge fans of where 🤗 Optimum is heading, in this post, we used the last solution, because of the great support for GPT2 quantization through examples and dedicated helpers."
+        },
+        {
+            "type": "P",
+            "content": "If you’re just here for the code goodies, you can find all of the code for this blogpost 👉 link !"
+        },
+        {
+            "type": "P",
+            "content": "Quantization using ORT only involves three simple steps:"
+        },
+        {
+            "type": "FIGURE",
+            "filename": "fef4a8d6109b9827efec509c44182018.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*iKaCpbMo6Wm93cc9adUa3Q.png",
+            "caption": null
+        },
+        {
+            "type": "H2",
+            "content": "1. Convert the PyTorch model to an ONNX model"
+        },
+        {
+            "type": "P",
+            "content": "All the upcoming transformations happen through the ONNXRuntime (ORT) library, so it’s only logical that these steps will require an ONNX binary. This can easily be done using HF + ORT:"
+        },
+        {
+            "type": "H2",
+            "content": "2. Optimize the model"
+        },
+        {
+            "type": "P",
+            "content": "Model optimization involves a few operations to make the model graph more streamlined. One such example is fusing sequential operations into a single step."
+        },
+        {
+            "type": "H2",
+            "content": "3. Quantize the model"
+        },
+        {
+            "type": "P",
+            "content": "This is where the actual quantization happens, or in other words: the mapping of the FP32 weights values to the INT8 value range."
+        },
+        {
+            "type": "H2",
+            "content": "Run it using ORT"
+        },
+        {
+            "type": "P",
+            "content": "To actually use the model artifact (ONNX binary file), we of course need a runtime to host it. What better runtime for ONNX than ONNXRuntime…"
+        },
+        {
+            "type": "P",
+            "content": "To do this, you can easily create an ORT session, which can be fed with the typical inputs otherwise required in a HF model (token id’s, attention masks, etc.) to produce the output logits:"
+        },
+        {
+            "type": "P",
+            "content": "Easy-peasy right? Well, there are a few aspects around ORT sessions to make it work well:"
+        },
+        {
+            "type": "UL",
+            "items": [
+                "IO-binding to avoid data copy",
+                "Post-processing the logits to enable top_k and top_p sampling, beam search, temperature, etc. Instead of plain greedy decoding",
+                "Including past inputs to improve the performance",
+                "EOS special tag detection and processing"
+            ]
+        },
+        {
+            "type": "P",
+            "content": "We won’t go into detail on all of the code needed for each of these aspects, but you can find them all in the notebook (link again) where they are implemented."
+        },
+        {
+            "type": "H1",
+            "content": "Evaluation"
+        },
+        {
+            "type": "FIGURE",
+            "filename": "0e720af8c0c268552255e5323b391f7d.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*e83emQWsUM-om3tq9ZHq7Q.jpeg",
+            "caption": null
+        },
+        {
+            "type": "P",
+            "content": "So we coded up all these extra aspect to get nice predictions, and our model is running happily on a Cloud Run instance, inside a Python app that hosts the ORT session. Happy days 👍!"
+        },
+        {
+            "type": "BLOCKQUOTE",
+            "content": "But is it any good… ? 🤔"
+        },
+        {
+            "type": "H2",
+            "content": "Generation quality 💬"
+        },
+        {
+            "type": "P",
+            "content": "Of course, we want to make sure our models don’t produce garbage, so we will look at the generation quality from a couple of angles:"
+        },
+        {
+            "type": "P",
+            "content": "👉 The difference in output logits"
+        },
+        {
+            "type": "P",
+            "content": "A first quick check we can do is comparing the output logits of the language modelling heads of the two models."
+        },
+        {
+            "type": "P",
+            "content": "If the quantized model is indeed a credible stand-in for the normal model, then the output logits should roughly follow the same value distribution point-by-point."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "1e1405a44a83048b32fb769255e2cd03.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*yal6K0nEJgs_e2BJx8iabw.png",
+            "caption": null
+        },
+        {
+            "type": "P",
+            "content": "So by measuring the average, median and max difference in logit values, we can get a first idea on the quality of the potential output:"
+        },
+        {
+            "type": "P",
+            "content": "We can see that the logit values can differ quite a bit. We can also see that the impact is less for the 345M parameter GPT2-medium than for the 117M GPT2-small model."
+        },
+        {
+            "type": "P",
+            "content": "Though this is a first indication that we might lose some quality, it doesn’t speak for the true expressive capabilities of the quantized models. So let’s continue:"
+        },
+        {
+            "type": "P",
+            "content": "👉 The perplexity"
+        },
+        {
+            "type": "P",
+            "content": "Lucky for us, a nice metric to measure the generation quality in a more meaningful fashion exists: perplexity! The ever-lovely peeps at HuggingFace wrote a very nice page about it, what it does, and how to code it up (you can find our implementation in our notebook)."
+        },
+        {
+            "type": "P",
+            "content": "We followed their approach, and measured the perplexity on the first 1000 documents of the Dutch Partition of the OSCAR corpus. This is a wide collection of various crawled Dutch webpages."
+        },
+        {
+            "type": "P",
+            "content": "Interestingly, the perplexity increase is less high for the medium GPT2 model compared to the small GPT2 model. Meaning the GPT2-medium model seems to suffer less degradation from the quantization process. In line with what we observed from the logit comparison!"
+        },
+        {
+            "type": "P",
+            "content": "👉 The human evaluation"
+        },
+        {
+            "type": "P",
+            "content": "The kicker, the champ, the true test of generative quality!"
+        },
+        {
+            "type": "P",
+            "content": "Here are some example generations by the non-quantized and quantized model side by side, where we ask each model to produce the next 20 tokens."
+        },
+        {
+            "type": "P",
+            "content": "Both models generate through sampling, with top_p=0.95, top_k=50 and temperature=0.95"
+        },
+        {
+            "type": "P",
+            "content": "From the look of it, both seem to do very okay! Well enough for the online demo, where only a few next tokens are predicted each time."
+        },
+        {
+            "type": "BLOCKQUOTE",
+            "content": "But is it any fast… ? 🏎️"
+        },
+        {
+            "type": "H2",
+            "content": "Latency ⏱️"
+        },
+        {
+            "type": "P",
+            "content": "Now that we know the quantized models are usable, we can start to measure the first annoyance with the as-is deployment: the startup time and request latency."
+        },
+        {
+            "type": "P",
+            "content": "Here we want to measure two items:"
+        },
+        {
+            "type": "P",
+            "content": "👉 the startup time when the service experiences a cold start"
+        },
+        {
+            "type": "P",
+            "content": "When a serverless Cloud Run instance, that is scaled to 0, starts receiving requests, it needs to perform what is called a “cold start” by deploying and running your container application to an available machine instance, fetch the models from Cloud Storage, and load them in to start serving requests. This of course takes a bit of time."
+        },
+        {
+            "type": "P",
+            "content": "Let’s compare this “warmup time” between a service serving the non-quantized versions and the quantized versions:"
+        },
+        {
+            "type": "P",
+            "content": "👉 the request latency"
+        },
+        {
+            "type": "P",
+            "content": "To measure the response timing for each deployed model, we send a barrage of a few hundred sequential requests to the deployed microservice. Meaning this latency involves network latency, service overhead and model prediction time."
+        },
+        {
+            "type": "P",
+            "content": "We repeat this a number of times, each for a string of varying sequence length, because self-attention computational complexity scaled quadratically with the sequence length 📈!"
+        },
+        {
+            "type": "P",
+            "content": "Again a solid performance from the quantized models 💪! The latency seems to be reduced by a factor of 3–4."
+        },
+        {
+            "type": "BLOCKQUOTE",
+            "content": "But is it any cheap… ? 💵"
+        },
+        {
+            "type": "H2",
+            "content": "Cost 💰"
+        },
+        {
+            "type": "P",
+            "content": "Since cloud storage is basically free, we mainly look at the costs of hosting and running the model in a microservice on Google Cloud Run."
+        },
+        {
+            "type": "P",
+            "content": "We can easily use the Cloud Run pricing documentation to get a price estimate:"
+        },
+        {
+            "type": "UL",
+            "items": [
+                "The quantized gpt2-small + gpt2-medium model image fits on a 2GB, 1vCPU machine, totaling to 💲57.02",
+                "The non-quantized gpt2-small + gpt2-medium model image fits on a 8GB, 2vCPU (because you can’t have a 1vCPU machine for that amount of memory 😔), totaling to 💲134.78"
+            ]
+        },
+        {
+            "type": "BLOCKQUOTE",
+            "content": "Meaning we can reduce our cloud bill for the serving part by a factor of 2.4!"
+        },
+        {
+            "type": "P",
+            "content": "And even if the cost of the reworked deployed would be too large, we have clearly shown that the smaller quantized container has a much lower warm-up time, making autoscale-to-zero a valid option."
+        },
+        {
+            "type": "H1",
+            "content": "So long! 👋"
+        },
+        {
+            "type": "P",
+            "content": "Leveraging quantization and ORT clearly results in a nice speedup and cost reduction!"
+        },
+        {
+            "type": "P",
+            "content": "Enjoy all the money you just saved! And stay tuned for upcoming blogposts where we leverage Triton Inference Server for full transformer hosting enlightenment, since this is a more recommended approach for mature model serving deployment than the presented Flask option."
+        }
+    ]
+}

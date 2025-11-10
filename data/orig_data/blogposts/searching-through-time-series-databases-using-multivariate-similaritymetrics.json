@@ -1,0 +1,392 @@
+{
+    "title": "Searching through time series databases using multivariate similaritymetrics",
+    "author": "Loïc Barbe",
+    "readTime": "10 min read",
+    "publishDate": "May 30, 2022",
+    "blocks": [
+        {
+            "type": "P",
+            "content": "As an intern at ML6, I was given the opportunity to study ways to measure similarities between multivariate time series. Measuring (dis)similarities between time series can be helpful for many tasks. The most important ones are similarity search, clustering, pattern detection and anomaly detection."
+        },
+        {
+            "type": "P",
+            "content": "This blogpost will give you an intro to the relevance of this topic and an overview of the solution. We spend extra attention to the efficiency of the proposed solution: rapid calculation of similarity measures enables interesting applications such as detecting anomalies on a production line in real-time."
+        },
+        {
+            "type": "P",
+            "content": "The goal of the work outlined in this blogpost was to come up with the best possible method to tackle the notion of similarity for multivariate time series without making assumptions about the data itself. Similar research is done in the context of human motion by Keogh, and comparative studies done by Salahelding and Salarpour."
+        },
+        {
+            "type": "H1",
+            "content": "Dataset and demo use case"
+        },
+        {
+            "type": "P",
+            "content": "To show what the system is capable of, we created a demo that shows the performance and speed of the model we've come up with."
+        },
+        {
+            "type": "H1",
+            "content": "Dataset"
+        },
+        {
+            "type": "P",
+            "content": "The Penn Action dataset from the University of Pennsylvania consists of recordings of multiple human actions."
+        },
+        {
+            "type": "P",
+            "content": "They provide 2326 samples with 13 key points manually annotated on the body. The samples are labelled by their action and poses, resulting in 54 different classes. These are only used for validation of the results."
+        },
+        {
+            "type": "H1",
+            "content": "Demo use case"
+        },
+        {
+            "type": "P",
+            "content": "The use case in the demo is to find the five most similar actions for a given sample. At first sight, it looks like a computer vision job; but we can parse these videos into time series with a tiny memory footprint. We extract the keypoints of the moving subject and analyse their relative movement over time. These are 2D data (the X- and Y-coordinate), resulting in a multivariate time series of 26 dimensions."
+        },
+        {
+            "type": "P",
+            "content": "We do not claim to compete with the current state of the art within computer vision when it comes to supervised classification performance (please refer to this blogpost by our intern Timo Martens if you want to have a view on that). We rather focused on creating an unsupervised similarity metric that works for multivariate time series"
+        },
+        {
+            "type": "FIGURE",
+            "filename": "1149239ec6a11e966cb74b8d743ad768.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:480/0*eKM5gH3eiAqTtlBa",
+            "caption": "Figure 1: Example annotated sample of a baseball player"
+        },
+        {
+            "type": "P",
+            "content": "Figure 1 visualises the annotation of a baseball player, and in Figure 2, you can see the corresponding time series with the 13 key points."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "e77af6fb826daae614da7ba47f2fb9ec.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*qJrTvgucRP1XW1FpifR5LQ.gif",
+            "caption": "Figure 2: Visualisation of the coordinates of all the key points."
+        },
+        {
+            "type": "H1",
+            "content": "Summary system"
+        },
+        {
+            "type": "P",
+            "content": "To get an overview of the whole implementation, Figure 3 illustrates the step by step graph."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "592a8e2729678268165ed5921608921c.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/0*jmjdnUAgXnyks_i1",
+            "caption": "Figure 3: Summary of the system"
+        },
+        {
+            "type": "P",
+            "content": "It has two parts, the first being carried out in the background before the application starts and the second is run during inference."
+        },
+        {
+            "type": "P",
+            "content": "Pre compute:"
+        },
+        {
+            "type": "OL",
+            "items": [
+                "Generate a distance matrix based on the similarity distance.",
+                "Construct a hierarchical tree with the help of a linkage method."
+            ]
+        },
+        {
+            "type": "P",
+            "content": "Inference:"
+        },
+        {
+            "type": "OL",
+            "items": [
+                "Traverse the tree with Smart Selection.",
+                "Select the five most similar samples."
+            ]
+        },
+        {
+            "type": "H1",
+            "content": "Similarity distance"
+        },
+        {
+            "type": "P",
+            "content": "To find similar samples, we need to develop a method to determine the similarity between two samples. Given a single ‘query’ sample, we can rank all other samples based on this similarity measure."
+        },
+        {
+            "type": "P",
+            "content": "The first thing that probably comes to your mind to fix this problem is to calculate the Euclidean distance between points at every time index."
+        },
+        {
+            "type": "P",
+            "content": "If the two actions begin simultaneously, this method works, but if the camera starts rolling a few seconds later, there is a shift in time. The result is that similar points don't match in time anymore."
+        },
+        {
+            "type": "P",
+            "content": "This problem is shown in Figure 4. Two people walk with the same style, but the plotted coordinates show a phase shift."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "07773f4743728064fb264cacfab94fbd.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:640/0*vcwveELJCopSueaY",
+            "caption": "Figure 4: 3D keypoint visualisation of two people"
+        },
+        {
+            "type": "P",
+            "content": "Aside from the slight difference in the start of the action, there is a big difference in pace. If the key points are plotted in time, they look more 'stretched' out, resulting in a significant error with the Euclidean method."
+        },
+        {
+            "type": "P",
+            "content": "Shazam engineers encountered a similar challenge in linking a part of a recorded song to a sample from the dataset, which has the metadata of that song. They ended up using the spectrogram of the song to create a fingerprint ID; this is well explained in a blogpost."
+        },
+        {
+            "type": "P",
+            "content": "The method is robust against noise during recording and the time shift due to starting recording later. But there is one scenario where it always fails. At a concert, Shazam will only succeed if the artist is lipsyncing. If the artist performs live, the spectrogram of the recorded part is not the same as the one in the dataset."
+        },
+        {
+            "type": "P",
+            "content": "If we look at our use case, we conclude it has not the same task. We search for a ranking based similarity method to find multiple similar samples instead of the one identical. That aside, samples that are similar but vary in the pace of the action have a different spectrogram and would not be linked to each other."
+        },
+        {
+            "type": "P",
+            "content": "That's why we opt for variants of Dynamic Time Warping (DTW), which is a method that searches for an optimal match between two given sequences that have a phase shift."
+        },
+        {
+            "type": "H1",
+            "content": "Dynamic Time Warping"
+        },
+        {
+            "type": "P",
+            "content": "Instead of comparing key points frame per frame, the algorithm also looks back and forward and matches the most similar points. Originally the algorithm was used for audio processing where there is a shift in time and speed."
+        },
+        {
+            "type": "P",
+            "content": "To sketch a clearer view of the principle, Figure 5 visualises DTW on two key points (the left ankle and wrist) of the 13. The grey lines are the distance calculations with each point, and the highlighted red lines are the resulting matching point."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "7a3a7227dcd858d628c96e2cd0b96f5f.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/0*c2nb8pqD2Kgy35zW",
+            "caption": "Figure 5: Visualisation of DTW algorithm"
+        },
+        {
+            "type": "P",
+            "content": "The distance of each point with each point is used to construct the matrix that wraps the matching path, this path is then used to calculate similarity distance. Figure 6 is a simplified example of a path made from the distances with each point presented as a matrix."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "9e258814a4d84e4fd18c453a1d7f3f27.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*uXOdpQAau0dxcB5Id7W_8w.png",
+            "caption": "Figure 6: Example of a path constructed from the distance matrix"
+        },
+        {
+            "type": "P",
+            "content": "In the context of multivariate, there are multiple time series. In Figure 5 is matching done for each time series individually. To apply DTW on multivariate samples the distance matrix is done for each time series and summed up afterwards. This results in one matrix to determine the path and the similarity distance for multivariate samples."
+        },
+        {
+            "type": "BLOCKQUOTE",
+            "content": "The Euclidean distance is used in these examples to calculate the distances between points. But depending on the use case other distance metrics can perform better."
+        },
+        {
+            "type": "H2",
+            "content": "Tslearn"
+        },
+        {
+            "type": "P",
+            "content": "We opted for Numba in combination with Numpy to implement DTW to improve the execution time. The package combination replaces in some parts the JIT compiler and a wrapper around a C implementation."
+        },
+        {
+            "type": "P",
+            "content": "A widely used saying in software engineering is ‘Don’t reinvent the wheel’, so we searched for an open-source project that had already implemented DTW with Numba. We ended up using the Tslearn package."
+        },
+        {
+            "type": "H1",
+            "content": "Search"
+        },
+        {
+            "type": "P",
+            "content": "We finally have a suitable way to compare two (multivariate) time series. The next step is to find the N most similar samples in the whole dataset."
+        },
+        {
+            "type": "P",
+            "content": "In our demo, we implement both the brute force method and an approximate technique. The latter is coined “Smart Search”."
+        },
+        {
+            "type": "H2",
+            "content": "Brute Force"
+        },
+        {
+            "type": "P",
+            "content": "The brute force method calculates all (N x (N-1)) distances for every sample in the dataset and the five most similar samples are returned based on the similarity distance."
+        },
+        {
+            "type": "H2",
+            "content": "Smart search"
+        },
+        {
+            "type": "P",
+            "content": "The average time needed to find the five most similar samples in the demo is around 5 seconds. The first thought that came to our minds was 'Is there a faster, less naive way to search the dataset?'."
+        },
+        {
+            "type": "P",
+            "content": "And there is! The basic idea is to use the similarities between the samples already in the dataset. If a new instance matches a sample from the dataset, the chances are high that the neighbour’s samples are similar."
+        },
+        {
+            "type": "P",
+            "content": "The result is a trade-off between accuracy and search time (see Figure 12)."
+        },
+        {
+            "type": "H2",
+            "content": "Dendrogram"
+        },
+        {
+            "type": "P",
+            "content": "The easiest way to know how close samples are to each other is by creating a distance matrix based on the similarity distance."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "016e8d9fce2f5c2350e5ba4f649b3eeb.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*unzZECyhpjEy6k_oJIrqfQ.png",
+            "caption": "Figure 7: Example of a distance matrix based on the similarity distance with the DTW algorithm"
+        },
+        {
+            "type": "P",
+            "content": "We can link multiple samples and groups of samples with a linkage method. If this process continues until there is one group, we have a hierarchical tree."
+        },
+        {
+            "type": "P",
+            "content": "The tree is called a dendrogram, and figure 8 visualises the principle."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "dec8b26814f75dfea04a38aac5706cd3.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/0*XSQkZ3z-ZNfb2kgj",
+            "caption": "Figure 8: Principle of a hierarchical tree"
+        },
+        {
+            "type": "P",
+            "content": "It starts with a root node containing all the samples and then splits into two nodes (A and B). This process continues until every node consists of only one sample. The result is a tree in which the samples are sorted by their similarity. To obtain the cluster of a particular sample, you can climb up the tree starting from the id of that sample. Figure 8 shows this phenomenon in more detail; sample ‘0’ is part of nodes ‘1’ and A."
+        },
+        {
+            "type": "P",
+            "content": "This algorithm applied to the Penn action dataset results in the dendrogram shown in Figure 9."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "9a898e4a7f78d0dfd4358fe2606d6b71.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/0*YnZgtaP622kUOE2B",
+            "caption": "Figure 9: The dendrogram of the dataset"
+        },
+        {
+            "type": "H2",
+            "content": "The problem"
+        },
+        {
+            "type": "P",
+            "content": "We have a nicely constructed tree, but we can’t use it straight from the forest. It is not an option to start from the bottom because the sample is not presented there so we flip the strategy and start at the top. But there is still a problem in contrast to a binary tree; we have no decision method to traverse the tree. This problem is visualised in Figure 10."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "88e7ba4fdb5a2bfd337ae671345adcec.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*cDRsllSoKGVBZf4X2sn1Nw.png",
+            "caption": "Figure 10: The traverse problem explained"
+        },
+        {
+            "type": "H2",
+            "content": "Smart selection"
+        },
+        {
+            "type": "P",
+            "content": "We introduce an approximation method called “Smart Selection” to establish a speed gain without compromising accuracy to solve the traversing problem."
+        },
+        {
+            "type": "P",
+            "content": "A valuable feature of the dendrogram tree is that it can give us all the samples in each node. Figures 8 illustrate that with the colours A and B assigned to the array of samples."
+        },
+        {
+            "type": "P",
+            "content": "The fastest solution would be to get the sample in the middle of the node that can be interpreted as the node's centroid. But this assumption is not very robust. The alternative is to pick a few of them to represent the whole node to minimise the error."
+        },
+        {
+            "type": "P",
+            "content": "These are used to calculate a similarity distance with the given sample. Eventually, a decision is made by choosing which node holds the sample with the lowest distance. The left side of Figure 11 illustrates this process where node A is the chosen one."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "d17fdf17f9c46331bb6b73862bcf253e.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/0*vJZyph7M2k_7WvZe",
+            "caption": "Figure 11: Visualisation of the Smart Selection"
+        },
+        {
+            "type": "P",
+            "content": "Ok, now we have a way to decide, but how do we choose these samples representing the node?"
+        },
+        {
+            "type": "P",
+            "content": "To choose samples that will be used to represent the node we run over the ordered samples and reduce the selection by interleaving. The size of the steps is calculated by a new hyperparameter called step ratio. This parameter makes the strategy flexible, scalable for larger datasets and can be changed during inference. The ratio can also be interpreted as the trade-off between a fast and a more accurate result."
+        },
+        {
+            "type": "H1",
+            "content": "Scalability"
+        },
+        {
+            "type": "H2",
+            "content": "Parallelisation"
+        },
+        {
+            "type": "P",
+            "content": "In the Smart Search strategy, many computation tasks can run in parallel. A disadvantage of parallelisation in Python is that there is a lot of overhead. After thorough testing, assigning nodes A and B (see Figure 8) to two workers/threads achieved the best results."
+        },
+        {
+            "type": "H1",
+            "content": "Quantitative results"
+        },
+        {
+            "type": "P",
+            "content": "The goal of the trade-off was to reduce the computation time; Figure 12 visualises this trade-off with on the Y-axis the accuracy and on the X-axis the computation time."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "d0886db32309d577fce5f8a06f1c4402.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*5ZaE8fc_p0CY-zDXRnP7GA.png",
+            "caption": "Figure 12: Results of the trade-off accuracy vs computation time."
+        },
+        {
+            "type": "BLOCKQUOTE",
+            "content": "Note that the brute force method is used as the root for the accuracy and computation time."
+        },
+        {
+            "type": "P",
+            "content": "From the results in Figure 12, we can conclude that the Smart Search is a success; using a step ratio of 0.3, we can improve the brute force algorithm by three without losing any accuracy."
+        },
+        {
+            "type": "H1",
+            "content": "Execution time results"
+        },
+        {
+            "type": "P",
+            "content": "The Smart search was not the only approach to improving the computation time; the most significant improvement was optimising the JIT compiler. Figure 13 shows the average computation time for a search in pure Python (brute force), Tslearn (brute force), and Tslearn combined with Smart Search. The speed jump between the standard JIT compiler and the replacement with an optimised one provided by Tslearn which uses Numba underneath is the biggest one; that big that the y axis is a logarithmic scale."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "72f7e434b69a6303168445a661203722.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:592/1*-FRJ9rKR46l5kOHvgQHfVg.png",
+            "caption": "Figure 13: Comparison of the average computation time."
+        },
+        {
+            "type": "P",
+            "content": "The average computation time with brute force and no improvements to the compiler is around 385 seconds. This takes a very long time compared to the accelerating methods, 5 and 2.5 seconds respectively."
+        },
+        {
+            "type": "H1",
+            "content": "Conclusion"
+        },
+        {
+            "type": "P",
+            "content": "We used state-of-the-art packages to improve upon the JIT compiler. This was a small step in code but a big one in terms of execution time. Nonetheless, inference times were still too long with brute force."
+        },
+        {
+            "type": "P",
+            "content": "Using multidimensional DTW we create a search tree spanning our time series database. We build this hierarchical index in an offline fashion and leverage it during inference. This method has several advantages. It speeds up the search several times and lets the user have control of the inference speed/accuracy duality. It allows us to compare thousands of complex time series in the blink of an eye."
+        }
+    ]
+}

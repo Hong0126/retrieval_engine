@@ -1,0 +1,14 @@
+fastapi[standard]==0.115.6
+pillow==11.1.0
+uvicorn[standard]==0.35.0
+pydantic==2.11.7
+requests==2.32.5
+open_clip_torch==3.1.0
+sentence-transformers==5.1.0
+faiss-cpu==1.8.0
+
+# vision
+opencv-python-headless==4.10.0.84
+numpy==1.26.4
+pytesseract==0.3.13
+imagehash==4.3.2

@@ -1,0 +1,151 @@
+{
+    "title": "Whisper Deployment Decisions: Part I — Evaluating Latency, Costs, and Performance Metrics",
+    "author": "Shubham Krishna",
+    "readTime": "3 min read",
+    "publishDate": "Jul 21, 2023",
+    "blocks": [
+        {
+            "type": "FIGURE",
+            "filename": "b1780c005c98d19b2ec7b767443e859a.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:500/0*AelLcRqiJ2iYe-oK.jpg",
+            "caption": null
+        },
+        {
+            "type": "H1",
+            "content": "Introduction to Whisper"
+        },
+        {
+            "type": "P",
+            "content": "In September 2022, OpenAI introduced Whisper, a robust speech recognition model trained on diverse audio data. Its multitasking capabilities support tasks like multilingual speech recognition, speech translation, and language identification. With 10 models of varying sizes and capabilities, Whisper offers a versatile and effective solution for speech recognition requirements."
+        },
+        {
+            "type": "TABLE",
+            "items": [
+                "tiny",
+                "39 M",
+                "✓",
+                "✓",
+                "base",
+                "74 M",
+                "✓",
+                "✓",
+                "small",
+                "244 M",
+                "✓",
+                "✓",
+                "medium",
+                "769 M",
+                "✓",
+                "✓",
+                "large",
+                "1550 M",
+                "x",
+                "✓",
+                "large-v2",
+                "1550 M",
+                "x",
+                "✓"
+            ]
+        },
+        {
+            "type": "P",
+            "content": "While numerous articles cover training, fine-tuning, and explaining the paper behind Whisper, there is a scarcity of resources focusing on running Whisper in a production environment."
+        },
+        {
+            "type": "P",
+            "content": "Deploying into production requires a thorough consideration of three major factors:"
+        },
+        {
+            "type": "P",
+            "content": "💪 Performance metrics"
+        },
+        {
+            "type": "P",
+            "content": "⏱️ Latency"
+        },
+        {
+            "type": "P",
+            "content": "💰 Deployment cost"
+        },
+        {
+            "type": "BLOCKQUOTE",
+            "content": "Embarking on a two-part blog series, we delve into the practicalities of implementing Whisper in a production environment. In the first part, we navigate the tradeoffs between model sizes and GPUs, shedding light on optimal choices. The sequel takes a closer look at the transformative effects of tools and techniques like JAX, ONNX, and KernlAI on these metrics."
+        },
+        {
+            "type": "H2",
+            "content": "Benchmarking Performance Metrics of Whisper Models"
+        },
+        {
+            "type": "BLOCKQUOTE",
+            "content": "According to Fig. 1, it is evident that larger models exhibit superior performance, as indicated by their lower word error rate. Therefore, if your primary objective is to attain optimal performance without concerns about latency and cost, opting for the largest model would be the ideal choice."
+        },
+        {
+            "type": "P",
+            "content": "While larger models typically offer better performance, their impact on latency and cost must be taken into account. Finding the right balance is crucial for an informed decision."
+        },
+        {
+            "type": "H2",
+            "content": "Benchmarking Inference Speed of Whisper Models"
+        },
+        {
+            "type": "P",
+            "content": "Using HuggingFace’s 🤗 Whisper implementation, we benchmarked multilingual models across different batch sizes (1,2,4,8,and 16) on CPUs and GPUs (T4,V100,and A100) to evaluate inference speed. All the benchmarks were done on the test split of the HuggingFace 🤗 dataset: librispeech_asr."
+        },
+        {
+            "type": "BLOCKQUOTE",
+            "content": "Note: Missing bars/points means that we were not able to run the inference because of Out-of-Memory issue."
+        },
+        {
+            "type": "P",
+            "content": "The following observations can be easily derived from Fig. 2 and Fig. 3:"
+        },
+        {
+            "type": "UL",
+            "items": [
+                "As the size of the model increases, the inference time becomes slower since larger models have more parameters.",
+                "Running Whisper on CPUs is noticeably slower compared to using GPUs.",
+                "Irrespective of the model size, the inference time is the quickest on A100.",
+                "For a batch size of 1, Whisper models are faster on T4 than P100. However, for batch sizes > 1, only tiny and small models are faster on T4.",
+                "Batching data for inference results in faster processing compared to a batch size of 1, where no batching is involved."
+            ]
+        },
+        {
+            "type": "H2",
+            "content": "Benchmarking Cost of Running Whisper Models"
+        },
+        {
+            "type": "P",
+            "content": "We benchmarked the cost of transcribing 5 hours of audio using different Whisper models on different GPUs which is presented below:"
+        },
+        {
+            "type": "P",
+            "content": "Fig. 4 highlights a positive correlation between faster GPUs and increased cost."
+        },
+        {
+            "type": "P",
+            "content": "Similar trends were observed in the cost of batching vs. non-batching inference, regardless of the GPU used. To gain insights into cost and inference speed, Fig. 6 illustrates the tradeoff between the average inference time for a 30-second audio sample and the cost of running it on a virtual machine in Google Cloud."
+        },
+        {
+            "type": "P",
+            "content": "Fig. 6. shows that the Tesla T4 GPU has the lowest cost per hour, while its inference speed is only slightly slower than the Tesla P100 GPU. The Tesla A100 GPU is the fastest, but its price is significantly higher than the other two GPUs."
+        },
+        {
+            "type": "H2",
+            "content": "Conclusion"
+        },
+        {
+            "type": "FIGURE",
+            "filename": "40e3001bffb45c9514224746ceb9a8b7.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*1jpN1cI8Hix5_i41YzzvNg.png",
+            "caption": "Fig. 7. Best choice of GPU/CPU based on Latency and Deployment Cost for online setting."
+        },
+        {
+            "type": "P",
+            "content": "To sum it up: The T4 GPU emerges as the optimal choice for supporting any Whisper model (except Whisper large-v2) in online (Batch-size = 1) and batch settings. It offers a cost-effective solution compared to the P100 and A100 GPUs. Despite the P100’s superior speed in batch settings compared to the T4, the tradeoff of higher costs makes it a less economical choice."
+        },
+        {
+            "type": "P",
+            "content": "What’s next? Stay tuned for the highly anticipated second part of this blog post series, where we will delve deep into different optimizations. Discover how these optimizations can significantly impact crucial aspects such as latency, deployment costs, and overall performance metrics."
+        }
+    ]
+}

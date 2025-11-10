@@ -1,0 +1,209 @@
+{
+    "title": "Unblocking ML use cases that lack (usable) data",
+    "author": "Matthias Feys",
+    "readTime": "7 min read",
+    "publishDate": "Jun 14, 2022",
+    "blocks": [
+        {
+            "type": "P",
+            "content": "In this blog post series, we are looking at the importance of data for building performant ML models. The focus of our first blog post (check it out here if you haven’t already) was on how to unlock the full potential of data, looking especially at data labelling, data quality and data augmentation."
+        },
+        {
+            "type": "P",
+            "content": "What do we do though if we don’t have any or enough usable data yet to get started? One obvious option is to collect (more) data. However, today we want to go beyond that. We will look at three other dimensions that can be relevant to unblock ML use cases: data protection, external data, and synthetic data."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "8bb021c9d0adcb9540eed5e43fbc45a7.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*Y2561xS5955waZJ5WEY4aA.png",
+            "caption": null
+        },
+        {
+            "type": "H1",
+            "content": "Data protection"
+        },
+        {
+            "type": "P",
+            "content": "How is data protection relevant for enabling us to build performant ML models? In fact, data protection can often be an unblocker for using data in our models. Let’s have a look at what we mean by this."
+        },
+        {
+            "type": "H2",
+            "content": "Anonymising data to enable its use"
+        },
+        {
+            "type": "P",
+            "content": "A first way how data protection can unblock data for ML modelling is of course the need to follow regulations (such as GDPR). Especially in an NLP context, we often deal with Personally identifiable information (PII). Without anonymisation or pseudonymisation of data, we would not be able to use the data at all or not in the most impactful way."
+        },
+        {
+            "type": "P",
+            "content": "Next to unlocking the project, it can also have a major impact on the quality of the model. Let’s consider an ML project that contains PII data. Without anonymisation, we must remove the data as soon as possible. Depending on the application this could be three months. However, by investing in a proper anonymisation flow, this data will no longer be personally identifiable and can subsequently be stored for an indefinite period. The graph below shows the typical impact of model performance by training on more data points (represented by the period of time the data was collected on)."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "681fea8b0998df0f0e6c5c184f30b9a3.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*mU9kpW8xTNcqcGAarnW2rg.png",
+            "caption": null
+        },
+        {
+            "type": "P",
+            "content": "Data protection is also needed as a way to build trust and guard against potential attacks. Lastly, ensuring that a person with malicious intent cannot figure out whether a particular person was part of the training data, or is able to link anonymised data with other data to identify people, is crucial to protect privacy."
+        },
+        {
+            "type": "H2",
+            "content": "Combining different techniques for data protection"
+        },
+        {
+            "type": "P",
+            "content": "Protecting data can be done with various techniques. There is no “silver bullet” — often we use different techniques in combination with each other. Two of the most common and simple methods used are de-identification/ data anonymisation and K-anonymisation. The former means the removal of personal information from the dataset. The latter revolves around creating anonymity in numbers — i.e. defining a minimal set of occurrences and grouping outliers, in order to protect individuals from inferences based on a small group size."
+        },
+        {
+            "type": "P",
+            "content": "Other methods typically include some form of Noise Injection, meaning that we will replace a minimal set of attributes of data points to improve privacy. In all cases (of course more clear for the noise injection methods), you will have to make a tradeoff between data utility & data privacy. The actual selection and combination of methods will be dependant on your use case."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "a016156de4d6e002d57d2132ac9df9a2.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:464/1*aUfRLlSbj1_xltxMY24EVw.png",
+            "caption": "Utility vs. privacy tradeoff for data privacy"
+        },
+        {
+            "type": "H1",
+            "content": "External data"
+        },
+        {
+            "type": "P",
+            "content": "As the name says, external data includes all data that has been collected from outside of the organisation. If there is no relevant internal data available (eg. for a totally new product) this might be the only option."
+        },
+        {
+            "type": "P",
+            "content": "However also when you have relevant internal data, external data might be a good investment when the internal data is too costly to clean or in case you want to extend internal data. This can be either in quantity, by adding extra features (eg. including weather information) or by being more complete."
+        },
+        {
+            "type": "H2",
+            "content": "Evaluating your options & keeping trade-offs in mind"
+        },
+        {
+            "type": "P",
+            "content": "There are various types of external data sources to consider, depending of course on the availability and the needs of the project:"
+        },
+        {
+            "type": "UL",
+            "items": [
+                "Public data sources: Data that is freely available, such as https://data.gov.be/",
+                "Paid data sources: Data that can be purchased from data providers at a cost. Common examples for this type of data include company data, weather data, etc.",
+                "Scraped data: Data that is available on the internet, but needs to be scraped and maintained. A caveat here: it is of course important to consider the legal implications of scraping, depending on the data source."
+            ]
+        },
+        {
+            "type": "P",
+            "content": "Between these different types of external data, as well as between different vendors, there are important trade-offs to consider. The three axes we typically score options on are price, quality & time investment."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "8aead829d7bc0c36958c76f662f0645e.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:391/1*_qhsYXhX_vHYqOIxqgDMlQ.png",
+            "caption": "Tradeoffs for selecting the right external data source"
+        },
+        {
+            "type": "P",
+            "content": "Going a bit deeper into each axis:"
+        },
+        {
+            "type": "UL",
+            "items": [
+                "Price: actual purchasing price is the easiest factor to take into account. However note that also the pricing model is part of this, depending on your use case or phase (eg. global rollout vs. doing a first analysis) a different vendor might be the best fit.",
+                "Time investment: cost of internal work that’s needed to use & keep using the external data. This starts with integration complexity, eg. having data available directly in your database vs. some exotic data format that you need to physically receive via a hard disk. But also covers maintenance costs, eg. maintaining a scraper infrastructure can be a big cost, and finally vendor stability. If it’s uncertain if a vendor will keep maintaining/updating the dataset, this might result in a lot of rework in the future.",
+                "Quality: goal of the external data is to have more qualitative data, checking the data on accuracy, coverage & frequency of the information is essential for this."
+            ]
+        },
+        {
+            "type": "H2",
+            "content": "Getting from acquired data to usable data"
+        },
+        {
+            "type": "P",
+            "content": "Unfortunately, just getting a hold of external data often does not mean we can readily use it. Keep in mind that external data often has to be cleaned, augmented and post-processed before being able to use it in your ML models."
+        },
+        {
+            "type": "P",
+            "content": "Within your evaluation and business value calculations on the project, think about how much extra engineering needs to be done on the external data, e.g. to improve data quality, combine multiple data sources or join the data with internal data."
+        },
+        {
+            "type": "H1",
+            "content": "Synthetic data"
+        },
+        {
+            "type": "P",
+            "content": "As mentioned in our first blogpost, collecting data and especially labelling it, is often a time-consuming and expensive task. Therefore, ML practitioners are increasingly looking at more efficient ways to generate usable data, from artificially expanding datasets by creating small variations on existing data points (data augmentation), to increasingly the use of hybrid or fully synthetic data."
+        },
+        {
+            "type": "P",
+            "content": "Synthetic data has been in the spotlight for two main reasons: on the one hand we can increase the amount of available data to train on. On the other hand it can be a way to protect data. Ultimately, synthetic data can help to get more accurate, robust, fair and private models."
+        },
+        {
+            "type": "P",
+            "content": "Although synthetic data can ultimately have many benefits, we typically see 3 use cases where it’s already useful:"
+        },
+        {
+            "type": "UL",
+            "items": [
+                "Protecting company sensitive non-PII data: these are cases where we can’t leverage existing anonymisation techniques, but where the data is really sensitive. Think about product recipes or complete machine logs. In these cases it can really unblock projects if you’re able to work on similar synthetic data.",
+                "Real life data which is not available or too costly to generate: some training data is legitimately too costly to make in real life, think about specific machine failures or very costly medical scans. In these cases it should be cheaper to invest in creating realistic synthetic data.",
+                "Protecting PII data: leveraging synthetic data as an alternative to existing anonymisation/pseudonymisation techniques as you typically need to combine multiple approaches to create the best tradeoff between data utility and data privacy."
+            ]
+        },
+        {
+            "type": "H2",
+            "content": "Typical approaches/techniques"
+        },
+        {
+            "type": "P",
+            "content": "In a way, techniques used by data augmentation and data pseudonymisation/anonymisation can be leveraged to create synthetic data. However, typically the idea is to create completely new samples that are even harder to link to an original data set. We consider two big blocks of approaches:"
+        },
+        {
+            "type": "UL",
+            "items": [
+                "Model based: typically deep learning based models are trained to generate new samples. Two popular architectures for this are Variational Autoencoders (VAE) and Generative Adversarial Network (GAN).",
+                "Rule based: sometimes there are clear business rules or construction rules that can be followed to create new synthetic data. This can be either via rule engines that can be tasked to create a valid data entry (eg. people with proper age range, a plausible email address etc.) or by composing multiple images to create new images."
+            ]
+        },
+        {
+            "type": "H2",
+            "content": "Managing your way through the framework jungle"
+        },
+        {
+            "type": "P",
+            "content": "At this point we need to bring in a caveat: synthetic data is a trending, but still emerging field. This means that there are a lot of new frameworks that pop up, some of which also still get deprecated."
+        },
+        {
+            "type": "P",
+            "content": "Some frameworks that are certainly worth to be checked:"
+        },
+        {
+            "type": "UL",
+            "items": [
+                "https://github.com/gretelai/gretel-synthetics",
+                "https://github.com/shuttle-hq/synth",
+                "https://github.com/Unity-Technologies/com.unity.perception"
+            ]
+        },
+        {
+            "type": "P",
+            "content": "To close off: typically the creation of new samples is not the hard part. However, making sure that the synthetic samples are useful and relevant is a lot harder, so certainly make sure you have a good way of measuring the quality of your synthetic data."
+        },
+        {
+            "type": "H2",
+            "content": "Find more information on synthetic data from our research here:"
+        },
+        {
+            "type": "UL",
+            "items": [
+                "Using synthetic data to boost the performance of your object detection model"
+            ]
+        },
+        {
+            "type": "P",
+            "content": "In this blogpost, we have put the focus on data — looking at how we can unblock ML use cases that lack usable data. We have shown how combining various privacy techniques can help protect against attacks and make it possible to use otherwise personal or confidential data. Next, we showed various options and trade-offs to include external data to further expand or build our dataset. Lastly, we took a closer look at synthetic data, an approach that still has to be further proven but promises the possibility to increase the size of our dataset and further protect privacy."
+        }
+    ]
+}

@@ -1,0 +1,268 @@
+{
+    "title": "Why You Need a GenAI Gateway",
+    "author": "Jasper Van den Bossche",
+    "readTime": "13 min read",
+    "publishDate": "Oct 7, 2024",
+    "blocks": [
+        {
+            "type": "P",
+            "content": "Generative AI is ubiquitous these days, and organizations are rapidly integrating GenAI into their business processes. However, building GenAI applications comes with its own set of specific challenges. The models are often large, meaning inference costs for running these models can quickly get out of hand, and model selection often requires balancing performance against costs and latency. Other common challenges include the misuse of generative models or data leakage. While implementing measures such as rate limiting, monitoring, and guardrailing in your GenAI applications can help overcome these problems, doing so for every individual project brings significant overhead for your engineering teams. It also becomes easy to lose track of global usage of generative AI within your organization and leads to many cases of reinventing the wheel as teams solve the same problems over and over again."
+        },
+        {
+            "type": "P",
+            "content": "An alternative approach that’s quickly becoming more popular is the creation of a centralized platform to manage access to GenAI models, track usage, implement security measures, and more. Such an AI platform consists of infrastructure and technical building blocks that can be used by other teams in the organization, as well as a team that is responsible for maintaining this platform and ensuring it serves the needs of the teams that use it. The goal is to enable teams across the organization to build GenAI projects, while centralizing the required governance. In this article, we will focus mostly on the technical side of the platform and specifically one of the central components, a GenAI Gateway."
+        },
+        {
+            "type": "P",
+            "content": "The main idea behind an GenAI Gateway is to provide an interface that allows other teams to make use of AI models in a way that lowers the barrier to entry, deduplicates engineering effort, centralizes governance and observability for AI projects across your organization. Through this centralized interface, it becomes possible to manage quotas, costs, infrastructure, third-party API access, and other aspects as a platform capability across the organization in a unified way."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "f7c62e6f0fea7df443d7e74934f73a1c.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:875/0*t_zquTauO6-g7DcE",
+            "caption": null
+        },
+        {
+            "type": "P",
+            "content": "The concept of a GenAI gateway is central to the platform idea. Inspired by API gateways commonly used in microservice architectures, a GenAI gateway serves as a software layer between your applications and your generative models. This provides an opportunity to connect governance and observability tooling to the model requests, as well as optimizations such as caching. It also allows the abstraction of the certain technical details of model calls, allowing users to switch between heterogeneous models and serving setups with little effort."
+        },
+        {
+            "type": "P",
+            "content": "From an architectural perspective, the GenAI Gateway is located in between the platform consumers and the hosted models. It offers API functionality to request available models from the model registry, and make calls to these models, with all the requests passing through governance and observability layers (authentication and access management, quota management, logging). On the backend side, it interacts with the model registry and model serving infrastructure. More sophisticated implementations can offer other AI services such as managed vector database access."
+        },
+        {
+            "type": "H1",
+            "content": "Do We Really Need a Gateway Specifically for LLMs?"
+        },
+        {
+            "type": "P",
+            "content": "At first glance, one might assume that building an API gateway and connecting model providers’ APIs and self-hosted inference servers would be sufficient to solve our problems. While API gateways offer a lot of helpful functionality, there are specific features that set a GenAI gateway apart from a traditional API gateway. Just like the MLOps paradigm builds on DevOps principles to solve challenges specific to deploying ML applications, a GenAI gateway extends the API Gateway concept to offer solutions to challenges specifically encountered in GenAI applications."
+        },
+        {
+            "type": "P",
+            "content": "A Flywheel for AI Acceleration in the Organization"
+        },
+        {
+            "type": "P",
+            "content": "By close collaboration between the teams serving the use cases and the platform team developing the gateway, it becomes possible to create service interfaces that can be written once and reused across teams. Once the gateway is set up for a particular model (or model provider), a new team with a similar need should be able to seamlessly integrate the GenAI gateway in their product tech stack, without having to spend time to figure out custom deployments, provider licensing, monitoring or other technical aspects that are handled the gateway. New functionalities can and should be added in lock-step with growing demands from the teams, focusing on the feature work that represents the greatest output multiplier in terms of other use cases benefiting from them."
+        },
+        {
+            "type": "P",
+            "content": "Seamless Model Swapping"
+        },
+        {
+            "type": "P",
+            "content": "GenAI is a quickly evolving field with providers rapidly releasing new models, which means that the model you deploy today is likely to be outperformed by a newer model in just a matter of weeks or months. Alternatively, a smaller or more cost-effective model might be released, offering the potential to reduce costs and latency. If this model is from a different provider, switching costs might be prohibitive on the scale of a single project. Therefore, it is crucial to be able to swap out models via a central interface, without having to update each application that consumes them."
+        },
+        {
+            "type": "P",
+            "content": "A centralized GenAI gateway addresses this need. Instead of modifying the inference call in each of your applications, you only need to update the GenAI gateway once. The gateway then handles the necessary routing and transformation of the API call on the backend and sends it to the appropriate provider. This centralized approach simplifies the process of keeping your applications up-to-date with the latest and most efficient models, ensuring that you can quickly adapt to advancements in generative AI technology."
+        },
+        {
+            "type": "P",
+            "content": "Managing the High Costs of Generative AI"
+        },
+        {
+            "type": "P",
+            "content": "Generative models, particularly large language models (LLMs), are notoriously resource-intensive. They require powerful GPUs or other accelerators to maintain reasonable inference latency and throughput. This substantial computational power comes at a significant cost, making it essential to implement rate-limiting measures or restrict access to certain models altogether. However, estimating the costs for LLM usage is not as straightforward as one might think."
+        },
+        {
+            "type": "P",
+            "content": "To account for this variability, model providers typically charge based on the number of input and output tokens consumed. This pricing model reflects the underlying computational complexity and makes it crucial to monitor and log token usage to gain insights into how the models are utilized. Implementing cost guardrails alongside monitoring can help manage and optimize your expenditure effectively, ensuring that you stay within budget while leveraging the power of generative models."
+        },
+        {
+            "type": "P",
+            "content": "In the case of self-hosted models, centralizing the deployment infrastructure allows for more optimal utilization and scaling strategies of model servers, next to better cost management."
+        },
+        {
+            "type": "H2",
+            "content": "With Great Power Comes Great Responsibility"
+        },
+        {
+            "type": "P",
+            "content": "Large Language Models (LLMs) are extremely powerful tools, but they can also be easily misused. Vulnerabilities such as prompt injection and sensitive information disclosure can pose significant security risks to your organization."
+        },
+        {
+            "type": "P",
+            "content": "In a prompt injection attack, an attacker attempts to manipulate the LLM to return outputs it shouldn’t be able to by tweaking prompts to circumvent built-in measures. This type of attack can lead to severe reputation damage in public-facing GenAI applications that lack proper safeguards."
+        },
+        {
+            "type": "P",
+            "content": "Another major threat is the handling of data access by LLMs. While LLMs are incredibly powerful on their own, their full potential is often unleashed when connected to your data. The technique, known as retrieval-augmented generation, involves a retriever first searching for relevant documents within your data lake (often pre processed and stored in vector databases to allow for semantic search of relevant documents). If this data access is not properly configured, a user might be able to misuse the LLM to access data they are not authorized to. This can be particularly dangerous when the application is public-facing."
+        },
+        {
+            "type": "P",
+            "content": "Furthermore, it is often desirable to screen for other undesirable inputs or outputs, such as toxicity, model hallucination, or other inappropriate content."
+        },
+        {
+            "type": "P",
+            "content": "Avoiding misuse and ensuring the secure use of generative AI is a key part of a successful rollout of generative AI within the organization. Generative AI comes with its own set of security challenges that must be handled appropriately. Addressing these topics in a centralized way makes sense since these concerns cut across use cases."
+        },
+        {
+            "type": "H2",
+            "content": "Playground"
+        },
+        {
+            "type": "P",
+            "content": "Having a centralized platform also provides an opportunity to offer users an AI Playground on top of the gateway. This is an application with a Web UI where users can easily access AI models hosted on the gateway. This can be helpful for low-barrier use case exploration, and for providing a secure internal alternative to using external LLM tools such as ChatGPT. Connecting the playground to some internal data sources makes both these use cases even more compelling."
+        },
+        {
+            "type": "H2",
+            "content": "Fallback Mechanisms"
+        },
+        {
+            "type": "P",
+            "content": "The high demand for generative AI and the difficulty in scaling up compute resources can lead to situations where model providers are unable to successfully generate responses. To overcome these reliability issues, it is essential to implement proper failover mechanisms."
+        },
+        {
+            "type": "P",
+            "content": "Example fallback mechanisms include retrying the same model, attempting the request in another region, or sending the request to another model provider. This can be integrated with governance to ensure appropriate controls are maintained on user access and data compliance."
+        },
+        {
+            "type": "H2",
+            "content": "IAM and Secrets"
+        },
+        {
+            "type": "P",
+            "content": "Just like an API gateway, a GenAI gateway is an excellent mechanism to centralize authentication and authorization for incoming traffic. However, when working with model providers, you will also need to authenticate with them, mostly through the use of an API key."
+        },
+        {
+            "type": "P",
+            "content": "Handling sensitive information such as API keys requires the use of a secret manager to safely store and load these values. By building this functionality into the GenAI gateway, individual product teams don’t need to set up and maintain licenses to model providers individually. Managing this centrally increases security and makes it easier to control costs."
+        },
+        {
+            "type": "H1",
+            "content": "A GenAI Gateway Tailored to Your Needs"
+        },
+        {
+            "type": "P",
+            "content": "All organizations have different needs for their GenAI solutions, so there’s no one-size-fits-all GenAI gateway. An implementation of a GenAI gateway can range from a simple and basic architecture to a feature-rich, complex architecture."
+        },
+        {
+            "type": "P",
+            "content": "As an alternative to implementing a GenAI gateway yourself, you can also go off-the-shelf. Many of the features we describe in this section are available as part of GenAI gateway products on the market, such as Glide, Javelin, Orq or Kong GenAI Gateway, which provide out-of-the-box solutions for GenAI gateways. Choosing between these two options requires analyzing the trade-offs between each, and seeing what best fits your organization’s current situation in terms of AI vision, roadmap, current and foreseen use case load, and available resources."
+        },
+        {
+            "type": "P",
+            "content": "The main advantage of using such solutions is that you don’t need to invest time in building one yourself. Maintenance costs will also be significantly lower. However, the major downside is that you are fully dependent on the features they offer. Building a custom GenAI gateway allows you to tailor the gateway to your specific needs, and it lets you keep control over all the data and infrastructure on your own platform. Unless you opt for a self-hosted solution, off-the-shelf gateways require you to share potentially sensitive data through the providers’ API for processing and storage. It might also become difficult later to switch away from third party software once you’ve built a lot of functionality on top of it (pipelines, scripts,…). And since these tools and pricing models are still relatively new, significant changes might make switching desirable or inevitable in the future."
+        },
+        {
+            "type": "P",
+            "content": "Developing a custom solution does require some investment in development and maintenance, however it also means you maintain full control and can tailor to your organizations’ needs in terms of models, or other supporting components. Importantly, “building it yourself” does not require building everything from scratch. A lot of the required tooling provided by cloud providers can be adapted to work together in the gateway architecture."
+        },
+        {
+            "type": "P",
+            "content": "If you are developing a customized solution, it is often best to develop the gateway in an iterative manner, carefully considering what would bring the most value across the teams that would be consumers of the gateway’s services, and validating these assumptions before starting the implementation. Also consider what implications each feature or abstraction has on maintenance costs for your platform team (e.g. when model providers break backward compatibility in an API update)."
+        },
+        {
+            "type": "H2",
+            "content": "A Super Basic GenAI Gateway"
+        },
+        {
+            "type": "P",
+            "content": "The most minimal implementation of a GenAI gateway would be a component that can route requests to different models across different model providers or to different self-hosted models, as well as a model registry component offering information on supported models. Such a GenAI gateway can be incredibly useful in the early stages of building GenAI applications. The main benefit of having a GenAI gateway compared to not having one is that it provides a centralized way to access a range of models, making it easier to experiment with different models and update them as needed. For example, when Meta released LLaMA-3, which likely outperforms LLaMA-2, swapping LLaMA-3 for LLaMA-2 doesn’t require changes in all of your applications."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "91861744108589939c9a9c0de1f38529.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:731/0*rLuzjfd81Q51Iww6",
+            "caption": null
+        },
+        {
+            "type": "H2",
+            "content": "Authentication and Authorization"
+        },
+        {
+            "type": "P",
+            "content": "As mentioned before, allowing unrestricted access to LLM calls is quite risky. Therefore, adding a policy store to the GenAI gateway is a great idea. Policies can be used as an authorization component to define restrictions on access to certain models by specific users, set rate limits, or limit the number of input and output tokens. Policies can also enforce certain regulations, such as processing data in a specific region."
+        },
+        {
+            "type": "P",
+            "content": "A natural companion to the policy store is an identity and access management (IAM) component, ensuring that the GenAI gateway is aware of who is making an API call. This component should handle all authentication logic. Together with the policy store, you can set up fine-grained access control to your models."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "2c74f44659943c57214f30989209a9f8.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:731/0*3wxX8R2OnuyX1n--",
+            "caption": null
+        },
+        {
+            "type": "H2",
+            "content": "Keeping an Eye on the Price"
+        },
+        {
+            "type": "P",
+            "content": "Observability and monitoring are both important practices within a production environment, but in GenAI applications, they deserve special attention. As LLm calls are generally expensive, with non- deterministic costs, as the number of output tokens varies. Monitoring can be used to gain insights into how LLMs are used and if this is in line with expectations or best practices. Not only the number of calls to LLMs is a major factor in the total costs, but also the size of the inputs and outputs."
+        },
+        {
+            "type": "P",
+            "content": "Our architecture so far supports pretty much everything we need in terms of security and cost management. What’s left to add to our architecture are some more niche features like caching. Caching in GenAI can be similar to caching in a web server, but with some unique tweaks. Semantic caching is a technique to determine whether we have previously processed a request where the prompt was semantically similar to the current incoming request. For example, “How do I update my password?” and “How can I change my password?” have the same answer, even though the questions are worded differently."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "1cad5acd9acf2e46ee135d93241f1549.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:731/0*jMUJtQQwMhMtKvUt",
+            "caption": null
+        },
+        {
+            "type": "H2",
+            "content": "Taking Control of What Is Going In and Out of the Model"
+        },
+        {
+            "type": "P",
+            "content": "There are two types of guardrails: input and output guardrails. As the name suggests, input guardrails are used to ensure that inputs for the LLM are verified, while output guardrails are used to verify the outputs generated by the LLM. Examples of input guardrails include measures to block malicious requests and prevent users from generating inappropriate content. If you are using third-party APIs, you might want to remove personal identifiable information. Output guardrails can be used to verify output formats, such as validating that the LLM returned a valid JSON in a predefined format, or to verify the quality of the generated response. The main reasons for adding guardrails are to avoid abuse and maintain high-quality generated outputs."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "d83b4d1f5f8c02380d82caa90dfab24b.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:731/0*wxz-6D05Zgzq7oeD",
+            "caption": null
+        },
+        {
+            "type": "H2",
+            "content": "Other Features"
+        },
+        {
+            "type": "P",
+            "content": "The AI playground mentioned above can be added to encourage easy experimentation. This can be seen as a separate project, owned by the platform team, acting as a consumer for your gateway services, and it can be realized by using off-the-shelf components for the frontend."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "f0c65f0f36bbdf34e414394306ca7187.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:731/0*RkxZI2hxFk2uJYAY",
+            "caption": null
+        },
+        {
+            "type": "P",
+            "content": "An additional component that can be added to the gateway is custom logic to pre- or post-process the inputs and outputs. Responses can be enriched with metadata or put into a certain format to fit your organization’s goals. These could be turned on or off via API flags"
+        },
+        {
+            "type": "H2",
+            "content": "Scenarios When a GenAI Gateway Is Not the Right Solution"
+        },
+        {
+            "type": "P",
+            "content": "A prime example of where a GenAI gateway might not be a suitable solution is in processing pipeline with a low-latency and/or high-throughput requirement where one or more steps involve calls to a generative model. A GenAI gateway acts as a middleman, which inherently introduces additional latency. When self-serving, you have better control over optimizing throughput and latency, for example, through batch requests and keeping model data in GPU memory. For such custom projects a self-managed solution reusing components or best practices from the platform might be the best solution."
+        },
+        {
+            "type": "P",
+            "content": "However, using generative models without the gateway means losing the benefit of centralized traffic management, making it more difficult to gain organization-wide insights. It’s up to the solution architect and other stakeholders to make the trade-off between having the gateway features such as centralized monitoring, access control, and rate limiting versus better-tuned performance."
+        },
+        {
+            "type": "P",
+            "content": "A new model usage pattern can also be developed within the use case team, and integrated in the gateway at a later stage once the case for its reuse across the organization becomes more clear."
+        },
+        {
+            "type": "H1",
+            "content": "Conclusion"
+        },
+        {
+            "type": "P",
+            "content": "In this article we covered the concept of a GenAI gateway, a concept inspired by an API gateway to centralize generative AI traffic in a single place, as part of a platform approach to AI across the organization. A GenAI gateway offers a solution to GenAI specific challenges such as secure usage models via guardrails, monitoring and observability of model usage and authorized usage models. You can tailor the gateway to your needs, to make optimal use of generative AI within your organization."
+        },
+        {
+            "type": "P",
+            "content": "This blog post was co-authored with Robbe Sneyders and Thomas Janssens. We would also like to give a special shout-out to Arne Pannemans and Matthias Durivet."
+        }
+    ]
+}

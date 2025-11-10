@@ -1,0 +1,331 @@
+{
+    "title": "A first impression of Google Cloud’s new Visual Inspection AI tool",
+    "author": "Jérémy Keusters",
+    "readTime": "11 min read",
+    "publishDate": "Dec 14, 2022",
+    "blocks": [
+        {
+            "type": "FIGURE",
+            "filename": "3b1dfe59f563015c89d60b9effe55d45.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*eAWJkXq1f9VXcBnfOejNgg.gif",
+            "caption": "Source: https://cloud.google.com/solutions/visual-inspection-ai"
+        },
+        {
+            "type": "P",
+            "content": "Back in June 2021, Google Cloud announced Visual Inspection AI. This tool allows manufacturers and consumer goods companies to cut down on defects by allowing for quick training and deploying of AI models to detect production defects. It is part of Google Cloud’s Vertex AI offering, and is still under restricted GA access at the time of writing, meaning that it’s not publicly accessible. Luckily, as ML6 is a Premier Google Cloud Services partner, we were able to get early access to this brand new tool and put it to the test for you."
+        },
+        {
+            "type": "P",
+            "content": "Visual Inspection AI focuses on three types of inspection:"
+        },
+        {
+            "type": "UL",
+            "items": [
+                "Image anomaly detection",
+                "Assembly Inspection",
+                "Cosmetic Inspection"
+            ]
+        },
+        {
+            "type": "P",
+            "content": "In this blogpost, we’ll go over each of these types and discuss their characteristics. We also put the cosmetic inspection to the test to see how it performs."
+        },
+        {
+            "type": "H1",
+            "content": "Image anomaly detection"
+        },
+        {
+            "type": "FIGURE",
+            "filename": "eacff0fed4d3eb69b5cf31468c425c7c.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:480/1*KBRGB9gTkCtIsr6XDhyhTA.gif",
+            "caption": "Source: https://console.cloud.google.com/ai/visual-inspection/datasets/create"
+        },
+        {
+            "type": "P",
+            "content": "The first type of inspection offered by Visual Inspection AI is image anomaly detection. Even though this is a very popular task in the computer vision domain, this type of inspection was not yet available when the restricted GA access version became available to us back in February 2022. Instead, it became available as an update in August 2022."
+        },
+        {
+            "type": "P",
+            "content": "As the name suggests, this type of inspection checks the whole image for anomalies instead of localising individual anomalies. Interesting here is that labeling (annotating) is not mandatory. This means that you can also train a model without labeling the images as either normal or abnormal, but this comes of course at the cost of a potentially degraded training performance. Another downside is that you won’t be able to view any evaluation metrics as there is no ground truth. Google Cloud requires you to upload at least 20 normal images or at least 10 normal and 10 abnormal images. To improve performance, at least 1000 normal images or 100 normal and 100 abnormal images are recommended."
+        },
+        {
+            "type": "P",
+            "content": "After training, the model can be evaluated using typical evaluation methods such as a precision & recall curve and a confusion matrix. Based on these, an appropriate confidence threshold can be set by the user. This is the threshold that determines whether or not the image is classified as abnormal. Using this, a trade-off can be made between a more precise or a more sensitive model."
+        },
+        {
+            "type": "P",
+            "content": "The fact that you can train a model without labeling the images as either normal or abnormal intrigued us, hence why we decided to try out this functionality. We collected an internal ML6 dataset of black and blue mugs and decided to upload 200 images of black mugs and 5 of blue mugs, hence treating the blue mugs as abnormal mugs."
+        },
+        {
+            "type": "P",
+            "content": "After training the model and going to the evaluation page, we obviously get a message saying that there are no ground truth labels to compute metrics. What is interesting however, is that Visual Inspection AI subsequently suggests us which images to label in a certain order. And guess what, our five blue mugs are in the top of the list, showing that the model is not really confident about these images and thinks that labeling these will have a big impact on the model output."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "975e112f275f29de07ac7ff47ad18657.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*tM71W1Mu5pIdiM2bWxFMQA.png",
+            "caption": null
+        },
+        {
+            "type": "P",
+            "content": "Surprisingly though, when we sort them according to their defect score, only one blue mug remains in the top list. This suggests that Visual Inspection AI has both a defect score as well as some kind of internal confidence score for each image."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "175fad753ea5323fbdddceb53a828f41.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*B0TPNH0Y5rkcqOfAEakrmA.png",
+            "caption": null
+        },
+        {
+            "type": "P",
+            "content": "One can continue after this by labeling images and retraining the model to gradually improve it."
+        },
+        {
+            "type": "H1",
+            "content": "Assembly Inspection"
+        },
+        {
+            "type": "FIGURE",
+            "filename": "f783cca4fc1e517d92595fcb6f1f45a8.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*msVq-4zrZm7lu-wS2jWEVA.gif",
+            "caption": "Source: https://console.cloud.google.com/ai/visual-inspection/datasets/create"
+        },
+        {
+            "type": "P",
+            "content": "A second type of inspection we’ll take a look at is assembly inspection. This mode is suitable for quality inspection of assembled products, as it inspects each individual component of your product for two things:"
+        },
+        {
+            "type": "UL",
+            "items": [
+                "Whether the individual component is in the right location.",
+                "Whether the individual component is defective."
+            ]
+        },
+        {
+            "type": "P",
+            "content": "We uploaded some images of circuit boards (coming from Google Cloud’s demo PCB images dataset) to Visual Inspection AI to demonstrate the key principles of assembly inspection. Once the images are uploaded, there are three initial main steps to follow:"
+        },
+        {
+            "type": "OL",
+            "items": [
+                "Select a picture of a non-defect product as base template.",
+                "Mark the area to inspect. This is the area that needs to be inspected by the AI algorithm. You also have the possibility to mark any areas that are within this inspection area that need to be excluded. An example can be seen in the screenshot below, where a hole that is meant to be in the component is marked as area to be excluded. In this screenshot, you can also see the area to be inspected, marked by the green bounding box.",
+                "Mark the individual components that you want to inspect on the product."
+            ]
+        },
+        {
+            "type": "FIGURE",
+            "filename": "8acaa5bcbdb3b812c07cf6202dc8f0c8.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*zag_iEp5pBH5swgPDA768Q.png",
+            "caption": "Marking an area to exclude in the Visual Inspection UI."
+        },
+        {
+            "type": "P",
+            "content": "For demonstration purposes, we have marked one of the capacitors, the integrated circuit and one of the resistors on our base template image. Although not demonstrated here, it is also possible to mark multiple individual components of the same type on one image (e.g. all the resistors)."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "f317989b61e94a59e98c3c39008afb76.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*pgyCjpeCPaZQSPrfrzbzJA.png",
+            "caption": "Labelling the components of our base product in the Visual Inspection UI. The outer green bounding box denotes the area to inspect, while the red one denotes the area to be excluded during inspection."
+        },
+        {
+            "type": "P",
+            "content": "Once these initial steps are done, Visual Inspection AI will detect the earlier labeled components on the remaining images. In this process, the components are also automatically aligned, so the products (circuit boards in our case) don’t necessarily need to be aligned in the pictures. This means they can for example be rotated by a number of degrees, as is the case for the second image in the screenshot below. After this process is done, you can see the amount of capacitors, integrated circuits and resistors that were detected by the model."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "0f83848f47eceb9149b6f09c05fbfe3a.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*JhgDB8y-TX0OL8wgMUU-dw.png",
+            "caption": "The left column shows the number of components found for each component type."
+        },
+        {
+            "type": "P",
+            "content": "You can click on the components in the submenu on the left to see the cut-out and aligned pictures and start labelling the components as either normal or abnormal. Since Visual Inspection AI trains an anomaly detection model for every individual component, it doesn’t require you to mark abnormal components. However, just as with the image anomaly detection model, it will help with the training and accuracy of the model."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "4bc31c4e3ef19833023a1f25debf5485.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*WRxpGwDYT2G4gd8Ov1zaHg.png",
+            "caption": "The individual component view allows one to label the component as normal or abnormal."
+        },
+        {
+            "type": "P",
+            "content": "Google Cloud requires at least 100 normal or unlabeled images per component to start training. Once trained, the model will output an anomaly detection score between 0 and 1 for each component. Next to this score, Visual Inspection AI will also recommend images to label based on the active learning principle. This means that images that will have the biggest impact on the model output when labelled will be suggested first."
+        },
+        {
+            "type": "H1",
+            "content": "Cosmetic Inspection"
+        },
+        {
+            "type": "FIGURE",
+            "filename": "3b64ae634eedfbe4c91294763bb1f04a.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*d7Np_SJ_TrMcw7Y3-v29CQ.gif",
+            "caption": "Source: https://console.cloud.google.com/ai/visual-inspection/datasets/create"
+        },
+        {
+            "type": "P",
+            "content": "The final type of inspection offered by Visual Inspection AI is cosmetic inspection. This type focuses on detecting and localising small and subtle defects that can appear anywhere on a product. Unlike assembly inspection, there is no component location that can be pre-defined for aiding the visual inspection task. Therefore, to allow the solution to learn defect patterns, one needs to annotate at least some defect images. It is important to note that, although you don’t have to label all images that contain a defect, you still have to annotate each defect that is visible in an image, as not doing so might lead to an inferior model training performance. Annotations can be of type bounding box, polygon or mask."
+        },
+        {
+            "type": "P",
+            "content": "To test this solution, we made use of the MVTec AD dataset. This dataset consists of over 5000 high-resolution images of fifteen different objects and texture categories that allow for benchmarking anomaly detection methods."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "8d8dd4561ba5d3fa0725ae9cce7f69cf.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*-12zCTHLlbC9eT5OsMxbyA.jpeg",
+            "caption": "Example images from the MVTec AD dataset. The top row contains normal images, the middle row abnormal images and the bottom row offers a close-up view on the defects that appear in the abnormal images."
+        },
+        {
+            "type": "P",
+            "content": "For this experiment, we chose to use the screw object. This subset has five types of defects: manipulated front, scratch head, scratch neck, thread side and thread top."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "db5b0e8986de4edecaf0d5628fc1be65.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*bw8KEUcsypEwhlvFZtWmaw.png",
+            "caption": "From left to right: normal, manipulated front, scratch head, scratch neck, thread side and thread top."
+        },
+        {
+            "type": "P",
+            "content": "Each image is also accompanied by a mask image that defines the locations of the defects. Google recommends having at least 125 images in a cosmetic inspection dataset, so we selected 22 images for each class (we have six classes in total) and uploaded them to Visual Inspection AI. From there on, you can either label images yourself through the annotation interface in Google Cloud Platform (see screenshot below), or import existing labels. As we already have detailed masks of the defects, we chose to import them and thus use annotation masks."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "56238c77dc5e2260ae0247a581219ba8.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*B1jcY-jYUlcvNZ0TejG2dw.png",
+            "caption": "Manual labelling process in the UI in case you don’t import any labels."
+        },
+        {
+            "type": "P",
+            "content": "In the MVTec AD dataset, the provided masks are simply white pixels (which define the area of defect) on a black background. In order for us to use them in Google Visual Inspection AI, they need to be colour-coded by class. An example of this can be seen in the screenshot below."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "63761ef55571ce410b01410309406123.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*hQW4DzMhA9592WNj49lxEQ.png",
+            "caption": "An example of the masks. The first row simply contains the original images. The middle row contains the masks provided by the MVTec dataset, defining the defect area. The last row contains the colour-coded masks by class. In this example, the ‘manipulated front’ class is marked with a red colour."
+        },
+        {
+            "type": "P",
+            "content": "After this, we trained a cosmetic inspection model on 132 images, which Visual Inspection AI split automatically into balanced train and test sets. After training, the model can be evaluated inside Google Cloud Platform. Interesting here is that the platform allows you to evaluate in two different ways:"
+        },
+        {
+            "type": "UL",
+            "items": [
+                "Image-level evaluation: How well did the model classify an image as containing a defect? This explains model performance on image level.",
+                "Pixel-level evaluation: How well did the model localise and classify the defect(s) inside the image?"
+            ]
+        },
+        {
+            "type": "H2",
+            "content": "Image-level evaluation"
+        },
+        {
+            "type": "P",
+            "content": "Let’s first dive into the image-level evaluation. In this evaluation mode, each image has a defect score between 0 and 1, which indicates how confident the model is that there is a defect inside the image. The screenshot below shows an example of this."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "f87a8a43ad63d2375b4883726475fe72.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*PmImBSFStJ5MWtshvDzQzg.png",
+            "caption": "Example images that were given a defect score between 0 and 1 by the cosmetic inspection model."
+        },
+        {
+            "type": "P",
+            "content": "After playing around with the generated precision-recall curve, the optimal confidence threshold can be determined, which is 0.016 in this case. Using this threshold, we reach a precision of 1 and a recall of 0.95, which is quite good considering the limited number of examples that were used for training."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "2e9442e4228522a251669cdb35907999.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*7_Kg2EjpWM9mlBaMar3Pgg.png",
+            "caption": "Evaluation page showing the different available metrics and curves for the pixel-level evaluation."
+        },
+        {
+            "type": "H2",
+            "content": "Pixel-level evaluation"
+        },
+        {
+            "type": "P",
+            "content": "When we look at pixel-level evaluation, the results are worse. At the default confidence threshold, we reach a precision of 0.82 with a recall of only 0.56. By playing around with the confidence threshold, the precision can still be augmented to 0.91, but this causes the recall to drop to 0.43."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "36752d3f35221890c12a8e9917791152.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*btyPlVaSm9TaKLfszkze8Q.png",
+            "caption": "Evaluation page showing the different available metrics and curves for the pixel-level evaluation."
+        },
+        {
+            "type": "P",
+            "content": "In the pixel-level evaluation mode, there’s also a confusion matrix available on the evaluation page, which helps us to understand more in detail what’s going on. When looking at the confusion matrix (screenshot below), one can notice that the model seems to be more ‘conservative’ in marking areas as defect. This causes a low recall, but still quite a high precision."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "2bf56e6801a57e15812b50c37e60398b.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*Oo9F1DfMn4qBbSxrJ9m3oA.png",
+            "caption": "Confusion matrix for the pixel-level evaluation method using a confidence threshold of 0.5."
+        },
+        {
+            "type": "H2",
+            "content": "Additional images"
+        },
+        {
+            "type": "P",
+            "content": "As one can see, the results of this experiment in cosmetic inspection are a bit mixed, but we of course only used 126 images and a training budget of 30 node-hours. We were therefore interested if we could improve the model by adding additional images and training a bit longer. Since the MVTec AD dataset only has a limited amount of abnormal images and a large amount of normal images, we decided to leverage these normal images. We did this by adding the remaining, unused 339 normal images of screws to the Visual Inspection AI dataset and started another training run. The advantage here is that you can continue your training run from the previous checkpoint, which saves you from losing your previous model training progress."
+        },
+        {
+            "type": "P",
+            "content": "To our surprise, we discovered after training that adding additional normal images did not improve the model in an unambiguous way. For example, for the pixel-level evaluation (How well did the model localise and classify the defect(s) inside the image?), the precision value increased by 0.04, while keeping the recall at the same value. This is good, but when taking the confusion matrix into account, one can actually notice that the percentages got worse for 2 classes compared to our first model."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "70b8539d19cd9fb115c0abcdc9a49497.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*jDa8e6BVp3LC6KjJkMom4A.png",
+            "caption": "Confusion matrix for the pixel-level evaluation method of the second model using a confidence threshold of 0.543."
+        },
+        {
+            "type": "P",
+            "content": "For the image-level evaluation (How well did the model classify an image as containing a defect?), the recall actually dropped to 0.85 (coming from 0.95) when keeping the precision at 1."
+        },
+        {
+            "type": "P",
+            "content": "We can conclude that the results of this experiment for cosmetic inspection are mixed. On the one hand, we got a working AI model and dataset management tool with minimal effort. On the other hand, the evaluation results could be better. It is however important to note that we always used rather small training node-hour budgets and that bigger budgets could have a positive impact."
+        },
+        {
+            "type": "H1",
+            "content": "Exporting, serving and pricing"
+        },
+        {
+            "type": "P",
+            "content": "Once you’re satisfied with your model, you can export it as a solution artifact. This solution artifact includes a container image for the models and a runtime for serving predictions. You can then serve predictions from the model by running the container."
+        },
+        {
+            "type": "P",
+            "content": "Visual Inspection AI has quite a simple cost scheme:"
+        },
+        {
+            "type": "UL",
+            "items": [
+                "Training a model (anomaly/cosmetic/assembly) costs $2 per node-hour.",
+                "Inference costs $100 per camera per solution per month."
+            ]
+        },
+        {
+            "type": "P",
+            "content": "This does not sound like a lot, but for a single cosmetic inspection training run, Google Cloud recommended me to provide a budget of 216 node-hours, which equals to $432 for a single training run of 126 images. Important to note here is that the system will stop early if the model is no longer improving and that you can continue from a previous checkpoint if you have already trained once, as we demonstrated in this blogpost."
+        },
+        {
+            "type": "H1",
+            "content": "Conclusion"
+        },
+        {
+            "type": "P",
+            "content": "In this blogpost, we discussed the different types of inspection that Google Cloud’s new Visual Inspection AI offers. We especially took a deeper look at the cosmetic inspection tool, which allows us to detect and localise defects. We also discussed the possibilities of exporting and serving these solutions, as well as the pricing."
+        },
+        {
+            "type": "P",
+            "content": "With Visual Inspection AI, Google Cloud makes it easier than ever for its customers to train and evaluate models that can detect defects. It promises quick training and deployment of AI models, which is exactly what it does. The tool has a lot of potential and the foundation seems to be right, although it can still use some polishing here and there. Some disadvantages of Visual Inspection AI are that it remains a black box solution, has an ongoing license fee and certainly won’t be perfect for any use-case. Nevertheless, the tool can still be very valuable if a company does not want to spend too much resources into developing and deploying a custom AI model for detecting manufacturing defects."
+        }
+    ]
+}

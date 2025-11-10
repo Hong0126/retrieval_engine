@@ -1,0 +1,295 @@
+{
+    "title": "Graph representation learning for drug repurposing",
+    "author": "Andrew Foster",
+    "readTime": "15 min read",
+    "publishDate": "Apr 17, 2024",
+    "blocks": [
+        {
+            "type": "FIGURE",
+            "filename": "e86206e85c3af437d579eb88bcdebffe.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*3xW7dJS6tbqm052ThJuGVg.png",
+            "caption": "How can we leverage graphs to find new ways to treat age-old diseases?"
+        },
+        {
+            "type": "H1",
+            "content": "Introduction"
+        },
+        {
+            "type": "P",
+            "content": "Human Immunodeficiency Virus type-1, also known as HIV-1, is a disease that has plagued humanity for over 4 decades. According to the World Health Organization, HIV/AIDS has claimed the lives of ~40.4 million people since the beginning of the crisis in 1981, and there are ~39 million people today afflicted with the disease. The most common approach to treating the disease is via Anti-Retroviral Therapy (ART), which typically involves taking a cocktail of drugs that reduce the replication rates of the virus. When treatment begins early and administration is carried out regularly (typically everyday), ART has the intended effect of reducing viral load to undetectable levels, significantly reducing transmission rates and allowing patients to live long, healthy lives."
+        },
+        {
+            "type": "P",
+            "content": "Despite the major successes of ART, however, it does not constitute a cure for the disease, but rather a treatment plan that must be continued life-long. This is primarily due to the problem of HIV latency, where the virus is able to remain in a dormant state for weeks to years in resting memory T-cells, undetectable by the immune system. These T-cells can be reactivated at any time, prompting transcription of the virus and requiring an effective therapeutic regimen to prevent a resurgence of the disease."
+        },
+        {
+            "type": "P",
+            "content": "Identifying a permanent cure for the disease remains a steadfast goal among health organizations worldwide. However, a completely novel therapeutic would likely take at least 10–15 years to develop [1]. Additionally, developing such a drug would cost an average 2.3 billion dollars and have only a 10% chance of meeting the safety and efficacy standards set for clinical trials [1]."
+        },
+        {
+            "type": "H1",
+            "content": "Drug Repurposing"
+        },
+        {
+            "type": "P",
+            "content": "To reduce the risk, time, and money to bring a therapeutic to market, drug developers can draw upon a wealth of knowledge about HIV accumulated over the decades to “repurpose” an already-approved drug. Drug repurposing (also known as drug repositioning) means taking a drug investigated or approved to treat a particular disease, and then identifying a new use case for it. By employing such an approach to identify effective therapeutics for HIV, it will take approximately half of the time as developing a completely new therapeutic at about 20% of the cost [2]."
+        },
+        {
+            "type": "P",
+            "content": "Given the vast number of potentially repurposable therapeutics, it would be impractical to carry out in-vitro studies on all of them. In this experiment, graph representation learning techniques were used to computationally screen a vast number of therapeutics and create a short-list of the drug-candidates most likely to be effective in treating HIV-1. Encouragingly, many of the short-listed therapeutics had been investigated or are currently under investigation for treating the disease."
+        },
+        {
+            "type": "H1",
+            "content": "What is graph representation learning?"
+        },
+        {
+            "type": "P",
+            "content": "Graph representation learning involves the automatic learning of valuable vector embeddings that represent either a graph as a whole or the entities within a graph. These methods encompass various techniques, such as those based on random walks, matrix factorization, and graph neural networks, among others. There isn’t a universally superior graph learning method applicable to all tasks, and the selection of a technique depends on the information contained within the graph(s) and the nature of the problem being tackled. In this study, two distinct graph representation learning techniques were employed: diffusion-profile comparison and graph neural networks."
+        },
+        {
+            "type": "H2",
+            "content": "Diffusion-profile comparison"
+        },
+        {
+            "type": "P",
+            "content": "Diffusion profiles are embeddings representative of a node’s effect propagation in a graph [3]. The diffusion-profile of a node is equivalent to the stationary distribution of an infinitely-long biased random-walk with restarts beginning from the node of interest. The concept is to run a very large number of random walks beginning from a source node, where the random walker can either move to neighboring nodes based on certain transition probabilities, or restart from the source node with a certain restart probability. The transition probabilities and the probability of restarting from the source node can be optimized for the particular task at hand. The final diffusion profile of the node will be a |V|-dimensional vector (|V| is the number of nodes in the graph) where the ith entry of the vector will reflect the likelihood of node i being visited on a random walk beginning at the source node."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "4e5b73a8a0a0519d434db37bb613260a.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*ZaX3X-uKyhU-yFtDrSSV_g.gif",
+            "caption": null
+        },
+        {
+            "type": "P",
+            "content": "In the animation above, a random walker begins at the source node (HIV-1), and then moves to a neighboring node with a certain transition probability. Because all of the neighbors of the node are of the same type (protein), the likelihood that the walker will transition to each of the nodes will be 1/(# of neighbors of node v), or 1/3 for each node. After the walker transitions to the node on the left, he will then be able to walk to either a protein neighbor, a biological function neighbor, or back to the HIV-1 node. These transition probabilities can be optimized to reflect the relative importance of the different node-types in propagating the effects of drugs and diseases. Certain nodes in the graph may act as sink-nodes that force the random walker to transition back to the source node. Due to the fact that the effects of a drug or disease will not propagate through other drugs or diseases in the network, drug or disease nodes encountered on a random-walk will be considered sink nodes, forcing the random walk to begin again from the source node."
+        },
+        {
+            "type": "P",
+            "content": "Rather than actually simulating these random walks, power iteration can be used to solve for the diffusion profiles explicitly according to Eq. 1:"
+        },
+        {
+            "type": "FIGURE",
+            "filename": "bbf91702cd5048dd7e93ad3ecb3d2f24.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*9AIiTwNyS3NT51UpDNKaJw.png",
+            "caption": "Eq 1: Diffusion-profiles can be calculated explicitly via power iteration."
+        },
+        {
+            "type": "P",
+            "content": "The diffusion profile r is a |𝑉 |-dimensional vector, where |𝑉 | is the number of nodes in the graph. The matrix 𝑀 is a column-stochastic adjacency matrix of dimension |𝑉 | × |𝑉 |, which determines the probability with which a random walker will transition from a given node to one of its neighbors in the graph. The parameter 𝛼 represents the probability with which the random walker will continue its walk rather than restart from the source node. s is a one-hot vector of dimension |𝑉 |, recording the index of the source (restart) node. Lastly, 𝐽 is the set of sink nodes, referring to nodes without out-edges. Power-iteration continues until the difference in magnitude of the diffusion profiles from one time step to the next is sufficiently small, indicating that the vector has converged to the stationary distribution."
+        },
+        {
+            "type": "H2",
+            "content": "Graph neural networks"
+        },
+        {
+            "type": "P",
+            "content": "Graph neural networks (GNNs) are neural networks designed to operate on graph-structured data. The three most-common tasks carried out by graph neural networks are node classification, link-prediction, and graph-classification. The basics of link-prediction and graph classification, the two methods employed in this experiment, are discussed below."
+        },
+        {
+            "type": "P",
+            "content": "Link-prediction refers to predicting whether an edge exists between two nodes in a graph. This is typically performed by first generating embeddings for the nodes in question, and then feeding the embeddings through a classifier that will output the likelihood that an edge exists (or will exist) between the nodes. During training, the edges in the graph are divided into two groups: message-passing edges and supervision edges. As the name implies, message passing edges will be used to transmit messages from neighboring nodes to generate node embeddings. Supervision edges will be predicted, and they are masked in the graph to prevent them from passing messages. A supervision edge can be either a positive edge (meaning that the edge exists in the graph) or a randomly-sampled negative edge (meaning that the edge does not exist in the graph). The GNN is trained to generate node embeddings that will minimize a loss function, such as the binary cross-entropy of classifying links as positive (real) edges or negative edges."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "3dfbb6910c3b9d8da06c32160c3773d1.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*M12-JCyF9iAAwlY45erx7g.png",
+            "caption": "Fig 1: Edges are partitioned between message-passing and supervision."
+        },
+        {
+            "type": "P",
+            "content": "Graph classification refers to classifying entire graphs into two or more groups. Similar to the workflow in link-prediction, individual node embeddings must first be generated. To get a representation of the entire graph, the embeddings of all of the nodes must be aggregated according to some strategy. These strategies include using a “super” node that connects to all other nodes and aggregates information from every node in the graph, as well as using various global or hierarchical-pooling layers to create progressively coarser representations of the entire graph. The final graph embedding can then be fed through a classifier that will output the relative likelihoods of the graph belonging to the different classes."
+        },
+        {
+            "type": "H1",
+            "content": "The data"
+        },
+        {
+            "type": "P",
+            "content": "In this experiment, two separate sources of graphical data were used: the multiscale interactome from Stanford University, and the ogbg-molhiv dataset from Open Graph Benchmark."
+        },
+        {
+            "type": "H2",
+            "content": "The Multiscale Interactome"
+        },
+        {
+            "type": "FIGURE",
+            "filename": "abd895d43c315fb35e6d23b56473fe3f.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*P7UJ7c163K-krlFggNUYQQ.png",
+            "caption": "Fig 2: A subgraph of the multiscale interactome centered at HIV-1."
+        },
+        {
+            "type": "P",
+            "content": "The multiscale interactome is a single heterogeneous network consisting of four different node types: proteins, drugs, diseases and biological functions [4]. Edges between nodes reflect different relationship types: proteins physically interact with other proteins in the cell, proteins are targeted directly or indirectly by drugs, proteins participate in biological functions, diseases disrupt or co-opt the functioning of proteins, drugs treat diseases, and low-level biological functions are part of more general, high-level biological functions."
+        },
+        {
+            "type": "P",
+            "content": "The multiscale interactome did not originally contain the HIV-1 node, so an HIV-1 node with connections to 30 human proteins implicated in the life-cycle of the disease were added to the graph. Additionally, seven known HIV-1 inhibitors were added as ground-truth HIV-1 drugs."
+        },
+        {
+            "type": "H2",
+            "content": "ogbg-molhiv"
+        },
+        {
+            "type": "FIGURE",
+            "filename": "d859b7539fdde8b3a170dbb25ffdd3ed.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*Tq9Yl8OavWuGOCLHMClEIA.png",
+            "caption": "Fig 3: An example of the ogbg-molhiv dataset used for training the GNN graph classifier."
+        },
+        {
+            "type": "P",
+            "content": "The structure of a molecule will determine how it interacts with biological macromolecules, how it is transported into and out of cells, and ultimately what its function will be. Therefore, to identify repurposable drugs for a particular disease, it makes sense to look for molecules that bear a structural resemblance to known therapeutics. The publicly available ogbg-molhiv dataset (originally made public by MoleculeNet) contains a wealth of information relating molecular structure to in-vitro HIV-1 activity. The dataset comprises the SMILES strings of 41,127 molecules, each accompanied by a binary label: 0 denotes no activity against HIV-1, while 1 denotes moderate to significant activity against the virus."
+        },
+        {
+            "type": "P",
+            "content": "SMILES strings are a simple way of representing the structure of a molecule using a 1D-string. These strings can be converted into molecule graphs using RDKit, an open-source cheminformatics software package. This allows representing atoms with nodes and bonds with edges, each with a set of features: node features include atomic number, formal charge, chirality, etc., and edge features represent the type of bond (e.g. single, double, triple)."
+        },
+        {
+            "type": "H1",
+            "content": "Identifying repurposable drug candidates"
+        },
+        {
+            "type": "H2",
+            "content": "Comparing diffusion profiles over the multiscale interactome"
+        },
+        {
+            "type": "P",
+            "content": "Diffusion profiles provide a mathematical framework for describing how the effects of drugs or diseases propagate through protein-protein interactions and a hierarchy of biological functions [4]. The team that developed the method at Stanford University optimized the transition probabilities to correctly rank known drug-disease pairings. Using these optimized transition probabilities, the team reported an AUROC of 0.705 for correctly prioritizing drug-disease pairings [4]."
+        },
+        {
+            "type": "P",
+            "content": "Following the same workflow as is described in [4], diffusion profiles were calculated for the HIV-1 node as well as every drug in the multiscale interactome. The cosine similarity between the diffusion profile of each drug and HIV-1 was then calculated and used to rank drugs in terms of their repurposing potential, with higher cosine similarities indicating a greater likelihood of repurposability."
+        },
+        {
+            "type": "P",
+            "content": "Diffusion profiles have the added benefit of being interpretable. As described in the original paper [4], one can visualize the most frequently visited nodes in the diffusion profiles of a drug and a disease to identify mechanisms of treatment. In the figure below, baricitinib and fotsamatinib are predicted repurposable due to their targeting of Jak1, a protein involved in the JAK/STAT signaling pathway and one that is disrupted by HIV-1 infection. Similarly, dydrogesterone is predicted repurposable due to its indirect effect on positive regulation of RNA polymerase II, a biological function required for replication of the virus."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "b36c1cc6b0a60006e1d94080c3d70f59.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*7sk5TnDGkAIfqz06bcaIvg.png",
+            "caption": "Fig 4: Diffusion profiles can be visualized to identify mechanisms through which drugs are predicted to treat disease."
+        },
+        {
+            "type": "H2",
+            "content": "Link prediction over the multiscale interactome"
+        },
+        {
+            "type": "P",
+            "content": "While diffusion-profiles provide a more naive and unbiased approach to the drug-repositioning problem, one can potentially improve performance by taking advantage of the knowledge that certain drugs are known to be useful for treating certain diseases. If known drug-disease treatment pairings are incorporated into the multiscale interactome, a GNN can be trained on these edges to predict new disease treatments."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "382fa06998f5768a656b792b884443eb.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*HhB3bGD6xApKVYzOnFhbsQ.png",
+            "caption": "Fig 5: Architecture of the GraphSAGE-based link-predictor."
+        },
+        {
+            "type": "P",
+            "content": "A total 5,933 drug-disease edges were added to the multiscale interactome and a GNN was built to perform the link-prediction (architecture shown above.) The GNN was trained in the transductive setting, meaning that the supervision edges used to calculate the loss function during training are message-passing edges during testing, and the supervision edges in the test set are completely masked from the model during training."
+        },
+        {
+            "type": "P",
+            "content": "Due to an absence of node features in the graph, the first-layer in the GNN is an embedding layer that automatically learns a d-dimensional feature vector for each node during training. Node features from the embedding layer are then passed into the first of 4 graph convolutional stacks; each graph convolutional stack consists of a SAGEConv layer that performs neighbor sampling, message computation and message aggregation, an exponential linear unit activation function, and dropout rate of 30% to prevent overfitting. Next, node embeddings are passed through several fully-connected layers to generate final embeddings. Lastly, a link score is generated by computing the dot-product of drug and disease node embeddings, with a higher link-score indicating a greater likelihood of an edge existing between the drug and disease."
+        },
+        {
+            "type": "P",
+            "content": "Following training, links are predicted between each drug in the graph and HIV-1. Training, testing, and inference were carried out 5 separate times with different random seeds to generate average performance metrics for all drug candidates."
+        },
+        {
+            "type": "H2",
+            "content": "Molecular property prediction"
+        },
+        {
+            "type": "P",
+            "content": "A Graph Attention Network (GAT), a flavor of GNN with an attention mechanism, was built and trained to classify molecules in the ogbg-molhiv dataset. The GNN was trained in the inductive setting, meaning that the training set graphs were completely independent from the test-set graphs."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "9b9ca429c3ee68af84d5342ad6a380f8.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*nc1REw5qPEBMCJQIvt1cbA.png",
+            "caption": "Fig 6: Architecture of the GAT-based graph-classifier."
+        },
+        {
+            "type": "P",
+            "content": "A molecule graph is fed initially into a graph convolutional stack consisting of a GATConv layer which performs message computation and aggregation, a linear layer which aggregates information from parallel attention heads, and a ReLU activation function. The output of the first convolutional stack is then duplicated and passed through two-separate paths- an additional graph convolutional stack (this occurs twice), as well as global max and global mean pooling layers. The outputs from the pooling layers are concatenated to form an embedding representative of the entire molecule, and therefore three representations of the graph are formed from the three successive convolutional and pooling stacks. These representations are summed, and then passed through several fully-connected layers. The output of the final layer is a scalar value, with more positive indicating a higher likelihood of the molecule exhibiting activity against HIV-1."
+        },
+        {
+            "type": "P",
+            "content": "Following training on the ogbg-molhiv dataset, the SMILES strings for each of the small-molecules in the multiscale interactome (1,493 in total) were retrieved and used to create molecule graphs. The trained GNN was then used to rank the molecules according to their likelihood to be HIV-1 inhibitors."
+        },
+        {
+            "type": "H2",
+            "content": "Results"
+        },
+        {
+            "type": "P",
+            "content": "The ordering of repurposing candidates indicated that all three methods were capable of correctly identifying that known HIV-1 therapeutics would be useful in treating the disease. Maraviroc (a CCR5 antagonist) and Ibalizumab (a post attachment inhibtor) were the top two highest ranking drugs for diffusion profile comparison. Zidovudine (a nucleotide reverse-transcriptase inhibtor) was the top ranking drug in graph classification. Notably, none of these drugs were linked to HIV-1 in the multiscale interactome and none were found within the ogbg-molhiv dataset based on searching by SMILES strings. Known HIV-1 inhibitors were frequently ranked within the top-10 drugs by GNN-based link-prediction, however these high scores will be in part due to them serving as positive training examples."
+        },
+        {
+            "type": "P",
+            "content": "To compute an overall repurposing score for each drug, rankings by all three methods were combined, with a lower score indicating a more likely repurposing candidate. Scores were only assigned to compounds that were processed by all three techniques (about 1,450 molecules), excluding proteins and compounds for which SMILES strings were unavailable. The top five best-scoring drugs that are not known HIV-1 inhibitors are shown below in Table 1."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "fd3015813f49c843b53e3e99804d4ede.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*kM9QPkbX8CRxmaJKtZMHwg.png",
+            "caption": "Table 1: Top 5 overall most highly ranked drugs."
+        },
+        {
+            "type": "P",
+            "content": "Several potential HIV-1 treatments that were predicted repurposable by either one of the methods or in light of all three methods are discussed briefly below."
+        },
+        {
+            "type": "P",
+            "content": "Baricitinib, tofacitinib, and ruxolitinib (highest ranking diffusion profile candidates): The most highly ranked repurposing candidates for diffusion-profile comparison were baricitinib, tofacitinib, and ruxolitinib. Baricitinib and tofacitinib are primarily used to treat another disease implicating the autoimmune system: rheumatoid arthritis. Ruxolitinib’s primary indication is myelofibrosis. All three drugs serve as inhibitors of the JAK/STAT pathway, a signaling process that regulates the immune response, and evidence has shown that these molecules may block reactivation of the HIV-1 latent reservoir [5][6]."
+        },
+        {
+            "type": "P",
+            "content": "Vitamin-C (fifth highest ranking link-prediction candidate): Vitamin-C, also known as ascorbic acid, is a nutrient required for the growth and repair of numerous tissues, including collagen, muscles, and blood vessels. Vitamin-C has been shown to reduce HIV reverse-transcriptase activity, likely due to a post-translational impairment of enzymatic activity [7]."
+        },
+        {
+            "type": "P",
+            "content": "Ouabain (second highest ranking graph classification candidate): Ouabain is a molecule that has been primarily used to treat cardiac arrhythmia. The molecule was recently shown to reduce excretion of Tat, an HIV-1 protein involved in transcription [8]."
+        },
+        {
+            "type": "P",
+            "content": "Dactinomycin (second highest ranking overall score): Dactinomycin, also known as Actinomycin-D, is a chemotherapeutic used in treating a variety of tumors. Evidence has shown that the drug inhibits the annealing reaction between HIV-1 RNA and the newly created DNA strand, thus serving as an inhibitor of transcription [9]. Contrary evidence indicates that dactinomycin may increase viral replication through modulation of cytokine production [10]."
+        },
+        {
+            "type": "H2",
+            "content": "Conclusion"
+        },
+        {
+            "type": "P",
+            "content": "While research has not yet yielded a definitive cure for HIV / AIDS, our increased understanding of both the disease and the mechanism of action of numerous therapeutics makes drug repurposing an increasingly viable option. By combining knowledge of various biological interactions with knowledge of drug and disease targets to create a knowledge graph, graph representation learning techniques like diffusion-profile comparison and GNN-based link-prediction can be used to identify new and potentially useful connections between known drugs and the disease. Similarly, by encoding the structure of molecules as graphs, GNN-based graph classifiers can be used to find characteristic molecular structures that enable activity against the disease."
+        },
+        {
+            "type": "P",
+            "content": "While the focus of this blog post has been to illustrate how graph representation learning can be used in the context of drug-repurposing, these methods are can be useful in finding interesting relationships and patterns within graphs of various types and sizes. Triggered by this topic? Reach out to Andrew and ML6 to learn what graph representation learning can mean for you."
+        },
+        {
+            "type": "P",
+            "content": "Author email: andrewfoster.bio@gmail.com"
+        },
+        {
+            "type": "H2",
+            "content": "Citations"
+        },
+        {
+            "type": "OL",
+            "items": [
+                "Alex Philippidis. 2023. The Unbearable Cost of Drug Development: Deloitte Report Shows 15% Jump in R&D to $2.3 Billion: A separate study published by British researchers shows biopharma giants spent 57% more on operating costs than research from 1999–2018. GEN Edge 5, 1 (2023), 192–198.",
+                "Jean-Pierre Jourdan, Ronan Bureau, Christophe Rochais, and Patrick Dallemagne. 2020. Drug repositioning: a brief overview. Journal of Pharmacy and Pharmacol- ogy 72, 9 (2020), 1145–1151.",
+                "Scott Payne, Edgar Fuller, George Spirou, and Cun-Quan Zhang. 2021. Diffusion profile embedding as a basis for graph vertex similarity. Network Science 9, 3 (2021), 328–353.",
+                "Camilo Ruiz, Marinka Zitnik, and Jure Leskovec. 2021. Identification of disease treatment mechanisms through the multiscale interactome. Nature communica- tions 12, 1 (2021), 1796.",
+                "Lesley R De Armas, Christina Gavegnano, Suresh Pallikkuth, Stefano Rinaldi, Li Pan, Emilie Battivelli, Eric Verdin, Ramzi T Younis, Rajendra Pahwa, Siôn L Williams, et al. 2021. The effect of JAK1/2 inhibitors on HIV reservoir using primary lymphoid cell model of HIV latency. Frontiers in immunology 12 (2021), 720697.",
+                "Christina Gavegnano, Mervi Detorio, Catherine Montero, Alberto Bosque, Vi- cente Planelles, and Raymond F Schinazi. 2014. Ruxolitinib and tofacitinib are potent and selective inhibitors of HIV-1 replication and virus reactivation in vitro. Antimicrobial agents and chemotherapy 58, 4 (2014), 1977–1986",
+                "Steve Harakeh, Aleksandra Niedzwiecki, and Raxit J Jariwalla. 1994. Mechanistic aspects of ascorbate inhibition of human immunodeficiency virus. Chemico- biological interactions 91, 2–3 (1994), 207–215.",
+                "Silvia Agostini, Hashim Ali, Chiara Vardabasso, Antonio Fittipaldi, Ennio Tas- ciotti, Anna Cereseto, Antonella Bugatti, Marco Rusnati, Marina Lusic, and Mauro Giacca. 2017. Inhibition of non canonical HIV-1 Tat secretion through the cellular Na+, K+-ATPase blocks HIV-1 infection. EBioMedicine 21 (2017), 170–181.",
+                "Guo, J., Wu, T., Bess, J., Henderson, L. E., & Levin, J. G. (1998). Actinomycin D inhibits human immunodeficiency virus type 1 minus-strand transfer in in vitro and endogenous reverse transcriptase assays. Journal of virology, 72(8), 6716–6724.",
+                "Imamichi, T., Conrads, T. P., Zhou, M., Liu, Y., Adelsberger, J. W., Veenstra, T. D., & Lane, H. C. (2005). A transcription inhibitor, actinomycin D, enhances HIV-1 replication through an interleukin-6-dependent pathway. JAIDS Journal of Acquired Immune Deficiency Syndromes, 40(4), 388–397."
+            ]
+        }
+    ]
+}

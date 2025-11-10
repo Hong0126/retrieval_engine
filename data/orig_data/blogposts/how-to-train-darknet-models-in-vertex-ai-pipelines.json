@@ -1,0 +1,253 @@
+{
+    "title": "How to train Darknet models in Vertex AI pipelines",
+    "author": "Philippe Moussalli",
+    "readTime": "7 min read",
+    "publishDate": "Mar 24, 2022",
+    "blocks": [
+        {
+            "type": "FIGURE",
+            "filename": "8b019f8677037916e993e7a531a5e026.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*raTZxQ18KXIpR5gfPyb4og.png",
+            "caption": "Source: Google"
+        },
+        {
+            "type": "P",
+            "content": "Vertex AI is one of the most powerful services developed on Google Cloud Platform (GCP) for orchestrating machine learning workflows. This includes all aspects related to model training, hyper-parameter optimization, metric monitoring and model deployment."
+        },
+        {
+            "type": "P",
+            "content": "In our previous blog post, we demonstrated how to deploy and serve a trained Darknet model on Vertex AI and get predictions from it. However, when building an MLOps pipeline, we usually want to include both model training and serving in our pipeline to speed up the experimental phases, and facilitate the versioning of both our models and data."
+        },
+        {
+            "type": "P",
+            "content": "Here at ML6, we often time encounter many use cases that require the use of object detection algorithms. As part of our initiative to further standardize different processes across our organization, me and my colleague Tim De Smet decided to build a generic end-to-end MLOps pipeline for object detection that uses the YOLOv4 Darknet model."
+        },
+        {
+            "type": "P",
+            "content": "Although many different variations of YOLO currently exist, the YOLOv4 models have proven time and again to be reliable and effective in terms of speed and accuracy, in addition to benefiting from large community support. We’ve found them to consistently outperform AutoML models (at least for now), so it allows us to have a better out-of-the-box baseline to start experimenting with."
+        },
+        {
+            "type": "P",
+            "content": "In this blogpost, we will walk you through the steps we took to integrate YOLOv4 training with Darknet framework into your Vertex AI pipelines. We consider the YOLOv4 models to be a starting point, however the pipeline can be easily extended to support other Darknet models."
+        },
+        {
+            "type": "P",
+            "content": "What is Darknet and why is it so popular? 🤔"
+        },
+        {
+            "type": "P",
+            "content": "Darknet is an open-source neural network model framework written in C and CUDA. It can support model training and execution using both CPU and GPU."
+        },
+        {
+            "type": "P",
+            "content": "The YOLO (You Only Look Once) models are a family of object detection models that are developed using the Darknet framework. They are oftentimes faster and more accurate than many other neural network architectures and approaches like Fast R-CNN, EfficentDet, etc."
+        },
+        {
+            "type": "P",
+            "content": "Although most Darknet models end up being implemented in other more popular architectures like TensorFlow or PyTorch, this process can be quite lengthy (sometimes a year or two). Opting for Darknet training in our Vertex AI can allow us to easily shift to new state-of-the-art models once they’re implemented in Darknet without a long waiting time."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "733be91977737044b6aef5721a99d39c.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*onNXyKf0VrINp3ChZYUftw.png",
+            "caption": "Figure 1: Performance benchmark of different object detection models on the MS COCO dataset"
+        },
+        {
+            "type": "P",
+            "content": "Despite its performance and popularity, there are still quite a few challenges when dealing with Darknet models. The fact that the framework is written in C and CUDA makes it a barrier of entry for ML practitioners who are used to more common frameworks like PyTorch and TensorFlow. Also, the output of the model is of .weights format that cannot be easily integrated with python scripts for model serving and inference."
+        },
+        {
+            "type": "P",
+            "content": "Is there a TensorFlow or PyTorch implementation that could make my life easier? 🤨"
+        },
+        {
+            "type": "P",
+            "content": "The good news is that there is an official TensorFlow YOLO implementation of Darknet. The bad news is… as mentioned above it is still in development at the time of writing. There is also another unofficial implementation of YOLO in TensorFlow, but the performance is not on-par with the Darknet one as stated by the authors of the repository:"
+        },
+        {
+            "type": "BLOCKQUOTE",
+            "content": "The training performance is not fully reproduced yet, so I would recommend to use Alex’s Darknet to train your own data, then convert the .weights to TensorFlow or tflite."
+        },
+        {
+            "type": "P",
+            "content": "Bummer... but not all hope is lost. We can still train our model with Darknet, get an optimized .weights model and then convert it to Tensorflow for deployment. Even better, we could automate all those tasks as different components in our Vertex AI Pipeline."
+        },
+        {
+            "type": "P",
+            "content": "Let’s get right to it!"
+        },
+        {
+            "type": "H1",
+            "content": "Building the Darknet Vertex Pipeline 🔨"
+        },
+        {
+            "type": "P",
+            "content": "We start our implementation with a toy dataset that contains images of rabbits 🐰 in different setting and lighting conditions (the manual crops were implemented in the training split for data augmentation). The dataset is already split into Training/Validation/Test for our convenience. Check out this link if you want to know more about how to create a Vertex dataset and upload data into it using the Vertex AI SDK."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "fffadf91da4d38cc46c92ece40815d3b.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*QeFHLoHdiK-zrR8_s_vnkw.png",
+            "caption": "Figure 2: Rabbit Vertex AI Dataset"
+        },
+        {
+            "type": "P",
+            "content": "The implementation of the Darknet pipeline in Vertex AI consists of five main steps:"
+        },
+        {
+            "type": "P",
+            "content": "1. Transforming Vertex AI annotations to Darknet format"
+        },
+        {
+            "type": "P",
+            "content": "2. Training the Darknet model"
+        },
+        {
+            "type": "P",
+            "content": "3. Obtaining performance metrics"
+        },
+        {
+            "type": "P",
+            "content": "4. Converting the model to TensorFlow"
+        },
+        {
+            "type": "P",
+            "content": "5. Comparing the newly obtained model with previous models and deploying the best one (not included in the pipeline)"
+        },
+        {
+            "type": "P",
+            "content": "Let’s visualize our executed pipeline:"
+        },
+        {
+            "type": "FIGURE",
+            "filename": "25bb334aa23afd75da9cc2d3242ba08b.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*o4a4nxesW59NeoPsatLhmA.png",
+            "caption": "Figure 3: Darknet training and deployment pipeline"
+        },
+        {
+            "type": "P",
+            "content": "We have a clear overview of all the components and their artifacts. We can even check out the metadata of each artifact. Here we’re visualizing the metric’s artifact metadata. It seems like our model’s performance is pretty solid! 💪"
+        },
+        {
+            "type": "P",
+            "content": "Now that we have a general overview of all the pipeline’s components, let’s break it down into smaller pieces 🧩 and see what’s going on in each component."
+        },
+        {
+            "type": "H2",
+            "content": "1. Transforming Vertex AI annotations to Darknet format"
+        },
+        {
+            "type": "P",
+            "content": "The first thing we do is import our labeled Vertex AI dataset, we want to make sure that the dataset is ready for Darknet training."
+        },
+        {
+            "type": "P",
+            "content": "A few things to note here:"
+        },
+        {
+            "type": "UL",
+            "items": [
+                "The default Vertex AI annotations (bounding box coordinates) are in a different format than the one required by Darknet. So we need to transform them.",
+                "Darknet requires both training images and their corresponding text file annotations to be located in the same folder."
+            ]
+        },
+        {
+            "type": "P",
+            "content": "We first export the Vertex annotations, this is a JSONL file that contains the Google Cloud Storage (GCS) path of all the images, their bounding box coordinates and their assigned data split (train/test/validation). We use our own implemented custom functions to transform and export the coordinates and required data split files."
+        },
+        {
+            "type": "H2",
+            "content": "2. Darknet Training"
+        },
+        {
+            "type": "P",
+            "content": "We are now ready to start training. For this component, we build our own reusable Kubeflow component that we can use for both the training and evaluation components. Let’s take a look at the Dockerfile used to build the component:"
+        },
+        {
+            "type": "P",
+            "content": "We start from an Nvidia base image that contains pre-installed GPU drivers. This will allow us to train with GPU and CUDA support. Next, we clone the Darknet repository and include the pre-downloaded yolov4 and yolov4-tiny pre-trained weights which are going to be the starting point for training on our dataset (transfer learning)."
+        },
+        {
+            "type": "P",
+            "content": "Inside our container, we generate additional config files that are required for the training. I won’t cover all the details about them here. You can check out the Darknet README section for more details."
+        },
+        {
+            "type": "P",
+            "content": "Now that we have our component setup, we are ready to start the execution of the training. We use the python sub-process module to build the Darknet source code and run the Darknet executable, which will start the training process."
+        },
+        {
+            "type": "P",
+            "content": "And that’s it! The training will run for a specific number of epochs. The chart is saved inside the container (as a png image). For custom visualization, we export the image as an HTML file to an HTML artifact. This allows us to check the training once it’s done:"
+        },
+        {
+            "type": "FIGURE",
+            "filename": "33eb71a1be25856a5a33a475931ff950.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:500/1*zbkm8pStXBMhbCcd99dwpA.jpeg",
+            "caption": "Figure 4: Training Loss (x_axis: training_epochs, y_axis: mAP loss)"
+        },
+        {
+            "type": "H2",
+            "content": "3. Obtaining performance metrics"
+        },
+        {
+            "type": "P",
+            "content": "At this stage, we should have our model ready and trained on our dataset. How does it perform? Let’s find out!"
+        },
+        {
+            "type": "P",
+            "content": "We use the same Dockerfile as the one used for our training component since it contains all the necessary dependencies for Darknet. We use the darknet detector map sub-command to generate different performance metrics (mean accuracy precision, Intersection over Union, …) on our test set."
+        },
+        {
+            "type": "P",
+            "content": "After the metrics are generated and parsed, we simply store them in our Metrics artifact as key value-scalar metrics."
+        },
+        {
+            "type": "H2",
+            "content": "4. Converting the model to TensorFlow format"
+        },
+        {
+            "type": "P",
+            "content": "As an added bonus, we have added another component that converts the Darknet model into a TensorFlow model."
+        },
+        {
+            "type": "P",
+            "content": "Check out this blog post by my colleague if you want to find out more about how this is done and how to deploy your model with Vertex AI."
+        },
+        {
+            "type": "H2",
+            "content": "5. Comparing the newly obtained model with previous models and deploying the best one"
+        },
+        {
+            "type": "P",
+            "content": "Finally, once we have many pipeline executions with different configurations (hyperparameters, used datasets, ...), we can compare them and deploy the model from the best one. Although we haven’t included this step in our pipeline, this can be easily done by digging deeper into the pipeline metrics by using the aiplatform.get_pipeline_df('pipeline_name') from the Vertex AI SDK."
+        },
+        {
+            "type": "P",
+            "content": "In our case, we can access the performance metrics of different runs, compare them and deploy a new model once we have a new improved model. Pretty neat! ✨"
+        },
+        {
+            "type": "H1",
+            "content": "To sum it all up📋"
+        },
+        {
+            "type": "P",
+            "content": "We finally have at our disposal an MLOps pipeline containing Darknet training! Including this in our Vertex AI Pipeline makes it much more convenient to train Darknet compared with previous methods of training which usually involved template notebooks."
+        },
+        {
+            "type": "P",
+            "content": "Congratulations! You can now easily build your Darknet model with a few minor steps, monitor its performance and deploy it on Vertex AI to serve predictions. Checkout this link if you’re interested in converting your Darknet model to TensorRT for edge deployment."
+        },
+        {
+            "type": "P",
+            "content": "I hope you had a good time reading this article and learned some new stuff along the way."
+        },
+        {
+            "type": "H1",
+            "content": "About ML6"
+        },
+        {
+            "type": "P",
+            "content": "We are a team of AI experts and the fastest-growing AI company in Belgium. With offices in Ghent, Amsterdam, Berlin, and London, we build and implement self-learning systems across different sectors to help our clients operate more efficiently. We do this by staying on top of research, innovation and applying our expertise in practice. To find out more, please visit www.ml6.eu."
+        }
+    ]
+}

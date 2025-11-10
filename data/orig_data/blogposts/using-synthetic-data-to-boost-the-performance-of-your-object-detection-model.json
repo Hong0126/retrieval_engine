@@ -1,0 +1,279 @@
+{
+    "title": "Using Synthetic Data to boost the Performance of your Object Detection Model",
+    "author": "Julien Van den Avenne",
+    "readTime": "9 min read",
+    "publishDate": "May 5, 2022",
+    "blocks": [
+        {
+            "type": "P",
+            "content": "A practical guide to generating artificial data using Unity Perception"
+        },
+        {
+            "type": "P",
+            "content": "Anyone who has ever trained a machine learning model will tell you that it is the data that makes the model and that, in general, more data and labels will lead to better performance. Collecting data and especially labeling them is time-consuming and therefore expensive. Hence, machine learning professionals are increasingly looking at more efficient ways of ‘augmenting’ their dataset by using artificially generated variations of data samples, but also increasingly at the use of hybrid or fully synthetic data."
+        },
+        {
+            "type": "P",
+            "content": "Game engine company Unity offers a tool called Unity Perception which allows you to simulate objects in different ways and take virtual pictures of your simulations. In this way, it becomes possible to generate a high number of labeled images from your object scans which can be used as training data."
+        },
+        {
+            "type": "P",
+            "content": "In this blogpost, I present the results of my internship at ML6, in the course of which I investigated the use of Unity Perception for generating training data for an object detection model. More particularly, I will describe how I:"
+        },
+        {
+            "type": "OL",
+            "items": [
+                "obtained object scans using a Lidar camera",
+                "generated a synthetic dataset for these objects using Unity",
+                "trained object detection models using both synthetic and real-world images",
+                "assessed the potential benefits of adding synthetic images to the training set"
+            ]
+        },
+        {
+            "type": "H1",
+            "content": "Scanning the Objects"
+        },
+        {
+            "type": "P",
+            "content": "To create object meshes I used an app called Scaniverse on a phone with a lidar camera. To do this well there are some requirements. You must be able to capture the object from all sides and you require good and equal lighting on all angles of the object"
+        },
+        {
+            "type": "P",
+            "content": "So I put the objects on a pedestal with good lighting, scanned the objects using the app and afterwards took a separate picture of the bottom surface to add it to the object mesh in Blender. With Scaniverse you can export your objects as fbx or obj files, both work with Blender and Unity."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "31d0d2f1f55875e2729010f2de87dea1.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:449/0*wrCWXTZFhFi_AN6g",
+            "caption": "Example object scan in Blender"
+        },
+        {
+            "type": "P",
+            "content": "Not every object was easy to scan however. Especially objects with reflective surfaces, thin or see-through segments were problematic to scan using this method. If the scans are not great, there is still the possibility to edit them afterwards using Blender."
+        },
+        {
+            "type": "P",
+            "content": "Mostly for cropping and recentering them; or combining them with a bottom side to get a complete object."
+        },
+        {
+            "type": "P",
+            "content": "I also made multiple scans for each object to increase the variation of the objects in the synthetic images, and took around 200 pictures of each object I scanned in various rooms and positions. I tried to have the objects in diverse locations and took pictures from different angles. I made sure the pictures were sometimes more blurry or only partially showing the object to further increase variation."
+        },
+        {
+            "type": "P",
+            "content": "Below are scans of the 3 objects I worked with: a shoe, a Coca Cola can and a Kellogg’s cereal box."
+        },
+        {
+            "type": "P",
+            "content": "I chose these objects because:"
+        },
+        {
+            "type": "OL",
+            "items": [
+                "They were easy to move and manually take pictures of",
+                "They’ll fit with the indoor scene backgrounds",
+                "They are very different in terms of color, structure and reflective properties"
+            ]
+        },
+        {
+            "type": "FIGURE",
+            "filename": "ac55c5fb15c63f8a78df962955c540f4.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:501/1*F4mQ5MfI00N9GZxpvipmgg.png",
+            "caption": "Example object scans in Unity perception"
+        },
+        {
+            "type": "H1",
+            "content": "Generating Synthetic Data in Unity Perception"
+        },
+        {
+            "type": "P",
+            "content": "Unity Perception is a toolkit for generating datasets. It is relatively new and for now only works on camera-based use cases. It is a plugin for Unity, a game engine and cross-platform IDE."
+        },
+        {
+            "type": "P",
+            "content": "To generate training images I used a simulation that positions your objects with random rotations, scales and positions in front of a background and before a light source and a camera. The objects were drawn with equal probability; every class was equally represented."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "c89282a431ea11801bd40487095fc833.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/0*0cWAnMLYN1SpSjZ7",
+            "caption": "Unity perception UI"
+        },
+        {
+            "type": "P",
+            "content": "For more variation I randomized the lighting intensity and used different smoothness properties for the objects and different types of background generation. I used the same background generation scheme as used by unity in their tutorial for Unity Perception consisting of random objects with random textures as their background. This ensures a very different background for each simulation with no other recognisable objects aside from the object classes. For general purposes this is a good baseline to begin with (this situation is referenced as Simulation 1 in the graph below)."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "2d1de3b15de57968a60300cc038c3fca.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/0*JhuVOv-ShSnSMxlM",
+            "caption": "Tutorial background simulation"
+        },
+        {
+            "type": "P",
+            "content": "However, training on only these images did not yield very good results so I tried switching to a random background image instead. These background images were sampled from an online dataset of indoor scenes. This drastically improved results, as I will show in the graph below. The dataset these background images are sampled from should be chosen depending on the natural context of your object class."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "c1aabcfbbf10599d15478d34ed6a8511.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/0*2serqgsqXyUG62JB",
+            "caption": "Simulation with background image"
+        },
+        {
+            "type": "P",
+            "content": "To further improve the scene I added random objects but now in fewer numbers and in the foreground. These objects sometimes partly obscure classes and also make for a more diverse scene."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "78864b02181f6e4fefbaf160fb604f00.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/0*F4tPOt0SgR0lkWoA",
+            "caption": "Simulation with background image and random objects"
+        },
+        {
+            "type": "P",
+            "content": "Another improvement I made is using multiple object meshes for the same object class. This improves the results for more complex objects."
+        },
+        {
+            "type": "H1",
+            "content": "Training Object Detection Models"
+        },
+        {
+            "type": "P",
+            "content": "I used the Tensorflow Object Detection API to train the models. I imported pre-trained models from the Tensorflow model zoo and then fine-tuned them on my data. I chose to work with a mobilenet, since it is a relatively fast model that allows me to obtain decent results in a short time."
+        },
+        {
+            "type": "P",
+            "content": "When taking pictures, I moved the objects to a different location for every picture and took pictures from many angles. I also took pictures in which objects were either partially obscured or not entirely in frame; all the pictures were taken with the same phone in the same quality."
+        },
+        {
+            "type": "P",
+            "content": "I used LabelImg to manually label the pictures before partitioning them into a training (80%), validation (10%) and test (10%) set. The validation set was used to choose model hyperparameters and the test set for final evaluation. The pictures for the test set were taken in different rooms than those for the training set; same for the validation set."
+        },
+        {
+            "type": "P",
+            "content": "I made sure every class was equally represented in all the partitions. I added the synthetic images to the training set; the validation and test sets consisted only of real-world pictures."
+        },
+        {
+            "type": "P",
+            "content": "To measure the performance of the models I used the mean average precision (mAP) at 0.5 Intersection over Union score and the average recall (AR) at 10 predictions (True Positive when object detected in top 10 predictions)."
+        },
+        {
+            "type": "P",
+            "content": "The mAP is good at measuring how accurate the detections are. While The AR measures how well the model finds all the positives (see also here)."
+        },
+        {
+            "type": "H1",
+            "content": "Experiments"
+        },
+        {
+            "type": "P",
+            "content": "I trained models using only real-world pictures, only synthetic images, or a mixture of both. By comparing results, I show the benefit of adding synthetic images and the best real-world/synthetic split in training images to work with. The mixed models were trained using the same sampling scheme for both real-world and synthetic images. With different sampling schemes, you can likely make even better models. However I used the same sampling for the sake of simplicity."
+        },
+        {
+            "type": "P",
+            "content": "Another way of training these models is by first training them only on synthetic data and then fine-tuning them on real-world data. For me this gave similar but slightly worse results. However, the models were rather simple and I am sure this can be improved upon."
+        },
+        {
+            "type": "P",
+            "content": "I trained mixed models on the 4 different types of background simulations shown in the previous section. The table below summarizes the mAP/AR results for these simulations:"
+        },
+        {
+            "type": "FIGURE",
+            "filename": "e003f616ca676612637e2e833adedb7b.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/0*Jd4Wb-cVeM3Ey5HB",
+            "caption": "Simulation 1: Tutorial simulation; simulation 2: Using background images; simulation 3: Using background images with random objects; simulation 4: Using multiple meshes for each object. models trained with 1000 synthetic and 500 real-world images"
+        },
+        {
+            "type": "H1",
+            "content": "Performance Comparison between Different Synthetic/Real-world Splits"
+        },
+        {
+            "type": "P",
+            "content": "First, I wanted to see how good the synthetic-only models were and what is the least amount of real-world pictures needed to obtain decent results. I trained the synthetic-only models with 1000/2000/5000/100000 synthetic images; all had around the same scores around 0.3 mAP@0.5IoU, which is not great. Some examples results for the different models can be found in the pictures at the end of this blogpost."
+        },
+        {
+            "type": "P",
+            "content": "Then I trained models with 0, 30, 100, 300 and 530 real-world pictures in addition to the 1000 synthetic images and compared results."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "61dac91e45e385a57affb7d47f372967.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/0*-cSD6W4IgDHUQIMW",
+            "caption": "Comparison between models trained on different amounts of real-world images"
+        },
+        {
+            "type": "P",
+            "content": "I noticed that the mAP and AR scores increased as I added more real-world images to the training set until I had added 300 real-world images; the extra 230 images in the last model of 530 real-world training images did not seem to help much. The 1000 synthetic/300 real-world image model could detect most objects in the images, missing mainly some of the shoe detections."
+        },
+        {
+            "type": "P",
+            "content": "So far I only showed that a mix of both is better than synthetic-only, but not how much the synthetic data improves our models. Thus I trained a model only on the 300 real-world images. This performed very poorly, even worse than the synthetic-only model. When evaluating this model, I noticed the model was almost exclusively detecting the Coca Cola cans; showing me that while 100 pictures is enough to train an object detection model for the Coca Cola cans, it was not sufficient for the other 2 classes. However for testing purposes I kept using the same training set of approximately 100 pictures for each class."
+        },
+        {
+            "type": "P",
+            "content": "I then added just 300 synthetic images to the training set and already noticed that the scores more than doubled. When I kept adding more synthetic data however, the models started to perform more poorly. Perhaps using a different sampling scheme for the real-world data could allow me to add more synthetic images to the training set."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "6e409c330a019b69cb2b0036c25b60f3.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/0*7S1pq-guX0IrJWfl",
+            "caption": "Comparison between models trained on different amounts of synthetic images"
+        },
+        {
+            "type": "H1",
+            "content": "Performance Comparison between Different Classes"
+        },
+        {
+            "type": "P",
+            "content": "While manually evaluating the models I noticed major differences between how well some of the models were detecting the classes. Thus I evaluated them for each class separately and looked at the results."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "6c64a0444ed16b54e0f4678e006d3356.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/0*xjCyTB0w2LgLCI9s",
+            "caption": "models trained on 5000 synthetic images, 500 real-world images and a mixture of 2000 synthetic and 300 real-world images; evaluated on each class separately"
+        },
+        {
+            "type": "P",
+            "content": "The shoe class scores badly in most of the models; this is the most complex object I used and also the least colorful, which may contribute to its low scores. By complex I mean that it looks different from every angle, and has some thin segments that are moveable in the shoelaces."
+        },
+        {
+            "type": "P",
+            "content": "The real-world models are very good at recognising the Coca Cola cans, however for the other classes they are failing. Using the synthetic models however, the cola cans are not so easily detected. This may be due to their reflective properties, which are not simulated well in Unity Perception. However, there are options in Unity to better simulate reflections, which I did not fully make use of but certainly could help here."
+        },
+        {
+            "type": "P",
+            "content": "The Kellogg’s cereal box is a “simpler” object and scores very well in synthetic-only data; this shows that for these kinds of objects a synthetic-only dataset can already provide great results on its own."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "cc145e56e0d82786b51541fe24ec4248.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:586/0*1HbIASC9VC1NcHSP",
+            "caption": "Example detection of model trained on 300 real-world images"
+        },
+        {
+            "type": "FIGURE",
+            "filename": "3e40b56f3be5cafd78815930cfbf7a3d.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:585/0*i_iaaHghSWCOwqnq",
+            "caption": "Example detection of model trained on 1000 synthetic images"
+        },
+        {
+            "type": "FIGURE",
+            "filename": "77d646cfbbc0583a8577c2f0d35b3aba.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:592/0*t_BEWz9e0aRKbkp5",
+            "caption": "Example detection of model trained on 300 real-world images and 1000 synthetic images"
+        },
+        {
+            "type": "H1",
+            "content": "Conclusion"
+        },
+        {
+            "type": "P",
+            "content": "In this post I showed that adding synthetic images to object detection models can greatly improve your models. I explained step by step how to do this from scanning the objects to training the object detection models. I showed that best results are obtained with a model trained on a mix of both real-world and synthetic images and that you can already achieve decent results with few real-world images if you add synthetic data. I also concluded that simple objects, like the Kellogg’s box, benefit greatly from the addition of synthetic images. It is harder to obtain representative meshes from objects with thin, see-through or reflective segments; however even models trained on those objects get better results with the addition of synthetic data."
+        },
+        {
+            "type": "P",
+            "content": "Perhaps for models with a very large set of qualitative real-world images, the addition of synthetic data will not result in improvements. However, for models with few qualitative real-world images such as my example, the addition of synthetic data is a major boost to results. To conclude I am satisfied with the results as the improvements of adding synthetic data were even greater than expected. I hope you find this post useful and it inspires you to try this and further improve the simulations to achieve even better results!"
+        }
+    ]
+}

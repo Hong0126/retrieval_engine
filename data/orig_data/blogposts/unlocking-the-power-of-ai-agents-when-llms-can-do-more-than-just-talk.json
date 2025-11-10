@@ -1,0 +1,310 @@
+{
+    "title": "Unlocking the Power of AI Agents: When LLMs Can Do More Than Just Talk",
+    "author": "Kais Kermani",
+    "readTime": "9 min read",
+    "publishDate": "Sep 17, 2024",
+    "blocks": [
+        {
+            "type": "P",
+            "content": "Remember J.A.R.V.I.S. from Iron Man? That intelligent assistant that seemed to have a solution for everything? While we’re not quite there yet, the rapid evolution of Large Language Models (LLMs) like GPT-4, Claude, and Gemini is bringing us closer than ever. Today’s LLMs are impressive. They can generate content, translate languages, and even write code. But let’s be real — they’re still pretty much glorified text processors."
+        },
+        {
+            "type": "P",
+            "content": "So, how do we take the next step towards creating systems that can not only understand, but also act on the world around them? Enter the world of AI agents — your LLM’s ticket to superhero school."
+        },
+        {
+            "type": "P",
+            "content": "In this post, we’ll cover:"
+        },
+        {
+            "type": "UL",
+            "items": [
+                "The current limitations of LLMs",
+                "What AI agents are, and how they can supercharge LLMs",
+                "A simple demo showing how to build your own custom AI agent"
+            ]
+        },
+        {
+            "type": "P",
+            "content": "Excited to see how we can turn LLMs from talkers into doers? Let’s dive in!"
+        },
+        {
+            "type": "H1",
+            "content": "Why Your Current AI Assistant Can’t Find Your Keys (Yet):"
+        },
+        {
+            "type": "P",
+            "content": "Picture this: You ask your AI, “Where did I leave my keys?” A typical LLM might respond:"
+        },
+        {
+            "type": "P",
+            "content": "“I apologize, but as a language model, I don’t have access to your physical environment or personal memories. I can’t locate your keys or recall where you last placed them.”"
+        },
+        {
+            "type": "P",
+            "content": "Frustrating, right? This response highlights three limitations of LLMs:"
+        },
+        {
+            "type": "OL",
+            "items": [
+                "Limited data scope: LLMs are pre-trained on vast amounts of data, but once the training is over, the model’s knowledge is frozen. Although clever techniques like RAG exist, LLMs cannot natively access real-time information or update their internal knowledge. So while your favorite LLM might know a lot about the ancient history of keys, they won’t be able to tell you about the current location of yours..",
+                "No memory: Each interaction with an LLM starts from scratch. They don’t remember previous conversations or learn your habits over time. While nifty tricks like passing conversation history with each message exist, they are handled outside the model. LLMs do not have a built-in memory.",
+                "No interface with the real world: LLMs are designed to process and generate text, but they lack the ability to perform actions or interact with external systems. It’s like having a brilliant chef who can describe the perfect meal, but can’t pick up a frying pan. LLMs are isolated — they process words, but they can’t take actions."
+            ]
+        },
+        {
+            "type": "H1",
+            "content": "Giving Your LLM the Agency It Deserves"
+        },
+        {
+            "type": "P",
+            "content": "So how can we now elevate our trusty text processors to autonomous problem solvers capable of interacting with the world? Enter AI agents. But what exactly are AI agents? The term can be a bit nebulous in the AI community, with various definitions floating around. But for our purposes, we’ll explore a comprehensive view that includes three key core features of AI agents:"
+        },
+        {
+            "type": "UL",
+            "items": [
+                "Knowledge: By using specialized databases and advanced search techniques, agents are able to store, update and retrieve information outside of their static knowledge base quickly — like a personal library that grows over time.",
+                "Memory: Agents can have the ability to track conversation history and summarize information, maintaining context over multiple conversations.",
+                "Tools: The most crucial component — The power to interact with the outside world by calling external functions or APIs. Whether it’s searching the web, sending an email, or accessing your internal systems, an agent can do that."
+            ]
+        },
+        {
+            "type": "BLOCKQUOTE",
+            "content": "Note that not all implementations labeled as “agents” necessarily include all three of these components. In the current AI landscape, many systems labeled as “agents” primarily focus on tool integration."
+        },
+        {
+            "type": "P",
+            "content": "The key takeaway is that these components help overcome the intrinsic limitations of LLMs, giving them a new level of autonomous agency! Rather than simply responding to queries or following predefined paths, agents can assess the situation, choose the appropriate tools, and execute the actions necessary to achieve their goals. It’s this ability to make context-aware decisions and dynamically interact with the world around them, that truly sets AI agents apart from traditional chatbots or simple query systems."
+        },
+        {
+            "type": "P",
+            "content": "For businesses, this means AI agents can seamlessly integrate with existing systems like CRMs, ERP platforms, and even IoT devices. Sounds exciting, right?"
+        },
+        {
+            "type": "FIGURE",
+            "filename": "410da44296a08b4301fbf2e475c5c242.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:875/0*eXTNc8kE6onrKKjc.png",
+            "caption": "AI agents illustrated by Phidata"
+        },
+        {
+            "type": "H1",
+            "content": "A Landscape of Agent Frameworks"
+        },
+        {
+            "type": "P",
+            "content": "Over the last year, several frameworks have emerged to help developers expand LLMs with agent capabilities. To name a few: LangChain, CrewAI, Semantic Kernel, Autogen, Phidata, … While each framework has its own unique flavor and features, they all have one thing in common: they all act as wrappers around your LLM."
+        },
+        {
+            "type": "P",
+            "content": "What I mean with wrapper here is that the framework doesn’t change the underlying LLM, but rather gives the LLM ‘brain’ the body and tools it needs to turn knowledge into action."
+        },
+        {
+            "type": "P",
+            "content": "At their core, agent frameworks typically offer:"
+        },
+        {
+            "type": "UL",
+            "items": [
+                "Tool integration mechanisms",
+                "Memory management systems",
+                "Task planning and execution loops",
+                "Prompt engineering utilities"
+            ]
+        },
+        {
+            "type": "P",
+            "content": "For our example, we’ll be using Phidata, a user friendly open-source framework that allows developers to create agents in a Pythonic way. However, the concepts we’ll cover are generally applicable across various agent frameworks."
+        },
+        {
+            "type": "P",
+            "content": "Now that we understand the potential of AI agents, let’s see how we can put these concepts into practice. In the next section, we’ll walk through a real-world example of building an AI agent using the Phidata framework."
+        },
+        {
+            "type": "H1",
+            "content": "Case study: I’m always late…"
+        },
+        {
+            "type": "P",
+            "content": "Picture this: It’s a typical day in your life as an ML engineer. You’re deep in the code, wrestling with neural networks and drowning in data. The world outside your IDE barely exists."
+        },
+        {
+            "type": "P",
+            "content": "Your day might go something like this:"
+        },
+        {
+            "type": "UL",
+            "items": [
+                "4:00 pm: “What do I have planned today?” *checks calendar* Ah, meeting with friends at 7pm. “Why did I agree to this again…”",
+                "6:00 pm: Still not concerned, absorbed in work. That bug isn’t going to fix itself, right?",
+                "6:15 pm: *cricket noises*",
+                "6:30 pm: Panic sets in. “I have to go! Where am I going again?” *Checks the location* “This place is on the other side of town — it will take at least 30 mins to get there..”",
+                "* 15 mins to get prepared*",
+                "* 45 mins on public transport*",
+                "7:30 pm: Aaaaand I’m late again.🙈"
+            ]
+        },
+        {
+            "type": "P",
+            "content": "Now, maybe you’re one of those mythical creatures who always arrives five minutes early. If so, I both admire you and slightly resent you. But for the rest of us, wouldn’t it be nice to have a superhero assistant telling you when to leave and how to get there on time?"
+        },
+        {
+            "type": "P",
+            "content": "What if I told you that AI could be that help? Not just any AI, mind you, but an AI agent! Let me introduce you to my smart assistant who will make sure you never miss an appointment again."
+        },
+        {
+            "type": "H2",
+            "content": "Giving Agents Access to your Calendar"
+        },
+        {
+            "type": "P",
+            "content": "The first step in staying on top of your schedule is making sure all your appointments are in your calendar. Here’s how our AI agent handles that task."
+        },
+        {
+            "type": "BLOCKQUOTE",
+            "content": "In the GIF below, you can see how the agent calls the calendar tool to create a new event. Note how the agent correctly populates all the required fields to create an event, even though we didn’t explicitly have to specify this. Talking about intelligence.."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "88757118bfaef545bfc05a0ecfdb0f46.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:875/1*r8Igf9WG02UFWzugilEfEg.gif",
+            "caption": "By using the calendar toolkit, the AI can interact with Google Calendar"
+        },
+        {
+            "type": "H2",
+            "content": "Planning Your Trip and Time Management"
+        },
+        {
+            "type": "P",
+            "content": "Once your events are in the calendar, the next step is figuring out when to leave. This is where the AI agents reasoning capabilities really shine."
+        },
+        {
+            "type": "BLOCKQUOTE",
+            "content": "In the GIF, when asked about how to arrive at our plans in time, we can see the that the agent retrieves the event details from the calendar, extracts the location, and then uses the route planner tool to calculate the best time to leave. Note that it factors in your current location, travel time, and even public transport delays. Pretty impressive right?"
+        },
+        {
+            "type": "FIGURE",
+            "filename": "2e6cf2d25d371a70968f0d64631a8fc4.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:875/0*H5dpgoU2qWGdjq4u.gif",
+            "caption": null
+        },
+        {
+            "type": "H1",
+            "content": "Technical Components"
+        },
+        {
+            "type": "P",
+            "content": "Alright, let’s take a peek under the hood and explore how all of this works."
+        },
+        {
+            "type": "H2",
+            "content": "Phidata Assistant"
+        },
+        {
+            "type": "P",
+            "content": "At the core of this project is theAssistantclass from Phidata, the technical implementation of what we call an AI agent. This class acts as a wrapper around your favorite Large Language Model (LLM), providing it with tool-calling capabilities and other extensions. It’s the body to the LLM’s brain, remember?"
+        },
+        {
+            "type": "P",
+            "content": "Here’s how you can define an assistant using Phidata:"
+        },
+        {
+            "type": "CODE",
+            "content": "from phi.assistant import Assistantfrom tools import find_routetrip_assistant = Assistant(    llm=OpenAIChat(model=\"gpt-4o\", max_tokens=1000, temperature=0.3),    name=\"Route planner assistant\",    description=\"Assistant that helps you be prepared on time.\",    instructions=[        \"You are an Assistant responsible for planning how to go from one         location to another\",        \"You can lookup routes for between 2 locations.\",        \"In the route details you can find the stops and departure times.\"    ],    tools=[find_route] # More on tools in the next section)"
+        },
+        {
+            "type": "BLOCKQUOTE",
+            "content": "The python snippet shows how you can define an assistant in the Phidata framework. Note that there exist many more features such as memory and knowledge, but those are out of scope for this demo."
+        },
+        {
+            "type": "H2",
+            "content": "Tools"
+        },
+        {
+            "type": "P",
+            "content": "Now let’s talk about the real driver of the magic of AI agents — tools. In Phidata, tools are simply Python functions that the agent can use to interact with external systems. No magic, just good ol’ Python."
+        },
+        {
+            "type": "BLOCKQUOTE",
+            "content": "But how does the agent know how to use these functions?"
+        },
+        {
+            "type": "P",
+            "content": "Glad you asked! Besides the informative function name, the AI agent understands how to use these functions based on their parameters and docstrings."
+        },
+        {
+            "type": "P",
+            "content": "Phidata comes with a wide variety of pre-built toolkits, like DuckDuckGo for web search and Arxiv for accessing research papers. But for this example, we wrote our own integration with the Google Maps API, just like we did for Google Calendar."
+        },
+        {
+            "type": "CODE",
+            "content": "def find_route(origin: str, destination: str , arrival_time=None):    \"\"\"    Finds the best route between two locations using the Google Routes API.        :param origin: Starting point of the trip.    :param destination: Where you're headed.    :param arrival_time: (Optional) Desired arrival time.    :return: A JSON response with step-by-step route details.    \"\"\"    # Use Google Routes API to calculate the best route    response = requests.post(      \"https://routes.googleapis.com/directions/v2:computeRoutes\",       json={          \"origin\": origin,          \"destination\": destination,          \"arrivalTime\": arrival_time      }    )    return response.json()"
+        },
+        {
+            "type": "BLOCKQUOTE",
+            "content": "Note that for brevity, we’ve omitted some code details, such as the API key."
+        },
+        {
+            "type": "P",
+            "content": "Great! With this setup, the AI agent only needs to know what parameters the function expects, and it can call the function whenever it deems it necessary."
+        },
+        {
+            "type": "H2",
+            "content": "Teams"
+        },
+        {
+            "type": "P",
+            "content": "While we’ve focused on a single AI agent in our example, frameworks like Phidata also allow for the implementation of more complex systems using teams of specialized agents."
+        },
+        {
+            "type": "P",
+            "content": "In fact, our time management system could be expanded to use multiple agents working together:"
+        },
+        {
+            "type": "UL",
+            "items": [
+                "General Assistant: General Assistant: The main agent that interacts with the user, understanding requests and delegating subtasks task to the right agents.",
+                "Secretary Assistant: Specializing in calendar management, this agent handles tasks related to adding, editing, and retrieving events from the calendar.",
+                "Trip Planner Assistant: This agent focuses on route planning. It calculates travel times and suggests the best time to leave for your appointments."
+            ]
+        },
+        {
+            "type": "P",
+            "content": "Here is a brief example of how this team might handle our route time calculation:"
+        },
+        {
+            "type": "OL",
+            "items": [
+                "General assistant receives the user’s request about the best time to leave.",
+                "It delegates the the Secretary assistant who retrieves the relevant event details from your calendar.",
+                "Having obtained the event location, the General Assistant then asks the Trip Planner Assistant to calculate the best route to find the optimal departure time.",
+                "Having received an answer from the Trip Planner, the General Assistant synthesizes this information and presents a comprehensive plan to the user."
+            ]
+        },
+        {
+            "type": "P",
+            "content": "This team-based approach allows for more specialised handling of complex tasks. However for many applications a well-designed agent can go a long way!"
+        },
+        {
+            "type": "FIGURE",
+            "filename": "787d6bfc2772d3c408006a47af4223bc.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:875/0*bxfEtN2WeMlOyA6L",
+            "caption": "Example flow of multi-agent system"
+        },
+        {
+            "type": "BLOCKQUOTE",
+            "content": "While we won’t delve deeper into multi-agent systems here, it’s an exciting area with great potential. — more on that soon."
+        },
+        {
+            "type": "H1",
+            "content": "Conclusion"
+        },
+        {
+            "type": "P",
+            "content": "While LLMs are impressive in generating text and solving complex queries, they remain constrained by their lack of memory, real-world interaction, and ability to take action. By giving LLMs access to tools, memory, and the ability to interact with the world, we are unlocking new levels of autonomy and intelligence — AI agents! This opens up exciting possibilities, from managing your calendar to automating complex business processes, all with a level of responsiveness and context-awareness that static models just can’t achieve."
+        },
+        {
+            "type": "P",
+            "content": "While we may not have created J.A.R.V.I.S. just yet, AI agents are a major leap toward truly intelligent assistants. And if you think that’s exciting, just wait until you hear what happens when they start working together… 😉 More on that soon in Part 2!"
+        }
+    ]
+}

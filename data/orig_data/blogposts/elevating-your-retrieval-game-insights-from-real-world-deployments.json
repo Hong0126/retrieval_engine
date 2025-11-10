@@ -1,0 +1,262 @@
+{
+    "title": "Elevating Your Retrieval Game: Insights from Real-world Deployments",
+    "author": "Sebastian Wehkamp",
+    "readTime": "14 min read",
+    "publishDate": "Jan 11, 2024",
+    "blocks": [
+        {
+            "type": "FIGURE",
+            "filename": "4a33b14498152a35bc0c2177a60f4f04.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*BcbhB9us0fPk36GYRdZH7w.png",
+            "caption": null
+        },
+        {
+            "type": "P",
+            "content": "Exploring the world of Retrieval Augmented Generation (RAG) can be both fascinating and confusing. With the promise of discovering amazing abilities, it invites us into a space where combining retrieval and generation methods has great potential. However, as we (em)bark on the journey of developing a RAG pipeline, the reality often deviates from the initial expectations. Many find themselves wondering: Why doesn’t it perform as well as anticipated?"
+        },
+        {
+            "type": "FIGURE",
+            "filename": "b3746c085dca3466ee8076b62d71771c.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*hIosRqLDyhVERG7Twv5Jxg.png",
+            "caption": "Simplified RAG architecture. Through leveraging our Smart Retriever, we can force our generator to stick to the content of our knowledge base that is most relevant for answering the question. Source"
+        },
+        {
+            "type": "P",
+            "content": "The image above shows what a typical RAG solution looks like. There is a retriever which, based on the question asked, retrieves relevant information from your internal knowledge base. The question and the retrieved documents get sent to the generator which formulates a source-informed answer. In case you’d like to read more about what a RAG solution is and how they work, see this blogpost."
+        },
+        {
+            "type": "P",
+            "content": "While there’s considerable focus on the generator, which has a Large Language Model (LLM) at its core, the retriever is frequently overlooked. Prototyping a retriever is easy, making it performant, robust, and scalable to a large number of documents is hard. This blogpost contains a set of tips, tricks, and other learnings we collected during various RAG projects at ML6 on how to improve the retriever."
+        },
+        {
+            "type": "H1",
+            "content": "Parsing, Chunking, and Embedding strategies"
+        },
+        {
+            "type": "P",
+            "content": "This section will go over the first challenges you encounter when building a semantic retriever: creating and storing embeddings of your input data. To do so relevant information has to be extracted from the input documents in a parsing step, the parsed information needs to be split into smaller pieces of information by applying a chunking strategy, and finally the chunks are given to an embedding model to create embeddings which can be stored. These embeddings serve as vector representations of different parts of the documents, offering a mathematical description of the meaning contained in each piece of information. By comparing these embeddings, we can identify text sections that share similar meanings and use that to retrieve relevant documents given a query. For more info on semantic search we recommend this blogpost."
+        },
+        {
+            "type": "H2",
+            "content": "Parsing your input documents"
+        },
+        {
+            "type": "P",
+            "content": "In order to make your documents searchable, relevant information has to be extracted from the documents in a parsing step. The extraction and parsing strategies depend on the format of the input documents. If you have control over the input type, structured document types containing all information, such as HTML are preferred over less structured file types such as PDF where you have to apply parsing yourself. If you don’t have the luxury of controlling the input format, you likely have to extract and parse the information manually. For PDFs you can use libraries such as PyPDF which are capable of retrieving text and metadata from the PDFs. The quality of the extracted data depends on the content, and how the input PDFs were created. We found that we were often missing text, especially text contained in tables or other unstructured forms for some use-cases. To extract all information we can leverage solutions such as Microsoft Form Recognizer, AWS Textract, or Google’s Document AI which are high performing, managed document AI solutions helping with extraction of both structured and unstructured document information. Thanks to these solutions we were able to extract and parse far more text from the documents."
+        },
+        {
+            "type": "H2",
+            "content": "Deciding on your chunking strategy"
+        },
+        {
+            "type": "P",
+            "content": "Chunking involves dividing the extracted text into smaller, more uniform units known as chunks, making it easier for an LLM to process. Chunking plays a key role for the retriever, as it enables the reduction of text complexity and enhances the relevance of content. Selecting a chunking strategy is a non-trivial decision influenced by various factors, including the type and volume of data, the complexity of queries, and the characteristics and performance of the embedding model. Furthermore, the chosen chunking type significantly affects the final application in terms of quality, efficiency, and scalability. Several tips to create an effective chunking strategy will be covered here."
+        },
+        {
+            "type": "P",
+            "content": "The first step to increase your retrieval performance is to apply chunking based on logical sections rather than chunking arbitrary. Depending on the input documents chunking could be applied on a per chapter-basis. For an ML6 RAG solution we parsed the table of contents of every incoming PDF individually, to provide clues of the start and end of each chapter. Within each chapter LangChain’s recursive character text splitter was leveraged to create smaller chunks of text with an overlap. Additionally, textual metadata was added to each chunk, to indicate the title of the original chapter that the chunk belongs to. Important parameters to decide on are the chunk size and the overlap of the chunks. These are of course only some of the many hyperparameters one can tweak to improve performance."
+        },
+        {
+            "type": "P",
+            "content": "A common trade-off for chunking strategies is that on the one hand you want to have small chunks such that their embeddings accurately reflect their meaning. When chunks get too long they may lose their meaning due to filler words/info that bias the embedding representation. On the other hand, you want to provide enough context to the generator to synthesize a correct answer. A recent addition to LangChain and LlamaIndex attempts to solve this problem by decoupling the chunks used for retrieval from the ones used for synthesis. This allows you to perform the look-up using the smaller chunks while keeping track of the surrounding chunks. Both the original chunk and the surrounding chunks get sent to the generator which should now have enough context to synthesize a correct response."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "6290269a0a744a77c4872fe8c7bd7dec.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*wQ71WVK7ezAO8vzV2n_1CA.png",
+            "caption": "Decoupling chunks used for retrieval with those that are used for synthesis. Source."
+        },
+        {
+            "type": "H2",
+            "content": "Choosing your embedding model"
+        },
+        {
+            "type": "P",
+            "content": "With the extracted text split into smaller chunks, the next step is to choose the right embedding model for your use case. A good starting point for this is the Massive Text Embedding Benchmark (MTEB) leaderboard. One of the current top ranking models on MTEB is Cohere Embed v3 which will provide a good starting point for your RAG solution."
+        },
+        {
+            "type": "P",
+            "content": "Overall the higher performing embedding models on the MTEB leaderboard will be a decent choice. However you might have some more specific requirements in terms of language support, speed, hosting options, or pricing. In order to make a more deliberate choice it is also possible to evaluate different embedding models through automatic evaluation covered later in this blogpost."
+        },
+        {
+            "type": "H1",
+            "content": "Hybrid search"
+        },
+        {
+            "type": "P",
+            "content": "Now that we have an initial retriever configured, it is time to start improving the retrievers’ performance. A common practice for RAG applications is to base the retrieval step solely on vector search. Vector search is able to outperform traditional search methods when the embedding models are trained on the target domain. However, when assessing performance across out-of-domain tasks, classical search methods can outperform vector search. This means that when building a RAG application tailored to a specific domain, wherein the document queries feature domain specific words, lexical search might still outshine vector search. Another example where lexical search might perform better is when a RAG solution is developed where the main language is another language than English, and the embedding model lacks sufficient training in that particular language. Both approaches have their pros and cons, but what if we merge them to get better retrieval performance than either of them separately? That is where hybrid search comes into play."
+        },
+        {
+            "type": "P",
+            "content": "The idea of hybrid search is to perform both lexical (e.g. BM25) and vector search in parallel, after which the results are combined into a single list of results. One way to create this combined list is using Reciprocal Rank Fusion (RRF). RRF is an algorithm that evaluates multiple ranked result lists to provide a single unified result list. RRF is based on the concept of reciprocal rank (RR), which calculates the reciprocal of the rank at which the first relevant document was retrieved. RR is 1 if a relevant document was retrieved at rank 1, it is 0.5 if a relevant document was retrieved at rank 2 and so on."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "6df073eedafb820bb02c43574015bba4.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/0*En3DAU4ri-R0GNZF",
+            "caption": "Example showing the reciprocal rank calculation."
+        },
+        {
+            "type": "P",
+            "content": "After the reciprocal ranks have been assigned to all documents the scores are summed for all documents producing a combined score. The engine ranks the documents based on this combined score to produce the final result list."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "cca9869bbe0c6725afecc137922a328f.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/0*fMaI7LON9ANSy3Zs",
+            "caption": "Reciprocal Rank Fusion calculation."
+        },
+        {
+            "type": "P",
+            "content": "The result is a search engine which has the advantages of both vector search and lexical search. Reciprocal Rank Fusion is one way to merge ranked lists but there are also other algorithms available. Based on the experience of ML6 obtained during various RAG projects, hybrid search resulted in a better performing retriever. This conclusion is supported by Microsoft which benchmarked the different search engines. In the graph below, it becomes clear that hybrid search consistently outperforms both vector search and lexical search separately. The highest performing search engine is Hybrid search + Semantic Ranker which is covered in the next section."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "d3debbd809f1a381c426934750f0c6b9.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/0*lAO9SyxDuCMumJ9q",
+            "caption": "Percentage of queries where high-quality chunks are found in the top 1 to 5 results, compared across search configurations. Source."
+        },
+        {
+            "type": "H1",
+            "content": "Adding a re-ranker into the mix"
+        },
+        {
+            "type": "P",
+            "content": "To further increase the performance of the RAG solution we can add a re-ranker. In a standard RAG solution, embeddings are precomputed through a network called a bi-encoder. These embeddings compress the entire document chunk into a single vector and are stored in a vector database. At inference time, the query is encoded and compared with the stored embeddings using cosine similarity. An alternative to this is a cross-encoder which takes both the query and a candidate document as input to compute a similarity score. As the query and the document are passed simultaneously to the model, the cross-encoder suffers from less information loss resulting in better performance."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "092735bb7d6c97c5ae25705d36846036.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*HM4V_BNon3DxQizjQJqXig.png",
+            "caption": "Comparison between Cross-Encoder and Bi-Encoder."
+        },
+        {
+            "type": "P",
+            "content": "If a cross-encoder results in better performance, why do we even need to store embeddings from the bi-encoder? The problem is that scoring thousands or millions of (query, document)-pairs with a cross-encoder is very slow and would not result in a performant RAG solution. To resolve this, one first retrieves the top k candidate chunks using the Bi-Encoder, which are then semantically reranked using the Cross-Encoder. This is what a re-ranker does."
+        },
+        {
+            "type": "P",
+            "content": "With the ever growing context windows of state-of-the-art LLMs you might ask, why not simply provide all of the retrieved chunks to the language model? It turns out that this results in drastically reduced performance due to the “Lost in The Middle” phenomenon. LLMs tend to forget elements in the middle of the context window. A recent study by Hugging Face supports this where they compared the performance of an LLM with a very large context window (GPT-4-Turbo-128K) with a RAG solution. In the study Hugging Face found that RAG is not only more performant, but also much cheaper compared to leveraging long-context LLMs."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "5808ca0cd35eeb651df037b3dff3b380.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/0*kC8IG1W308yFA6uD",
+            "caption": "Image source."
+        },
+        {
+            "type": "P",
+            "content": "Another advantage of re-rankers is that they are not exclusive to vector search engines. They can be used to improve any kind of search engine such as lexical search based on for example Elasticsearch. As was shown above, the best performing retriever was a combination of Hybrid search and a re-ranker. Depending on the use-case a suitable re-ranker can be chosen. A good starting point can be the Cohere re-ranker providing overall good results according to benchmarks done by LlamaIndex. Adding the re-rank endpoint can be a matter of adding a single line of code to your system which drastically improves the retrieval performance."
+        },
+        {
+            "type": "H1",
+            "content": "Evaluating your retriever"
+        },
+        {
+            "type": "P",
+            "content": "To further improve the retrieval performance it is important to be able to evaluate the performance of a retrieval system. To do this there are four important metrics to take into account: Hit Rate, Mean Reciprocal Rank (MRR), Mean Average Precision (MAP), and Normalized Discounted Cumulative Gain (NDCG). While constructing a comprehensive RAG solution, it’s important to assess the performance of both the retriever and the generator. Nevertheless, in this blogpost, our focus lies on evaluating the retrieval system."
+        },
+        {
+            "type": "P",
+            "content": "In order to evaluate your retrieval system you will need some labels indicating which documents should be retrieved given an input query. It is possible to this with manual, Ground Truth, labelling however doing this can be a tedious task. An alternative to this is to use LLM based evaluation, for which you can use LLamaIndex. With LLamaIndex you can generate question-context pairs for a set of documents using an LLM. These pairs can then be used to measure all metrics using binary labels on your own dataset allowing you to perform hyper-parameter tuning. For more information see the OpenAI cookbook. Consider using human-generated questions as LLM generated questions might be easier to answer or not reflect the real-world use-case of your"
+        },
+        {
+            "type": "H2",
+            "content": "Hit Rate"
+        },
+        {
+            "type": "P",
+            "content": "Hit rate calculates the fraction of queries where the correct answer is found within the top-k retrieved documents. Think of hit rate as the system’s success rate in finding the right answer among the first few guesses."
+        },
+        {
+            "type": "H2",
+            "content": "Mean Reciprocal Rank (MRR)"
+        },
+        {
+            "type": "P",
+            "content": "The Mean Reciprocal Rank (MRR) is a metric that helps us understand the average position of the first relevant document across all queries. The MRR is calculated as the mean of the reciprocal ranks over all queries. So, if the first relevant document takes the top spot, the reciprocal rank is a solid 1. If it’s second, the reciprocal rank drops to 1/2, and so forth. The value ranges from 0 to 1 where an MRR of 1 indicates that the first relevant document is always on top. The advantage of this metric is that it is very simple to explain and interpret. The disadvantage is that only the first relevant item is taken into account."
+        },
+        {
+            "type": "P",
+            "content": "The hit rate and MRR are simple and intuitive metrics to get an idea of how well the retrieval system is performing. To provide some intuition, if a retrieval system has a hit rate of 0.7 and an MRR of 0.5, the observation that the hit rate is higher than the MRR indicates that the top-ranking results are not always the most relevant results. Therefore we could look at adding a re-ranker to improve our retrieval performance."
+        },
+        {
+            "type": "H2",
+            "content": "Mean Average Precision (MAP)"
+        },
+        {
+            "type": "P",
+            "content": "Let’s start with a refresh of what precision is. Precision evaluates the number of relevant results relative to all retrieved documents. If we retrieve 10 documents and 5 are relevant we have a precision of 50%. An extension of this is precision at K where K specifies the number of retrieved documents. In the example above K was set to 10. The downside of this metric is that it does not take the ranking order into account which is especially relevant for retrieval systems as we saw above. Average precision is a metric which helps address this. Average precision at K is computed as an average of precision values for all possible values within K. The caveat here is that we only look at the precision values for ranks where the items are relevant."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "4d66535a76e22de9543ab2cbe32ee62b.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/0*eNqdDge9I5X6ZmZO",
+            "caption": "Example of Average Precision calculation."
+        },
+        {
+            "type": "P",
+            "content": "The intuition behind this metric is that it favors getting the top ranks correct and penalizes errors in the early positions. Finally the Mean Average Precision is the mean of the Average Precision calculated for all queries."
+        },
+        {
+            "type": "H2",
+            "content": "Normalized Discounted Cumulative Gain (NDCG)"
+        },
+        {
+            "type": "P",
+            "content": "The last metric to discuss is the Normalized Discounted Cumulative Gain (NDCG). The intuition behind NDCG is that it tries to compare document rankings against an ideal ranking. Lets build up this concept backwards and start with Gain. Gain is similar to a relevance score which can be numerical ratings but can also be a binary case where it is either 0 or 1. Cumulative gain is then the sum of all gains until position k. Similar to precision at k the problem with this is that it does not take the ordering into account. To solve this problem we can discount the gain by dividing it by its rank to favor highly placed relevant documents, this metric is called Discounted Cumulative Gain (DCG). There is still a drawback to DCG which is that it adds up with the length of the recommendation list and the final score is dependent on the gain scale used. This makes it difficult to compare DCG scores over different systems. These issues are tackled by calculating the Ideal DCG (IDCG) score which is the score of the most ideal ranking. We can use the IDCG to normalize the DCG score which results in the NDCG."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "918d566557b1dc233588cd9bb065187b.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/0*v9ivTI0U0DwXT_0S",
+            "caption": "Example of Normalized Discounted Cumulative Gain calculation."
+        },
+        {
+            "type": "P",
+            "content": "This seems very similar to the calculation of MAP however there are a number of key differences. The first difference is that MAP only works for binary relevance while NDCG can also take numerical relevance values into account. This can be especially useful when you have a dataset with numerical ground truth labels. The second difference is how decreasing ranks are taken into account. In practice this comes down to that MAP is more sensitive to non-relevant items at the top of the list. If the initial results are not relevant the MAP score will drop more rapidly than the DCG score."
+        },
+        {
+            "type": "P",
+            "content": "In order to streamline the process of evaluation and parameter tuning you can use the Open-Source data processing framework developed by ML6 called Fondant. They provide an example notebook allowing you to quickly go through this cycle of evaluation and parameter tuning. The notebook performs a parameter search and automatically tunes your RAG solution based on your own data."
+        },
+        {
+            "type": "H1",
+            "content": "Chat-read-retrieve"
+        },
+        {
+            "type": "P",
+            "content": "So far we discussed creating a retriever capable of retrieving relevant documents given an independent query. In practice, RAG systems also include the ability to ask follow-up questions, which refer to previous parts of a conversation. In the current implementation, retrieval is performed for every new question. However, if a question is asked: “What is a retriever in a RAG solution?”, followed up with a question: “How do I improve this?” we would not be a able to retrieve any meaningful chunks as it does not include the context of the conversation."
+        },
+        {
+            "type": "P",
+            "content": "A solution to this problem is called “chat-read-retrieve”, which first uses an LLM to generate a standalone question given the conversation history and the new question of the user. Next, the standalone question is used to retrieve relevant documents."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "b24a6ccfc09bd7400961f996519bf8ba.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/0*ltOP8KA8pwwGBQ1z",
+            "caption": "Follow-up question query process. Source"
+        },
+        {
+            "type": "H1",
+            "content": "Summary"
+        },
+        {
+            "type": "P",
+            "content": "In a nutshell, diving into the world of Retrieval Augmented Generation (RAG) is cool but can be tricky. We often get hyped about the generator part, but let’s not forget our unsung hero — the retriever."
+        },
+        {
+            "type": "P",
+            "content": "This blogpost shares the experience based on ML6’s RAG adventures, especially on elevating the retriever game. We’re talking about smart chunking, picking the right embedding model, and mixing it up with hybrid search (lexical + vector)."
+        },
+        {
+            "type": "P",
+            "content": "Throw in a re-ranker, and you’ve got a retriever dream team. To know how well it’s doing, there are metrics like Hit Rate, MRR, MAP, and NDCG. Improve the user experience by supporting follow up questions and you are good to go."
+        },
+        {
+            "type": "P",
+            "content": "In the RAG world, understanding and improving your retriever is the secret sauce. In the future tuning and testing will likely happen automatically, until then understanding and improving your retriever is key. Cheers to unlocking the full RAG potential!"
+        }
+    ]
+}

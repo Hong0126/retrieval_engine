@@ -1,0 +1,230 @@
+{
+    "title": "Amazon Bedrock: Building a solid foundation for Your AI Strategy",
+    "author": "Nikhil Nagaraj",
+    "readTime": "6 min read",
+    "publishDate": "Sep 6, 2023",
+    "blocks": [
+        {
+            "type": "P",
+            "content": "Amazon recently announced their foundation model service: Amazon Bedrock. We got our hands on it as part of a limited preview. So, what’s in it for you?"
+        },
+        {
+            "type": "FIGURE",
+            "filename": "7ff185956493d1675995cc01b231dc54.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/0*4lButoOPgTORGnlz",
+            "caption": "Photo by Christian Wiediger on Unsplash"
+        },
+        {
+            "type": "P",
+            "content": "Over the last few months, every week has seen a new entrant in the generative AI space. Some weeks, it is a new open-source model, whilst, on others, established players release their foundation models and services."
+        },
+        {
+            "type": "P",
+            "content": "OpenAI (and by extension, Microsoft) kicked this off with ChatGPT. Meta soon followed this with their LLaMA models, which the open-source community warmly embraced. Not to be left far behind, Anthropic released Claude, and recently, Google announced their generative AI services at Google I/O."
+        },
+        {
+            "type": "P",
+            "content": "A meticulous reader might notice that the list above lacks a significant player, one that revolutionised cloud services as we know them, and they’d be right. A couple months ago, Amazon announced their foundation model service, Amazon Bedrock. As part of the beta release, we got our hands on it, and through this blog, we show you what it offers and our first impression!"
+        },
+        {
+            "type": "H1",
+            "content": "What is Bedrock all about?"
+        },
+        {
+            "type": "FIGURE",
+            "filename": "9b54bb2e0853cefdace62803e02f593e.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/0*flvt_FitCmAaUQxf.png",
+            "caption": "Generative AI on AWS (Source)"
+        },
+        {
+            "type": "P",
+            "content": "Announced as a part of their push to build with Generative AI on AWS, Amazon Bedrock is a service that makes various foundation models (hence the name, Bedrock) accessible via an API. It allows customers to build and scale generative AI-based applications without worrying about the infrastructure and maintenance required to run these models. It is, Foundation-Models-as-a-Service."
+        },
+        {
+            "type": "H2",
+            "content": "Isn’t this the same as Sagemaker Jumpstart?"
+        },
+        {
+            "type": "P",
+            "content": "While Sagemaker Jumpstart offers a plethora of pretrained models that can be fine-tuned or deployed on demand, Bedrock offers similar and much larger models as a managed service, thereby reducing the process of using a foundation model to a simple API request."
+        },
+        {
+            "type": "H1",
+            "content": "Which models can you access through Bedrock?"
+        },
+        {
+            "type": "P",
+            "content": "Currently, Amazon Bedrock supports NLP and Vision Foundation models. While the number of models supported is already impressive, we expect this list to grow longer."
+        },
+        {
+            "type": "H2",
+            "content": "Anthropic’s Claude"
+        },
+        {
+            "type": "FIGURE",
+            "filename": "fafb7d39aa005b831b4a2da29a006da1.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:600/1*cAFvIsWPG2tBm1mvq5VrlA.gif",
+            "caption": "Claude in action (Source)"
+        },
+        {
+            "type": "P",
+            "content": "Bedrock provides access to two of Anthropic’s Claude family of models; Claude, with a context size of 12K tokens to handle sophisticated dialogue and creative content generation tasks and Claude Instant, with 9K tokens for faster performance and more straightforward language tasks."
+        },
+        {
+            "type": "P",
+            "content": "Generally, Claude’s family of language models offer excellent performance while emphasising steerability and safety using Anthropic’s Constitutional AI approach."
+        },
+        {
+            "type": "H2",
+            "content": "AI21’s Jurassic"
+        },
+        {
+            "type": "P",
+            "content": "Another family of LLMs, this time from AI21 Labs, is also available through Amazon Bedrock. Two models, J2 Grande Instruct and J2 Jumbo Instruct, are accessible from the Jurassic family. The Jurassic models offer multilingual capabilities with support for English, Spanish, French, German, Italian, Portuguese and Dutch."
+        },
+        {
+            "type": "H2",
+            "content": "Amazon’s Titan FM"
+        },
+        {
+            "type": "P",
+            "content": "Along with the launch of Bedrock, Amazon also announced the launch of their foundation model family, called Titan. Currently, two models are available through Bedrock; Titan Text Large, a generative LLM and Titan Text Embeddings, a model which, as the name suggests, can generate text embeddings for applications such as retrieval and recommendation."
+        },
+        {
+            "type": "P",
+            "content": "While models like Claude and J2 are instruction-following models trained to perform well in a chat-like setup, Titan is a language model like GPT-3 useful for NLP tasks like summarisation, information extraction and text generation."
+        },
+        {
+            "type": "P",
+            "content": "Titan FMs can detect and remove harmful content in data, reject inappropriate content in the user input, and filter the models’ outputs that contain inappropriate content (such as hate speech, profanity, and violence)."
+        },
+        {
+            "type": "H2",
+            "content": "Stable Diffusion"
+        },
+        {
+            "type": "FIGURE",
+            "filename": "d235fdb0f20f2756a37237e674233a55.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*mlM5jc0boo5qKT3cMryQkg.png",
+            "caption": "Images generated using Stable Diffusion through Amazon Bedrock"
+        },
+        {
+            "type": "P",
+            "content": "While the previously mentioned models deal with text, Bedrock also supports image generation through Stable Diffusion models. Currently, it provides access to Stable Diffusion XL, which allows text-to-image prompting, image-to-image prompting, and image inpainting."
+        },
+        {
+            "type": "P",
+            "content": "However, at this time, only text-to-image prompting is possible through Amazon Bedrock."
+        },
+        {
+            "type": "H1",
+            "content": "Our first impressions"
+        },
+        {
+            "type": "P",
+            "content": "As part of a limited number of AWS partners with access to Bedrock, we tried the available models and tooling to test its capabilities. Here’s what stood out!"
+        },
+        {
+            "type": "H2",
+            "content": "Model Variety"
+        },
+        {
+            "type": "P",
+            "content": "One of the stand-out qualities of Bedrock is the variety of models available. While Azure and Google services are limited to their proprietary offerings, Amazon Bedrock makes available a much larger variety of models providing better choices to make smarter trade-offs in quality, performance and cost."
+        },
+        {
+            "type": "H2",
+            "content": "Focus on safety"
+        },
+        {
+            "type": "P",
+            "content": "Amazon Titan effectively filtered out unsafe/harmful content, refused to answer and pointed the user to its terms of service. Such filters will be obligatory when the general public interacts with these models as part of user-facing applications."
+        },
+        {
+            "type": "H2",
+            "content": "Playgrounds"
+        },
+        {
+            "type": "FIGURE",
+            "filename": "b86c7b1e505ac4d6dd2aabb91aaa3b1f.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*tBPuMkaHbQTv2F8P3aI0HQ.png",
+            "caption": "Playground on Amazon Bedrock"
+        },
+        {
+            "type": "P",
+            "content": "Like other generative AI offerings, Amazon Bedrock also provides a nifty playground where one can test various prompts and settings for each model before integrating it within their application. This should allow quick testing and prototyping, thus reducing overall development time."
+        },
+        {
+            "type": "H2",
+            "content": "Ease of Access"
+        },
+        {
+            "type": "P",
+            "content": "Amazon promises that “Bedrock is the easiest way to build and scale generative AI applications with FMs.” So far, we agree!"
+        },
+        {
+            "type": "CODE",
+            "content": "{  \"modelId\": \"amazon.titan-tg1-large\",  \"contentType\": \"application/json\",  \"accept\": \"*/*\",  \"body\": {   \"inputText\": \"Product: Sunglasses. Keywords: polarized, designer, comfortable, UV protection, aviators. Create a table that contains five variations of a detailed product description for the product listed above, each variation of the product description must use all the keywords listed.\",   \"textGenerationConfig\": {      \"maxTokenCount\": 4096,      \"stopSequences\": [],      \"temperature\":0,      \"topP\":1     }   } }"
+        },
+        {
+            "type": "P",
+            "content": "Accessing a model is as simple as sending a request with the appropriate parameters and input (see code snippet above). Support for Bedrock has been added to the official AWS Python SDK boto3, making the service relatively straightforward to use. Additionally, being a managed service means businesses will not have to worry about scaling and its related problems as a larger user base uses their product."
+        },
+        {
+            "type": "H2",
+            "content": "Pricing"
+        },
+        {
+            "type": "P",
+            "content": "While the exact pricing details are still under an NDA 🤐, we can share that the prices are extremely competitive and sometimes substantially lower than corresponding rates offered by OpenAI."
+        },
+        {
+            "type": "H1",
+            "content": "Our expectations for the future"
+        },
+        {
+            "type": "P",
+            "content": "While Bedrock already shows tremendous promise, it is worth remembering that it is still in preview. Here’s what we expect will change/be added soon:"
+        },
+        {
+            "type": "H2",
+            "content": "General Model Fine-tuning"
+        },
+        {
+            "type": "P",
+            "content": "Amazon’s release blog on Bedrock stated that customers could fine-tune these models with their data, thus allowing specific models for specific use cases. However, this functionality is currently only available for its Titan models. The ease of fine-tuning will be a significant game changer regarding the adoption of Bedrock by businesses."
+        },
+        {
+            "type": "H2",
+            "content": "(Non) Availability in the EU"
+        },
+        {
+            "type": "P",
+            "content": "Currently, Amazon Bedrock is only available in 2 regions of the US. However, this is a problem for EU businesses that must adhere to the continent’s data protection and localization laws. Ideally, this should change soon to allow EU businesses to adopt generative AI and adhere to GDPR laws."
+        },
+        {
+            "type": "H2",
+            "content": "Expansion of Stable Diffusion Capabilities"
+        },
+        {
+            "type": "P",
+            "content": "Users of Bedrock can only use Stable Diffusion for text-to-image prompting, while it can do so much more! Capabilities like in-painting and image-to-image generation should be added to Bedrock in the near future."
+        },
+        {
+            "type": "H1",
+            "content": "Conclusions"
+        },
+        {
+            "type": "P",
+            "content": "In the rapidly advancing realm of generative AI, large cloud companies seem to converge towards the same ideas. Some common threads are offering foundation models as a managed service, various sizes and modalities, the possibility of fine-tuning, and the promise of safety."
+        },
+        {
+            "type": "P",
+            "content": "Within this landscape, Amazon’s Bedrock is an easy-to-use platform for a broad range of AI applications. Along with its ease of use, a stand-out feature of Bedrock is the availability of models from various providers like Anthropic, AI21, Cohere and StabilityAI, along with their own Amazon Titan models. This unique blend of versatility, ease of use, and a focus on safety creates a service that developers and businesses will welcome with open arms."
+        },
+        {
+            "type": "P",
+            "content": "It’s fair to say that with Bedrock, Amazon is not just introducing another AI service but laying a solid foundation for future AI strategies for businesses worldwide. While the full potential of this service is yet to unfold, the preview itself is an encouraging glimpse into the future of AI-based solutions on AWS."
+        }
+    ]
+}

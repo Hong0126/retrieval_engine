@@ -1,0 +1,126 @@
+{
+    "title": "Know your unknowns: a short primer on uncertainty in machine learning",
+    "author": "Thomas Janssens",
+    "readTime": "6 min read",
+    "publishDate": "Aug 24, 2022",
+    "blocks": [
+        {
+            "type": "P",
+            "content": "No matter how well you curate your data and tweak your machine learning model, even the best models are not capable of giving perfect answers all the time. In any sufficiently challenging setting, being limited to a finite amount of training data, regardless of quality, and contending with inherent real world randomness prevent them from achieving perfect modeling and prediction."
+        },
+        {
+            "type": "P",
+            "content": "This means we need to be interested in when and how these models’ outputs will differ from the real-world processes they are meant to model. Model validation is one approach to this, e.g. in the form of a hold-out test set or cross-validation, but that only tells you something about the overall statistical performance of your model. What if we want to know something more about the reliability of a single prediction? Regression models often just give a point estimate of your outcome, and while classifiers produce a ‘confidence’, this is typically an uncalibrated transformation of the model logits, not a robust statistical measure; it’s not rare to see a classifier output 99% confidence on an obvious false positive. This lack of transparency in individual predictions can make it difficult to give business stakeholders the insight and confidence they need to fully jump on board the ML train."
+        },
+        {
+            "type": "P",
+            "content": "Luckily, there is a growing number of approaches and libraries catering to a need for a more quantified treatment of model uncertainty. In this blog post, we take a wide look at this landscape and discuss some interesting approaches to uncertainty we have taken in previous projects. We divide the discussion in three domains: forecasting, regression, and classification [1]."
+        },
+        {
+            "type": "H1",
+            "content": "Forecasting"
+        },
+        {
+            "type": "P",
+            "content": "Time series analysis is an obvious candidate for quantifying uncertainty, as we are often interested in predicting the future, which is of course never certain. In many business applications, just extrapolating a time series to the future by itself is not sufficient, as it can be critical to have an idea of lower and upper bounds for the value you’re trying to predict, whether it’s a price, sales figure, stock movement, or something else."
+        },
+        {
+            "type": "P",
+            "content": "Prophet is a library developed by Facebook to cover large-scale forecasting of business events [2]. It produces a generalized additive model, meaning here that the final model prediction is made by summing up three individual component models: holidays, trend and seasonality. In this case, the uncertainty is not necessarily captured in the parameters of the model (these can be represented as posterior probability distributions, but are MAP point estimates by default), but also in how the predictions are generated. This allows the simulation of many potential forecasts, from which uncertainty intervals for the forecast can then be computed. This accounts for uncertainty in the trend and optionally the seasonality models, and additionally allows for the modeling of observational noise. Unfortunately, this simulation also adds extra computational overhead, which means it’s not achievable in every setting."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "ba6aa69821bc6788b45c3d1d887abf81.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:640/0*XuZssHrogLo-Y3kR",
+            "caption": "Prophet uncertainty intervals (source)"
+        },
+        {
+            "type": "P",
+            "content": "We have used this approach to uncertainty in forecasting to better inform clients about the upcoming demand for their products, allowing them to optimize their warehouse stock levels. We did this both in business-to-business and business-to-consumer settings, for individual products and in aggregate."
+        },
+        {
+            "type": "P",
+            "content": "An alternative package for probabilistic time series modeling comes via TensorFlow Probability in the form of the tfp.sts package. This also brings the modeling of structured time series back to a generalized additive model, but leaves you with flexibility from there, in contrast with Prophet, which is harder to customize. You can define and combine different models with different assumptions in a way that best fits your modeling context. As an additional bonus, tfp.sts also supports GPU acceleration, and it lets you choose between Variational Inference vs. MCMC. This blog post by the authors provides a nice introduction."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "c6983b5dd988e16c44c314a39e22c5b6.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/0*6L3e5wujQGTl25cU",
+            "caption": null
+        },
+        {
+            "type": "FIGURE",
+            "filename": "2cb5a418964950c43aab095a2e34dcfc.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/0*gHOmC97dDGMQtFcZ",
+            "caption": "A generalized approach to time series in tfp.sts combines several trend and autoregressive models(source)"
+        },
+        {
+            "type": "H1",
+            "content": "Regression"
+        },
+        {
+            "type": "P",
+            "content": "Most generally speaking, regression problems concern the prediction of a numerical value from a set of input variables. Standard regression approaches give you only a point estimate as a prediction, i.e. a single number, without any indication of confidence or uncertainty. Nevertheless, it can be really valuable to consider uncertainty for regression targets. For example, a house price prediction of 300.000 EUR with a 100.000 EUR uncertainty margin is quite a different story from one with the same price and a 2.000 EUR margin. Another use case could be in manufacturing: if you have to make a precisely located cut to separate two carpets, an uncertainty interval of 2 mm on the coordinate is fine, but one of 20 cm might be a trigger to ask for human intervention. Estimating the duration of individual tasks for planning purposes is another area where uncertainty information might be crucial."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "95112d62a87791304bad4727b35d5f78.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:297/0*Y9swqKg3JfwFWkZL",
+            "caption": "A classic example of point estimates without uncertainty being misleading (source)"
+        },
+        {
+            "type": "P",
+            "content": "Uncertainty in regression can arise from two main sources: uncertainty that is inherent in the problem itself (aleatoric uncertainty) and uncertainty that’s due to a lack of available data (epistemic uncertainty). For example, if you want to predict house prices on the market based on a small sample of sold houses, the error on one individual house price prediction will be influenced by both the personal opinion of the individual seller (inherent random effect) and how well this house type (location, price range,…) is covered by the data set."
+        },
+        {
+            "type": "P",
+            "content": "Both of these effects can be modeled. Aleatoric uncertainty can essentially be represented with a noise factor in your generating model, while epistemic uncertainty is modeled by replacing fixed model parameters (e.g. linear regression or MLP weights and biases) with probability distributions. Once these are estimated via either Variational Inference or MCMC, they can be sampled from to generate the output distribution for a certain input. This can be modeled in several probabilistic frameworks, like Tensorflow Probability, Pyro, PyMC4,… This blog post series nicely builds up towards a full probabilistic model in Tensorflow. Using this methodology, the user is eventually provided with an output containing confidence intervals (aleatoric uncertainty) over multiple samples (epistemic uncertainty)."
+        },
+        {
+            "type": "P",
+            "content": "Also have a look at MAPIE. It’s a package based on scikit-learn that implements uncertainty estimates for both regression and classification (see below)."
+        },
+        {
+            "type": "H1",
+            "content": "Classification"
+        },
+        {
+            "type": "P",
+            "content": "As mentioned in the introduction, classification models typically output class score values that are not calibrated, i.e. when looking at a representative sample of model inputs that all result in a confidence output of 0.95 for a class, we are not guaranteed (and should not expect) to get 95% true positives and 5% false positives. One way to better quantify the uncertainty here is to use model calibration. Sklearn includes functionality for this."
+        },
+        {
+            "type": "P",
+            "content": "Looking at more complex neural networks, especially in the domain of vision and NLP, probabilistic methods certainly exist (1,2,3) but these are to our knowledge not yet widely used in industry."
+        },
+        {
+            "type": "P",
+            "content": "Lastly, another interesting approach in the classification domain is called Spectral-normalized Neural Gaussian Process (SNGP). This methodology allows a regular DNN to approximate a fully Bayesian approach to uncertainty without the additional computational cost that comes with applying this to large input spaces, by adding a weight normalization based on the distance to the training examples, and a Gaussian Process at the output."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "de7a1e8c6daf487b12106375e0f557a9.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/0*qK9NyB3XH4_QgB9b",
+            "caption": "SNGP (right) approaches the gold standard (left) of high uncertainty for (red) samples far away from the training data (blue/orange) (source)"
+        },
+        {
+            "type": "H1",
+            "content": "Conclusion"
+        },
+        {
+            "type": "P",
+            "content": "This concludes our short tour through some applications of uncertainty in machine learning. While these methods can come with some additional modeling cost or computational overhead, they also can provide relevant business insights that are important to contextualize your predictions with uncertainty estimates. Hopefully these examples can be an inspiration to start exploring it for your own projects, or to consider it for an application you have. If you think you have a use case that could benefit from an approach like this, don’t hesitate to reach out to us."
+        },
+        {
+            "type": "H2",
+            "content": "Footnotes"
+        },
+        {
+            "type": "P",
+            "content": "[1] Arguably forecasting is a special type of regression. For the purposes of this article, it’s worth looking at it separately, as it has its own specialized approaches and packages"
+        },
+        {
+            "type": "P",
+            "content": "[2] There’s also a variant of Prophet that uses a deep net for the autoregressive component, called NeuralProphet."
+        }
+    ]
+}

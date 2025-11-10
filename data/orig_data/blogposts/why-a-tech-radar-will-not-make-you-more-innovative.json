@@ -1,0 +1,142 @@
+{
+    "title": "Why a tech radar will not make you more innovative",
+    "author": "Georges Lorré",
+    "readTime": "7 min read",
+    "publishDate": "Jul 6, 2022",
+    "blocks": [
+        {
+            "type": "P",
+            "content": "ML6 is a services company that specialises in valorising state of the art Artificial Intelligence. We do this by building and deploying high quality solutions for complex problems or by delivering bespoke advisory services based on the customer needs."
+        },
+        {
+            "type": "P",
+            "content": "ML6 works with many different clients in different industries and of varying sizes. This brings us into contact with a very diverse clientele and allows us to learn a lot about AI and its adoption in many different organizational contexts. As an expert AI service provider, we do not limit ourselves to a certain industry or technological domain. Our scale allows us to build expertise in different areas and allows us to facilitate cross-pollination of technologies, solutions and learnings across industries."
+        },
+        {
+            "type": "P",
+            "content": "At ML6 we have our own tech radar heavily inspired by the zalando tech radar. In short a tech radar is a visual tool to help you assess technologies by keeping track of them in a list and assigning a certain valuation to them. So users can quickly get insights in an often difficult and ever changing landscape and understand which tools and technologies are the best fit. In our case it is a web page that is accessible for everybody in the company to be used in their day to day workflows. We have had a tech radar for over 2 years now and we have made some significant changes to it since it conception in order to tailor it to our needs. Our tech radar now is aimed to enable a variety of users like technical project leads, salespeople, advisory consultants, marketeers,… and the current implementation enables us to build and share knowledge throughout our organisation."
+        },
+        {
+            "type": "P",
+            "content": "We choose not to make our tech radar public. This is not because we use very secretive tech that we do not want to share. But mainly because our tech radar is a part of something bigger; it is embedded in the way of working at ML6 and can not be used as a stand-alone tool. In this blogpost, I’ll explain why a tech radar alone is not enough for innovation. We set out 3 necessities that make our tech radar valuable and help us to constantly stay up-to-date with the most innovative technologies, document practical insights and learnings from working with them, and to use that knowledge to offer the best services to our clients."
+        },
+        {
+            "type": "H1",
+            "content": "You need context"
+        },
+        {
+            "type": "P",
+            "content": "Most tech radars are a visualisation of a list of “hot” technologies. Their added value is minimal. We try to go beyond that by not just listing and scoring the technologies we happen upon. But in addition organically link them to the client projects, where they are applied. And also link them to the people that have gained relevant experience. This triad of technologies-projects-people provides a trove of valuable context that can really make a difference in helping you find answers."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "c77c5c74aa61cfeb87d6b6dc0671430e.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/0*dVHU4fk-jFUpkz2R",
+            "caption": "The Triad"
+        },
+        {
+            "type": "P",
+            "content": "We don’t believe in creating exhaustive documentation that has all answers but in streamlining the way you can get the information you need by making sure you can ask the right questions to the right people providing the right context. This allows for efficient usage of time but also allows our experts to use their expertise in a very tangible and practical way."
+        },
+        {
+            "type": "P",
+            "content": "Let’s say as an example we have a new prospect that wants us to solve a problem. We can search through our stored information in order to find:"
+        },
+        {
+            "type": "UL",
+            "items": [
+                "Other projects we delivered with a similar context.",
+                "People that have relevant expertise and can help us sell, scope and deliver the new project.",
+                "An overview of relevant technologies for this context.",
+                "Or a combination of above options."
+            ]
+        },
+        {
+            "type": "P",
+            "content": "We can use this contextual information and knowledge to get a running start for this future project or advise clients which tools or technologies to use within their context. What’s more, it allows us to have more confidence in our proposed solution and can help the sales team by leveraging our previous experience."
+        },
+        {
+            "type": "H1",
+            "content": "You need ownership"
+        },
+        {
+            "type": "P",
+            "content": "You can have all the information you want but if you are unsure of its quality it is essentially worthless. This is the same for a tech radar. You need to have a system in place that ensures trust in the data. We already try to do this at the root by structuring the company in such a way that enables this."
+        },
+        {
+            "type": "P",
+            "content": "At ML6 we apply the divide and conquer approach. We have groups of people that share the same interests, often in a domain like NLP, Computer Vision, Engineering, etc. We call this group of people a chapter (see another blogpost about how to setup for innovation). This group is composed of people who primarily work on client projects. It combines different profiles such as technical people like machine learning engineers, data engineers but also people involved in sales and project management. This diverse group of people shares the same interest and they have dedicated time to work on topics they deem valuable. Such as trying out a new model, writing a blogpost or contributing to our internal boilerplates. Being active on client projects and being an active chapter member combines practice and theory which makes the chapter an effective knowledge platform."
+        },
+        {
+            "type": "P",
+            "content": "We organise our tech radar around these chapters. Every chapter is responsible for a segment. This means that they actively curate the list of technologies that fall in their scope. They are responsible for adding and updating the list of technologies but also making it clear why we would use technology x over technology y. This opinionated context is of high value since it is battle-tested during application and it is owned by a distinct group of people."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "6a083d64dc097af6d5770a6985641ccc.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:512/1*hvYR96XJvXro7BpGqkBh_A.png",
+            "caption": "Snapshot of our Tech Radar in action"
+        },
+        {
+            "type": "P",
+            "content": "We provide 3 categories to quickly classify technologies:"
+        },
+        {
+            "type": "UL",
+            "items": [
+                "EXPLOIT — Technologies we have high confidence in to serve our purpose. Technologies that are actively and successfully being used on ML6 projects. These technologies are recommended to be used on any project. Resources and expertise are readily available within ML6.",
+                "EXPLORE — Technologies that are promising and have clear potential added value; technologies worth to invest some research and prototyping efforts in to see if it has worthwhile benefit. Explore technologies have higher risks; they are often brand new and unproven. You will find some engineers that have knowledge in the technology and promote it. If you want to use one of these technologies you should work together with the concerned chapter in order to capture the learnings.",
+                "NO GO — Technologies not recommended to be used on projects. These technologies should not be chosen for specific reasons which we then document. Most common examples are technologies that have better alternatives or are no longer maintained."
+            ]
+        },
+        {
+            "type": "P",
+            "content": "Summarily the chapters control the tech radar, which provides both trust and guidance to the end users. The chapter can independently decide on which topics to allocate research and experimentation resources. If you want to know more about our chapters, you can find an extensive overview of our chapters, their domains and some of their content on our website (for example: NLP chapter)."
+        },
+        {
+            "type": "H1",
+            "content": "You need an Information Management culture"
+        },
+        {
+            "type": "P",
+            "content": "We have many different units at ML6, each responsible for different goals within the company. One of those units is all about information management, it is this unit’s mission to foster a culture of information building and sharing throughout the company. This is mostly done in 2 ways:"
+        },
+        {
+            "type": "UL",
+            "items": [
+                "Building and embedding custom tooling to make gathering and finding knowledge easier. The tech radar is one example of this.",
+                "Help build processes where knowledge sharing is a core principle. For example every quarter we host an internal chapter conference where speakers from different chapters can do a deepdive in a topic via a talk or a workshop."
+            ]
+        },
+        {
+            "type": "P",
+            "content": "We are a knowledge based company. Our vision is to accelerate intelligence, and knowledge plays an integral role in making this possible."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "09bfc71ab62ab197d9c403fef4e1a2b5.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/0*6ICHiSSTnKK0ok-g",
+            "caption": "The ML6 Flywheel"
+        },
+        {
+            "type": "P",
+            "content": "We deliver many different projects for different clients across different industries, which allows us to build relevant experience that we always try to leverage on a new potential project. We aim to collect as much context as possible about all the projects we deliver (while respecting confidentiality). One of these context points is what technologies were used on what problem and by who. This bookkeeping allows us to generate insights for later decision making on many different levels:"
+        },
+        {
+            "type": "UL",
+            "items": [
+                "A tech lead who needs to put together a tech stack for a new project.",
+                "A BD consultant that is drafting a custom solution and looks for the best tech stack or most linked projects and experts to involve.",
+                "A chapter lead that wants to track adoption of new frameworks & assess if more chapter work is needed to further accelerate adoption."
+            ]
+        },
+        {
+            "type": "P",
+            "content": "This bookkeeping also allows people to be recognized as experts and helps them grow and make an impact within the company. The latter is essential so that we can keep a self-sustaining system (by having benefits for everyone that contributes to the information on the tech radar)."
+        },
+        {
+            "type": "P",
+            "content": "This blogpost aimed to shed some insights as to how we tackle information management at ML6 and how our tech radar helps us do this. Main point stands that a tech radar as a standalone tool has limited usability. We propose 3 necessities in order to unlock an information tool like a tech radar. Firstly it needs to be part of a bigger ecosystem with clear links between other entities in your company. Secondly you need ownership in order to ensure quality of the data and capture that unique opinionated experience. And lastly you need to foster a culture of information management where building and sharing knowledge is a core component and not an afterthought."
+        }
+    ]
+}

@@ -1,0 +1,332 @@
+{
+    "title": "Semantic search: a practical overview",
+    "author": "Mathias Leys",
+    "readTime": "12 min read",
+    "publishDate": "May 9, 2022",
+    "blocks": [
+        {
+            "type": "FIGURE",
+            "filename": "77a09efa90f398eb0451bf963080778d.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:612/0*6q7eVMXU6ckwpESi",
+            "caption": "Let’s find that needle in the haystack!"
+        },
+        {
+            "type": "H1",
+            "content": "Introduction"
+        },
+        {
+            "type": "P",
+            "content": "One of the main challenges in leveraging the value of textual data lies in the unstructured nature of natural language. This data format makes sense to us humans but is very tricky to process in an automated way. However, despite this challenge, an estimated 80–90% of the data in an enterprise is text [1]."
+        },
+        {
+            "type": "P",
+            "content": "The potential added value that leveraging this data source could have, should not be underestimated. For example, lawyers on average spend 11.2 hours per week on tasks related to information retrieval [2]. One potential way to make use of this data is by means of an effective search system."
+        },
+        {
+            "type": "BLOCKQUOTE",
+            "content": "- Imagine if you could effectively search through millions of pdf files full of legal text to find that one law that applies to your situation. - Imagine if you could instantly browse through massive amounts of technical manuals to find the paragraph that exactly explains how to solve the problem you’re facing.Sounds useful doesn’t it?"
+        },
+        {
+            "type": "P",
+            "content": "This is where Information Retrieval, and in particular Semantic Search, comes in which is exactly the branch of NLP (Natural Language Processing) that aims to tackle this problem. In this blogpost, we will investigate this topic from a very practical viewpoint. So if you don’t fancy yourself as a mathematician or an expert programmer, don’t click away just yet."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "d3653c9248030053c78998ab45427e23.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:600/0*YudAlw2PFGTvC2gp.png",
+            "caption": null
+        },
+        {
+            "type": "P",
+            "content": "The goal here is to get an intuition for what semantic search is and which challenges you will likely face when implementing a semantic search engine in a practical setting. At the end you should have a solid view on (1) what semantic search is, (2) when to use semantic search and (3) how to approach implementing a semantic search engine."
+        },
+        {
+            "type": "P",
+            "content": "We will not cover the technical aspects in-depth here but we will post another blogpost that deals with the same topics but from a more technical standpoint. The focus here will be much more on the “Why” than on the “How”."
+        },
+        {
+            "type": "H1",
+            "content": "What is Semantic Search?"
+        },
+        {
+            "type": "P",
+            "content": "Let’s not get too ahead of ourselves just yet and briefly discuss what semantic search is exactly and how it works. Essentially, semantic search attempts to match queries to relevant documents based on meaning rather than on pure syntax. In practice, the main advantages of such an approach are twofold:"
+        },
+        {
+            "type": "P",
+            "content": "(1) Exact wording becomes less relevant 📝Imagine you work for a real-estate company and have a database full of articles about properties. Say you are looking for the article that is about a specific house you have in mind so you form a query that contains the information you remember about this house. You would likely end up with a query that looks something like this: “a two bedroom house in Los Angeles”. Let’s now say that the article you were looking for refers to this property as “a residence with 2 rooms in sunny California”."
+        },
+        {
+            "type": "P",
+            "content": "Well, if you were using a non-semantic search engine, you wouldn’t find this result simply because your query shares no common words with the result you were after. An article about a property that is described as “a two story house in Los Angeles” would, for example, be deemed much more relevant since this description shares many common words with your original query even though there is an important difference in meaning between “a two bedroom house” and “a two story house”."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "745df93c3c95cb53a4dd005db28ae1fa.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*D7zOMOGVuu0mm-2g0DtoXw.png",
+            "caption": "Exact wording matters a lot in a lexical search"
+        },
+        {
+            "type": "P",
+            "content": "However, since a semantic search engine deals with meaning rather than syntax, it would for instance recognize that “residence” and “house”, “Los Angeles” and “California”, etc. are closely related and you would likely find what you were looking for. It would, thus, know that “a two bedroom house in Los Angeles” is closer in meaning to “a residence with two rooms in sunny California” than to “a two story house in Los Angeles”."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "9cd4f618916c0b7f4aa502e06dcf661f.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*aLOPFf3mFJBj-tXeG7Z0hw.png",
+            "caption": "Exact wording becomes less important in a semantic search"
+        },
+        {
+            "type": "P",
+            "content": "There is often a difference between the wording used in your query and the wording used in the results you are after. Semantic search engines can deal with this whereas classical non-semantic search engines cannot."
+        },
+        {
+            "type": "P",
+            "content": "(2) Context is taken into account 📖People will often use search engines to look for information based on a description of a concept rather than on a set of literal keywords. For instance, when you search for “Python”, a document called “learn 5 fun facts about Python snakes” and a document called “Python programming tutorial” are both potentially relevant results since it is not clear which type of Python you are referring to."
+        },
+        {
+            "type": "P",
+            "content": "However, when you search “learn Python”, a semantic search engine will recognize that the word “Python” in this context is more likely to refer to the programming language than to the type of snake. Therefore it will deem the programming tutorial more relevant. Don’t trust me? Try it out for yourself: search for “Python” in Google images and for “learn Python” afterwards and watch the snakes disappear."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "409490d80291ae4a45f77db43281039f.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*w4Bk0erJvwdqLv_mroy3Sg.png",
+            "caption": "Context is taken into account in a semantic search"
+        },
+        {
+            "type": "P",
+            "content": "A classical non-semantic search engine, however, will deem “learn 5 fun facts about Python snakes” more relevant because this title shares more common words with your query as it contains both “learn” and “Python”."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "55f7e080a06d0f538cf74c75bb813dc0.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*Xgu8BquGh3JEbcGJgXGHOg.png",
+            "caption": "Context is not taken into account in a lexical search, only exact wording"
+        },
+        {
+            "type": "H1",
+            "content": "How does Semantic Search work?"
+        },
+        {
+            "type": "P",
+            "content": "Now you may be asking yourself how this all works. 🤔"
+        },
+        {
+            "type": "P",
+            "content": "In a nutshell, semantic search works by comparing sentence embeddings: you are looking for a result with a sentence embedding that is close to the sentence embedding of your query. Did that make sense to you? Perfect, feel free to skip this part. If it didn’t, don’t worry, I will give you a quick NLP crash course."
+        },
+        {
+            "type": "H2",
+            "content": "What are (sentence) embeddings?"
+        },
+        {
+            "type": "P",
+            "content": "Embeddings play a central role in nearly any NLP application. Basically an embedding is a vector of numbers that represents the meaning of a word. Concretely, this entails that words with similar meanings have similar embeddings and vice versa. The graph below visualizes (3-dimensional) embeddings. You can clearly see that words with similar meanings have similar embeddings. For instance, we notice that words related to school have low X-values and low Z-values, words related to sports have high X-values and high Z-values, etc."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "8b0379dfe918bec67a19a02ee9a4e78a.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/0*utuIRrbpvLNCfmn1",
+            "caption": "Visual representation of word embeddings"
+        },
+        {
+            "type": "P",
+            "content": "How does it arrive at these embeddings you ask? Well, nowadays via transformer-based language models [3]. You can usually recognize these models because their name will be some pun on the name BERT. NLP researchers are language enthusiasts after all, so silly puns are inevitable."
+        },
+        {
+            "type": "P",
+            "content": "Now, you may be thinking “Isn’t transformers that movie about car robots?”. Sorry to disappoint but no. Well technically yes it is but unfortunately Shia LaBeouf doesn’t really do NLP (yet). Very oversimplified, transformers are language models that will process massive amounts of text and try to figure out which words often appear in the same context (usually via a technique called masked-language modeling [4]) and place the embeddings for these words close together as they can be used (somewhat) interchangeably."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "5e5eca77b7c2e6bee3d8c82a947f2c1d.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*ZRgj9ZPRBAkrtJaYA-nWnA.png",
+            "caption": null
+        },
+        {
+            "type": "P",
+            "content": "By now, you should be familiar (on a high-level) with what word embeddings are. Sentence embeddings are the completely analogous counterpart of word embeddings with the major difference being that they produce one embedding for a sequence of words rather than an embedding for each word individually. So texts with similar meanings have sentence embeddings that are close together."
+        },
+        {
+            "type": "P",
+            "content": "Now that you are also familiar with sentence embeddings, let’s take another look at the statement made at the beginning of this paragraph: “semantic search works by comparing sentence embeddings: you are looking for a result with a sentence embedding that is close to the sentence embedding of your query”. Does this make more sense now? Perfect. (I will assume you answered yes 🤞)."
+        },
+        {
+            "type": "H1",
+            "content": "How do you implement semantic search?"
+        },
+        {
+            "type": "P",
+            "content": "As you will soon discover, semantic search is a broad and very nuanced topic. Therefore, in order to structure our thoughts, we will follow the flowchart below as a guide throughout our journey into the semantic search wilderness."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "34c2e1803d8ccc2764e60b64132c2cda.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*Zc0up79wCu70D4zC6djx_A.png",
+            "caption": "Semantic search flowchart"
+        },
+        {
+            "type": "P",
+            "content": "It may not look very informative right now but it will make sense soon, I promise."
+        },
+        {
+            "type": "H2",
+            "content": "Is semantic search for you?"
+        },
+        {
+            "type": "FIGURE",
+            "filename": "b2b5c033a9bee1e119a24dbf13923671.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*s8vZrxUIaNkMyz_oOaqjVA.png",
+            "caption": "Semantic search flowchart part 1"
+        },
+        {
+            "type": "P",
+            "content": "Before you get straight to implementing, let’s stand still for a moment and consider whether semantic search is even appropriate for your use case. As mentioned before, the main pro’s of semantic search are being able to deal with synonyms and with context. Therefore, it is important to make the critical reasoning of whether either of these advantages are relevant to your use case."
+        },
+        {
+            "type": "P",
+            "content": "Say for example that you have a database of medical documents and will use it to look for documents containing specific names of diseases or specific codenames. In this case, synonyms aren’t of much use to you (a disease only has one name) and if you are only searching for the name of the disease, there isn’t much context to take into account either."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "bdf5003f9f9b7c5df6a092d76bec5fe1.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*Be9JR35EYX0vGynm2OYPjg.png",
+            "caption": "Semantic search is not always an added-value"
+        },
+        {
+            "type": "P",
+            "content": "Therefore, the added value that semantic search will bring is likely quite limited so you’ll probably be better of going for a lexical search engine. TF-IDF [5] or especially BM25 [6] are (at least at the time of writing) solid lexical search algorithms to consider. I won’t go into how these algorithms work but if you’re interested, check out our upcoming more technical semantic search blogpost."
+        },
+        {
+            "type": "P",
+            "content": "In conclusion, there are two important considerations here:(1) Will your users search for concepts? For instance, will your users search for “house” or “two-bedroom villa in LA with outdoor pool”? Taking the context into account really only pays dividends for the latter.(2) Do you have a diverse dataset? For instance, do you want to search through employee contracts in the finance department or through all documents in your company. In diverse data, exact wording makes a bigger difference and thus semantic search pays off more."
+        },
+        {
+            "type": "H2",
+            "content": "Do you need domain adaptation?"
+        },
+        {
+            "type": "FIGURE",
+            "filename": "bfeb25300d5d9adead695af191742d5b.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*x1clQFTZVbyz5Ke6_08D4w.png",
+            "caption": "Semantic search flowchart part 2"
+        },
+        {
+            "type": "P",
+            "content": "Now that you have decided that semantic search is suited to your specific use case, you will need a sentence-transformer to get you started. Nowadays, there are many open-source options to choose from. Check them out here. If the domain (e.g., legal text, technical manuals, etc.) of your data is quite generic such as English news, Spanish articles, etc., you will likely find a sentence-transformer suited to not only your language but also to your domain."
+        },
+        {
+            "type": "P",
+            "content": "However, maybe you consider yourself an Icelandic medical document aficionado. Perhaps you enjoy Slovenian legal texts. Honestly, who can blame you? Don’t we all?"
+        },
+        {
+            "type": "FIGURE",
+            "filename": "7c9e4610f7c8827b9acea74a38b869a4.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*Lnpa5JHVi6l1Po942kM46w.png",
+            "caption": "This could be you!"
+        },
+        {
+            "type": "P",
+            "content": "Unfortunately, for these specific situations, you’ll probably have a difficult time finding a language model specifically suited to that domain. Language models trained on generic text in that language are likely the best option you’ll find."
+        },
+        {
+            "type": "P",
+            "content": "However, I think you can imagine that “everyday” text looks very different to medical text. A general-purpose Icelandic language model probably rarely encountered the medical jargon words (e.g., disease names, anatomical words, etc.) that play an important role in medical documents. Therefore, a general-purpose language model will likely have a hard time accurately figuring out the meaning of medical texts."
+        },
+        {
+            "type": "P",
+            "content": "In such a scenario, you would want to use a technique called “domain adaptation”. Essentially, this entails that you take your general-purpose language model that was trained on general text and continue training it on data from your domain of interest. Again, I won’t get into the nitty gritty of how this all works: check out our upcoming more technical blogpost for that."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "369abb27a2db58fe83afd2689282f236.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*_hy1pCeVlZ4y9p8mHmWJcw.png",
+            "caption": "Texts from other domains can be wildly different"
+        },
+        {
+            "type": "P",
+            "content": "However, you should see this process as follows. Say you don’t speak a word of Slovenian. Training a language model would then entail giving you massive amounts of everyday Slovenian text to study. At the end, you’ll probably be pretty familiar with Slovenian. However, if I were to give you Slovenian legal text and ask you some questions about it, you probably still wouldn’t be able to answer them. Well, domain adaptation would entail sending you to Slovenian law school and making you study Slovenian legal texts. Although this seems like a pretty unpleasant experience (my apologies to any Slovenian lawyers reading this), you would be able to grasp the meaning of Slovenian legal texts afterwards."
+        },
+        {
+            "type": "H2",
+            "content": "How do you implement a semantic search engine?"
+        },
+        {
+            "type": "FIGURE",
+            "filename": "a9d9b1d2e9f01e813e42d0b52d2d729d.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:651/1*w84ea6VW9MazBTQ2knvW7Q.png",
+            "caption": "Semantic search flowchart part 3"
+        },
+        {
+            "type": "P",
+            "content": "At this point, you are quite close to a functioning semantic search system. You already made the decision to opt for semantic search over the alternatives and you have a suitable language model that will underly your solution. Now, let’s focus on a drawback of semantic search: it can be quite slow and compute-intensive. If computational resources and latency aren’t issues for you, then you can simply accept this drawback and you have yourself a search engine (congrats 🎊)."
+        },
+        {
+            "type": "P",
+            "content": "In most (practical) cases, however, these are significant issues. Don’t worry though, there is a solution! That solution is called “Retrieve & Rerank”. Essentially, the idea here is to use a (fast and inexpensive) lexical search algorithm (such as TF-IDF or BM25 as discussed earlier) to filter out the irrelevant documents in your database so that you arrive at a smaller subset of “candidate documents” that could all potentially be relevant. This is the “retrieve” step. Then you use your semantic search engine to search only within these “candidate documents” rather than within all documents in your database. This is the “rerank” step. Graphically, the flow will look something like the graph below."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "bf3e3cd4af33f493bdad7a741b04ad5b.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*50NaeiQCMnOzwKBh9Oca4Q.png",
+            "caption": "Retrieve & Rerank hybrid architecture"
+        },
+        {
+            "type": "P",
+            "content": "Let’s illustrate with a very practical example. You have a database containing 100.000 documents. Let’s say a lexical search within 1.000 documents takes around 1 ms (= 0.001 seconds) whereas a semantic search within 1.000 documents takes around 50 ms (= 0.05 seconds). A full semantic search within all 100.000 documents would thus take (0.05 * 100 =) 5 seconds."
+        },
+        {
+            "type": "P",
+            "content": "Now, let’s say we first do a lexical search within the 100.000 documents and only keep the top 5.000 documents. This takes (0.001 * 100 =) 0.1 seconds. We can then perform a semantic search within only these 5.000 documents. This takes (0.05 *5 =) 0.25 seconds. We will likely end up with largely similar results in both situations although the full semantic search approach took 5 seconds whereas the retrieve & rerank approach only took 0.35 seconds and used less computational resources."
+        },
+        {
+            "type": "H1",
+            "content": "Conclusion"
+        },
+        {
+            "type": "P",
+            "content": "If you reached this point in the post, you should have a solid (high-level) understanding of semantic search along with the main practical considerations that come into play when you try to implement a semantic search system in a real-life scenario."
+        },
+        {
+            "type": "P",
+            "content": "I have already made a few shameless plugs but if you are interested in the technical aspects related to semantic search, feel free to check out our upcoming more technical blogpost on the topic."
+        },
+        {
+            "type": "P",
+            "content": "If want to read up on some real-life semantic search use cases, I can highly recommend taking a look at the case studies on our work for Fednot (Belgian federation of notaries) and Funke (German media group)."
+        },
+        {
+            "type": "P",
+            "content": "I hope this blogpost was what you were searching for! (pun very much intended)"
+        },
+        {
+            "type": "H1",
+            "content": "References"
+        },
+        {
+            "type": "P",
+            "content": "[1]: Bill Inmon. (June 28 2016). Why Do We Call Text “Unstructured”?https://tdwi.org/articles/2016/06/28/text-unstructured.aspx"
+        },
+        {
+            "type": "P",
+            "content": "[2]: IDC’s Information Worker Survey. (June 2012).https://metajure.com/lawyers-waste-six-hours-a-week-on-document-management-issues-2/"
+        },
+        {
+            "type": "P",
+            "content": "[3]: Devlin, et al. (24 May 2019). BERT: Pre-training of Deep Bidirectional Transformers for Language Understandinghttps://arxiv.org/pdf/1810.04805.pdf"
+        },
+        {
+            "type": "P",
+            "content": "[4]: James Briggs. (19 May 2021). Masked-Language Modeling With BERThttps://towardsdatascience.com/masked-language-modelling-with-bert-7d49793e5d2c"
+        },
+        {
+            "type": "P",
+            "content": "[5]: Anirudha Simha. (October 6 2021). Understanding TF-IDF for Machine Learninghttps://www.capitalone.com/tech/machine-learning/understanding-tf-idf/"
+        },
+        {
+            "type": "P",
+            "content": "[6]: Vinh Nguyên. (1 September 2019). Okapi BM25 with Game of Throneshttps://blog.mimacom.com/bm25-got/"
+        }
+    ]
+}

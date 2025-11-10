@@ -1,0 +1,229 @@
+{
+    "title": "How are knowledge graphs and machine learning related?",
+    "author": "Jakob Cassiman",
+    "readTime": "6 min read",
+    "publishDate": "Jan 6, 2022",
+    "blocks": [
+        {
+            "type": "P",
+            "content": "Knowledge graphs and machine learning are both major hypes in technology land. This blog post will give a no bullsh*t explanation of the relationship between the two."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "41362f806921d172e7d7becc62ca6540.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:548/0*NIEdEchORldHNClV",
+            "caption": "Knowledge graphs and machine learning are both powerful technologies. But watch out with trusting overhyped blog posts on the internet and read this one instead."
+        },
+        {
+            "type": "P",
+            "content": "If you want a high level overview of knowledge graphs and example use cases, you should have a look at our previous blog post: “What is a knowledge graph and what can it do for you?”."
+        },
+        {
+            "type": "P",
+            "content": "There are 3 different ways in which knowledge graphs and machine learning intertwine:"
+        },
+        {
+            "type": "OL",
+            "items": [
+                "During construction of a knowledge graph.",
+                "When you have a knowledge graph, you can enhance the output of data-driven machine learning models with knowledge from the graph.",
+                "You can extract new insights from the knowledge graph, through learning to classify nodes or clustering nodes and predicting missing connections."
+            ]
+        },
+        {
+            "type": "P",
+            "content": "All three use cases rely on recent machine learning research."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "8791b31de8e791d64f6a34762b106c04.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*5thymmc9EY113bV6HrEwvQ.png",
+            "caption": null
+        },
+        {
+            "type": "H1",
+            "content": "1. Knowledge graph construction with machine learning"
+        },
+        {
+            "type": "P",
+            "content": "Traditionally, building a knowledge graph is a tedious and manual process. You have to do two things:"
+        },
+        {
+            "type": "OL",
+            "items": [
+                "Define how to represent the knowledge. And yes, it’s as hard as it sounds. You have to define all possible types of entities and their relationships. These definitions are the ontology of the knowledge graph.",
+                "Only then, you can start by actually capturing the knowledge. Which means inputting all the bits of knowledge into the system following the structure as defined in step 1."
+            ]
+        },
+        {
+            "type": "P",
+            "content": "In both steps, machine learning can be of use."
+        },
+        {
+            "type": "P",
+            "content": "Instead of predefining the ontology using a top-down approach, we could reverse the process. Instead, we start from unstructured data like text or images and extract entities and their relationships from that data while learning an ontology along the way."
+        },
+        {
+            "type": "P",
+            "content": "For example, say we have the following unstructured text data:"
+        },
+        {
+            "type": "CODE",
+            "content": "Stan Callewaert is the biggest film star in the movie Titanic. Leonardo DiCaprio also appears in The Titanic."
+        },
+        {
+            "type": "P",
+            "content": "Using two machine learning techniques (entity extraction and relation extraction), we would be able to extract 4 entities:"
+        },
+        {
+            "type": "UL",
+            "items": [
+                "Stan Callewaert",
+                "the movie Titanic",
+                "Leonardo DiCaprio",
+                "The Titanic"
+            ]
+        },
+        {
+            "type": "P",
+            "content": "and 2 relations from this text:"
+        },
+        {
+            "type": "UL",
+            "items": [
+                "is the biggest film star in",
+                "also appears in"
+            ]
+        },
+        {
+            "type": "P",
+            "content": "Next, we’ll need some more smart algorithms to first map the information we extracted on a learned ontology. In this case, the algorithm first has to recognise that there’s a relationship that represents “is an actor in”. Then, the algorithm has to classify the two extracted relations as that relationship."
+        },
+        {
+            "type": "P",
+            "content": "Then, we’ll also have to map the entities onto each other if they refer to the same one. In this case “the movie Titanic” and “The Titanic” are actually the same movie, so we have to do entity mapping using even more machine learning algorithms."
+        },
+        {
+            "type": "P",
+            "content": "If all is well, we would end up with a mini-knowledge graph like this:"
+        },
+        {
+            "type": "FIGURE",
+            "filename": "9e8dac0d6eded49786b850c0b0d587fe.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/0*FBPXsticTPr5bvfW",
+            "caption": null
+        },
+        {
+            "type": "H1",
+            "content": "2. Add knowledge to machine learning models"
+        },
+        {
+            "type": "P",
+            "content": "This section actually touches on a huge question within AI research: “What is intelligence and can you achieve it by only generalising from examples?” *passes blunt*"
+        },
+        {
+            "type": "P",
+            "content": "In the “only generalising from examples” camp are all hard core believers in the powers of machine learning. They say that all you need is enough data and that pattern learning and modelling probability distributions in that data is sufficient to achieve intelligence."
+        },
+        {
+            "type": "P",
+            "content": "In the opposing camp are the people who think machine learning is not enough. Their argument is that intelligence needs “common sense”. That intelligence needs defined semantics and a hierarchical structure to the concepts it knows."
+        },
+        {
+            "type": "P",
+            "content": "Alright, back to our planet."
+        },
+        {
+            "type": "P",
+            "content": "As a real-world example of facts supporting machine learning models, we could look at generative AI. Generative AI is a branch of machine learning that aims to generate new, inexistent content that looks like it’s real. If you’re Dutch or German speaking, you can try out ML6’ very own text generating model here. (And here’s an English version)"
+        },
+        {
+            "type": "P",
+            "content": "If you try out the models, you’ll see they produce language that’s grammatically correct, but it’s often completely wrong from a factual perspective."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "76047cc2f2b7dca71073ca9119a2dd50.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/0*dGsh2O_s8HW0lsQK",
+            "caption": "This is a screenshot of generated text that is factually wrong. (The prime minister is Stan Callewaert)"
+        },
+        {
+            "type": "P",
+            "content": "A solution could be to infuse the knowledge from a knowledge graph into the generative system. ML6 has another awesome demo and blog post of how machine learning models can generate text based on some facts you provide."
+        },
+        {
+            "type": "P",
+            "content": "In our other blog post about knowledge graphs, we gave a second example of how knowledge graphs can support machine learning models. We show how a search engine can learn to understand the context of a user query using the semantics and hierarchy stored in a knowledge graph."
+        },
+        {
+            "type": "H1",
+            "content": "3. Get insights: classification, clustering, missing link prediction"
+        },
+        {
+            "type": "P",
+            "content": "Knowledge graphs are actually a special case of the more general category of graphs. Graphs on itself are a huge topic in computer science and are basically anything that is made of connected nodes. So, a knowledge graph is just a labeled and directed graph."
+        },
+        {
+            "type": "P",
+            "content": "That also means we can release a bunch of graph algorithms and theory from computer science on knowledge graphs. Since we’re interested in machine learning, we’ll look at some graph algorithms that involve machine learning."
+        },
+        {
+            "type": "P",
+            "content": "Three examples of things that we can do are:"
+        },
+        {
+            "type": "UL",
+            "items": [
+                "Classifying nodes in the graph",
+                "Grouping or clustering nodes together",
+                "Predicting missing connections between nodes."
+            ]
+        },
+        {
+            "type": "P",
+            "content": "Let’s zoom in on the classification task."
+        },
+        {
+            "type": "P",
+            "content": "When we want to classify a node in the graph with machine learning, we want to learn a function. The function has to transform the space where the graph lives into a different space that allows us to make a classification."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "97e9b79949d7c8d1ecd96b53452add45.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/0*SVeN6uICZqAOVbgi",
+            "caption": null
+        },
+        {
+            "type": "P",
+            "content": "In this example, the algorithm is doing binary classification. Every node is either red or green and we have some example colors. Given the examples, we want to predict the colors for the blank nodes."
+        },
+        {
+            "type": "P",
+            "content": "Here, the output space is simply the range between 0 and 1. We will train the model such that it transforms the graph and predicts a number between 0 and 1 for every node. If the output number is between 0 and 0.5, the classification is red. If the number is between 0.5 and 1, the classification is green."
+        },
+        {
+            "type": "P",
+            "content": "We can also extend this example to e.g. an incomplete citation graph. It’s a graph where papers are linked to their authors and their citations, but we don’t know for all authors which institute they belong to. We can now train an algorithm to predict the affiliations for the authors lacking one, just like we predicted the colors in the dummy example."
+        },
+        {
+            "type": "H2",
+            "content": "Graph neural networks"
+        },
+        {
+            "type": "P",
+            "content": "Now, if we peer into the machine learning model, the real magic happens in how the algorithm transforms the graph into a vector living in the output space. Most machine learning models work with images or text to do things like translation or object detection. Here the input is a graph."
+        },
+        {
+            "type": "P",
+            "content": "Only recently, researchers have come up with model architectures that can handle graphs as well. Sometimes they’re influenced by computer vision applications like graph convolutional neural networks. Examples are node2vec and GraphSAGE."
+        },
+        {
+            "type": "H1",
+            "content": "Conclusion"
+        },
+        {
+            "type": "P",
+            "content": "Knowledge graphs and machine learning are the two strands in the double helix that forms the DNA of intelligent systems. Both will continue to convolve and push each other to new boundaries, so keep an eye open on this topic!"
+        }
+    ]
+}

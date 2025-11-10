@@ -1,0 +1,201 @@
+{
+    "title": "What better time than Christmas to foster innovation?",
+    "author": "Florentijn Degroote",
+    "readTime": "9 min read",
+    "publishDate": "Jan 19, 2022",
+    "blocks": [
+        {
+            "type": "BLOCKQUOTE",
+            "content": "“Hooray, the end of the year!” is the chant that echoes in many corporate hallways when Christmas is nearing. Lots of people take time off at the end of the year to find some quiet and “recharge their batteries” for the next one. Most people that do decide to keep working are — unknowingly — nearing the least productive week they’ve had in a long time.“Nothing new here” you think while you zoom out on our planet again. You notice the back of your head itching and realize that you have been wearing your VR glasses for way too long now. You sigh softly and start scratching your hair. Empty-headedly, you decide to give a last good spin to the sphere in front of you before taking the headset off. With a glazed look you see the world spinning in front of you until something odd catches your attention.“What the hell was that?” you stutter while you start zooming in again. You take a closer look and count that there are four corporate hallways that are kinda unusual, atypical.. weird even.In Ghent, Amsterdam, Berlin and Zurich, you find one corresponding hallway where people just don’t seem to be planning much holidays, nor are they preparing for a soothing week to conclude the year. Instead, you find that these hallways share an exciting feeling that is starting to build up in the days and weeks prior to Christmas. Soft whispers are turning into audible muffles, people start to move in quicker ways and the atmosphere is filling with longing. When the Christmas trees are being decorated the atmosphere spills over and the muffles turn into cries of exhilaration. “Finally” you hear.“Finally.. The ML6 Xmas Projects are back in town!”"
+        },
+        {
+            "type": "FIGURE",
+            "filename": "0adabbdc175f47b1803965488006bb90.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*TYDIdKM-67xe7Ax5UEnBQw.jpeg",
+            "caption": null
+        },
+        {
+            "type": "H1",
+            "content": "What are Xmas Projects and are they essential to spawn superhuman kindergartners?"
+        },
+        {
+            "type": "P",
+            "content": "Contrary to popular belief, our Xmas Projects are not related to the secret ingredient with which this monkey called Jojo created the Powerpuff Girls.Even though we haven’t — yet — been able to fully understand the chemistry of that particular event, we do have a good understanding of the chemistry our Xmas Projects bring about. And it’s worth writing a blogpost over."
+        },
+        {
+            "type": "P",
+            "content": "Xmas Projects are hackathon-like projects in which people lay down their day-to-day job for some time and get together out of common interest to explore new tools, learn tech and make an impact! The first edition of the Xmas Projects dates back to 2018, when Matthias Feys a.k.a. Q came up with the initiative, and have since been spanning the Christmas and New Year period. Over time, the concept has become an integral part of the way of working at ML6."
+        },
+        {
+            "type": "P",
+            "content": "ML6 facilitates the necessary hardware/compute for the accepted Xmas Projects to realise their ideas. And indeed — instead of taking holidays, a lot of people actually prefer to work together with colleagues on these initiatives. Each year, an increasing amount of work is being put into all of our Xmas Projects, reaching another record of 230 manday equivalents in this last edition! 🔥"
+        },
+        {
+            "type": "H2",
+            "content": "The process"
+        },
+        {
+            "type": "P",
+            "content": "To maximize the impact and minimize overhead or restrictions, we have concretized all the necessary phases:"
+        },
+        {
+            "type": "UL",
+            "items": [
+                "💡 IdeationThe ideas the Xmas Projects originate from are submitted by anyone during the complete year building up to the Christmas period. The final deadline for the ideation phase is by the end of November, typically.",
+                "🗣️ Pitching At the start of December, The “Xmas Projects working group” led by Q, gets together to apply a touch of curation by trying to find synergies to combine ideas, or tweak the scope of the proposed applications. The people who submitted these curated ideas are potential Xmas Project leads and need to pitch their idea to the whole organisation to get ‘funding’ and convince colleagues to work on their projects!",
+                "✉️ VotingBy the end of the second week of December, it’s up to everyone else to make a personal top 5 of the pitched projects.",
+                "👪 AllocationBased on the responses, hardware availability and the needs of the Xmas Project, it’s up to the Xmas Projects working group to puzzle people and Xmas Projects accordingly.",
+                "🏁 Actual buildingIn the most recent edition, we kicked off the Xmas Projects on the 24th of December. The Xmas Projects leads have made sure that the teams are informed and completed the necessary steps to hit the ground running. The goal is to come up with a practical outcome by the end of the Xmas Project period, which lasted until the 3rd of January this year.",
+                "🧐 DemoDuring ML6' New Year’s Event, which is always hosted on the first Friday the year, every Xmas Project team presents the context, goals, way of working, learnings, — and of course — the demo!",
+                "🚀 Integration/FollowupThe Xmas Projects working group and chapters (=research groups) come together after the demo’s to see if and how we can extend functionality and/or scale up solutions, be it for our own marketing campaigns, to continue helping the non-profit organisations we were partnering up with, or simply to continue innovating and learn stuff along the way!These Xmas Projects are in many cases the fertile soil our appealing internships are born from. Interested? Have a look at our internship/thesis landing page."
+            ]
+        },
+        {
+            "type": "H1",
+            "content": "Benefits"
+        },
+        {
+            "type": "P",
+            "content": "As you might have guessed by now, Xmas Projects involve a substantial investment of people, time and resources."
+        },
+        {
+            "type": "P",
+            "content": "Of course, we never do something without a reason 😉. Over the years we’ve seen that there are quite a number of benefits linked to this initiative!"
+        },
+        {
+            "type": "UL",
+            "items": [
+                "Tech learningsMany ideas are born from this crazy, out-of-the-box, “will this even work” mentality. By trying to reach new heights with AI, we challenge the status-quo and our technical knowledge. Our brains are figuratively molding.On the other hand, there are many people that deliberately choose for Xmas Projects involving topics they don’t have a lot of expertise in, simply because they want to get up to speed with new tools and libraries.",
+                "Test business casesXmas Projects are not exclusively about development work. It is also the right time to assess the market, define a sales strategy and think big for existing ideas and chapter projects.",
+                "Ideas for customersThe learnings we gather are directly applicable to many of the customer projects we are working on. It’s not uncommon to pitch the demo’s we came up with to our clients to help see if new technologies could advance their business cases.",
+                "OwnershipDuring the Xmas Projects, stars are born! ⭐Everyone has an equal chance to become a Xmas Project lead and thereby exercise their soft-and people skills! It’s a great way for juniors to put themselves on the map and get familiar with all aspects of end-to-end project ownership.",
+                "People cohesionBecause the company is growing in vast numbers (33 new joiners in 2021) it’s hard to find the time to connect and get to know everyone. The Xmas Project teams consist of people with a common interest and mix up people from different countries, units, and seniorities. It’s a great way of getting to know others!"
+            ]
+        },
+        {
+            "type": "H1",
+            "content": "List of Xmas Projects"
+        },
+        {
+            "type": "P",
+            "content": "Last edition, we decided to split the Xmas Projects into three logical clusters."
+        },
+        {
+            "type": "H2",
+            "content": "ML6 For Good"
+        },
+        {
+            "type": "P",
+            "content": "We’ve worked on a total of five projects for Non-Profit Organisations that would otherwise not have the budget or resources to tackle their problems with the help of AI. The work we’ve done in this pillar ties neatly with one our six core values, being “Do good”. Interested to submit your ideas, or the ideas of the Non-Profit Organisation you represent? Have a look at our dedicated landing page! ✨"
+        },
+        {
+            "type": "UL",
+            "items": [
+                "For IDA Foundation we worked on three different use-cases, being “Forecasting of emergency health kits”, “Pallet packaging optimization” and “Emergency event detection”, based on social web data. The goal of these three projects was to come up with a more data-driven approach to anticipate disasters and optimize transport for countries in need.",
+                "We supported Arop VZW, by coming up with a first version of an automatic visual quality inspection workflow for their sheltered workshops, aiding the workers in their day-to-day activities!",
+                "Together with Fruitpunch.ai and Reef.support, we’ve been working on a visual detection tool (with image segmentation) to detect different types of corals and identify coral bleaching to raise awareness! You can read more in one of their LinkedIn posts. :)"
+            ]
+        },
+        {
+            "type": "FIGURE",
+            "filename": "1fa05b7280401e6d6d4e48c061f5ad77.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*ornHTV8i1v7aRb6iD2VNhw.png",
+            "caption": "Example image showing the results of the advanced semi-automatic labeling procedure we set up."
+        },
+        {
+            "type": "H2",
+            "content": "ML6 Goes Public"
+        },
+        {
+            "type": "P",
+            "content": "Three out of eleven Xmas Projects of the last edition were geared towards pushing the newest techniques we’ve encountered in the last year and find out how they shine in a practical context."
+        },
+        {
+            "type": "UL",
+            "items": [
+                "Souvenir photo boothEver wanted someone to draw you like one of their French girls? Wait no more.. In this Xmas Project we created an interface for our smart mirror, replacing famous painted faces with yours!"
+            ]
+        },
+        {
+            "type": "FIGURE",
+            "filename": "ab7441f75030af63334636329b7ea39f.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:413/1*jBENVj-8VYMc3KTKAy3wrQ.gif",
+            "caption": "Scottish scientist, writer, and polymath Mary Somerville, painted by Thomas Phillips. Her face is merged with a colleague of mine at ML6, who also happens to be a polymath. Can you guess who? A hint — He is known for cycling over 300 km in one sitting when ML6 organises charity sports events. People are literally afraid of betting on his sports performances. Charities on the other hand love him."
+        },
+        {
+            "type": "UL",
+            "items": [
+                "Terms and Conditions ParserI know you’re not perfect. I know you agreed to terms and conditions you never read or understood, just like the rest of us. Why are these documents so cumbersome and long anyways? Everyone hates them — and that’s why we decided to build a browser add-on to help you digest the most important stuff in it. Part of the work involved collaborating with TOSDR and finetuning distilbart using their data. You can run the demo yourself on our Huggingface page!"
+            ]
+        },
+        {
+            "type": "FIGURE",
+            "filename": "88793acfc1d9a265c5106191ca2c0da1.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*kk1ndjlOirrxINEqbJYsKg.gif",
+            "caption": "Our browser add-on generates a general summary of the Terms and Conditions and also highlights the most important extracts of the original text. This is also the Xmas Project I’m proud to have pulled this year 😃."
+        },
+        {
+            "type": "UL",
+            "items": [
+                "Creative inspiration platformI can’t really say anything about this one. Can you keep a secret though? It’s about a new application to use and train GANs and the demo was really cool, believe me. It’s gonna be big, so stay tuned!"
+            ]
+        },
+        {
+            "type": "H2",
+            "content": "ML6 On Steroids"
+        },
+        {
+            "type": "P",
+            "content": "I know people think we at ML6 try to match our consumption of steroids to the amount of quick tips we externalize. But that’s a lie. We just happen to be very muscular, you know. 😎"
+        },
+        {
+            "type": "P",
+            "content": "The goal of this pillar is to test side ideas originated from the work we did on client related projects during the year. The findings from these Xmas Projects often give the client project an innovative boost, or bring interesting insights!"
+        },
+        {
+            "type": "UL",
+            "items": [
+                "ML6 Cyber Threat MapHackers are boring (except the white hat hackers, these peeps are chill). Because hackers end up trying the same hacks all over, Google Cloud has come up with a tool called Cloud Armor that is able to protect your applications from general hacking attacks. Pretty sweet right! We thought it’d be cool to also visualize where and which attacks we are protected from. Entering the ML6 Cyber Threat Map! If you’re interested, my colleague Rob Vandenberghe already wrote a blogpost about the topic."
+            ]
+        },
+        {
+            "type": "FIGURE",
+            "filename": "26fca619b584a0c88916143d8b89a9cb.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/0*osETQ2t9VAHrJES2.gif",
+            "caption": "The Threat Map we built on top of Cloud Armor. Isn’t this pretty?"
+        },
+        {
+            "type": "UL",
+            "items": [
+                "Multimodal House Price PredictionWe have been building up lots of expertise in the real estate sector, spanning different clients (including FedNot). When it comes to detecting house prices, ML practitioners mostly work with classic columnar data. In this Xmas Project we wanted to find out whether adding visual data or textual data improves prediction performance.",
+                "Ping Pong AIAt ML6 we not only like to do sports together, but also work on sports data together! We’ve done multiple projects in the sports sector, including a really interesting football match analytics use-case. Over the years we found out that sports including small objects (particular ball sports mostly) involve extra complexities. No better sport to do analysis for than ping-pong in that regard! During this Xmas Project we have been looking into both the audio and visual aspects for registration and event detection."
+            ]
+        },
+        {
+            "type": "FIGURE",
+            "filename": "98e3eeb11da6b46fa16cf4632d69023a.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*NiHG2cz9MbsNwzb_K9lRgw.gif",
+            "caption": "A game of table tennis analyzed by the tools we’ve set up! Video source: OpenTTGames dataset."
+        },
+        {
+            "type": "H1",
+            "content": "To conclude"
+        },
+        {
+            "type": "P",
+            "content": "For four years in a row, ML6 halts their typical business and undergoes a transformation from a specialized AI consultancy firm to a multi-week hackathon facilitator in which ML6 agents get to spend time on projects they feel most attracted to. Both parts of this duality contribute to what we do best: accelerate intelligence."
+        },
+        {
+            "type": "P",
+            "content": "Xmas Projects are great. They are innovative by nature and enable people to think atypical and big. The way we designed Xmas Projects ensures that we are challenged in aspects we simply don’t see popping up in our daily jobs, are able to make a social impact and have a lot of fun at the same time."
+        },
+        {
+            "type": "P",
+            "content": "Personally speaking, I think it’s one of the most enjoyable and rewarding parts of working at ML6."
+        },
+        {
+            "type": "P",
+            "content": "What’s keeping you from organising a similar concept in your organisation, or joining us?"
+        }
+    ]
+}

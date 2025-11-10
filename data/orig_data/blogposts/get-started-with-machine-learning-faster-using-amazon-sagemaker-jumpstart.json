@@ -1,0 +1,200 @@
+{
+    "title": "Get Started with Machine Learning Faster Using Amazon SageMaker JumpStart",
+    "author": "Shubham Krishna",
+    "readTime": "8 min read",
+    "publishDate": "Aug 22, 2023",
+    "blocks": [
+        {
+            "type": "FIGURE",
+            "filename": "f5ac6a97fdca97d1ddc97e2d58fe12c2.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*Q_AlhCw8zmt47Mwful8nEw.png",
+            "caption": null
+        },
+        {
+            "type": "P",
+            "content": "Machine learning is a powerful technology with the potential to transform businesses and industries. However, for newcomers, it can be a daunting and time-consuming endeavor. The process of learning the fundamentals, setting up the infrastructure, and understanding the intricacies of ML frameworks can be overwhelming."
+        },
+        {
+            "type": "P",
+            "content": "To address these challenges and make machine learning more accessible and efficient for newcomers, Amazon Web Services (AWS) offers a service called Amazon SageMaker JumpStart. This offering is a part of the broader Amazon SageMaker ecosystem. It offers a range of additional tools and features. There are resources to help with tasks like data access, labeling, and processing. If you’re a data scientist or developer, then there are IDEs that assist in creating, training, fine-tuning, and deploying models. On top of that, there’s a variety of MLOps services and more to explore."
+        },
+        {
+            "type": "P",
+            "content": "SageMaker JumpStart is designed to cater to individuals who lean towards minimal coding (low code) and those who aim to steer clear of coding altogether (no code). It also benefits seasoned machine learning practitioners and individuals aiming to rapidly develop proof of concepts. It provides a curated collection of resources and tools, including solution templates, built-in algorithms and pre-trained models, foundation models, and others. SageMaker Jumpstart provides two ways to interact with its features:"
+        },
+        {
+            "type": "UL",
+            "items": [
+                "SageMaker Jumpstart User Interface: A graphical interface for a user-friendly experience.",
+                "SageMaker Python SDK: For more control and customization through code."
+            ]
+        },
+        {
+            "type": "FIGURE",
+            "filename": "b2b2c32398a3843f60031300ae2fa7bc.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:500/0*k-rrqVINi8yGZllt.jpg",
+            "caption": null
+        },
+        {
+            "type": "H2",
+            "content": "Solution Templates"
+        },
+        {
+            "type": "P",
+            "content": "With SageMaker JumpStart, you have access to pre-built solutions designed for common machine learning tasks. The solutions cover various tasks like demand forecasting, credit rating prediction, fraud detection, document analysis, predictive maintenance and others. The solution templates are seamlessly integrated with a range of AWS services, enabling effortless deployment through a single click. They use AWS CloudFormation templates for quick deployment, allowing complete customization of infrastructure resources like VPCs, subnets, gateways, EC2 instances, and others."
+        },
+        {
+            "type": "H2",
+            "content": "Pre-trained models and Built-in algorithms"
+        },
+        {
+            "type": "UL",
+            "items": [
+                "Deploy pre-trained models for common ML tasks: SageMaker JumpStart simplifies solving common machine learning tasks without any development effort. It offers easy deployment of over 350 pre-trained models from the machine learning research community, spanning 15 popular tasks like object detection, text classification, and text generation. These models, sourced from TensorFlow, PyTorch, Hugging Face, and MXNet Hub, allow users to leverage the latest advancements in machine learning for their projects effortlessly.",
+                "Finetune pre-trained models or use built-in algorithms : SageMaker JumpStart also provides easy fine-tuning of models on your datasets without writing your own training algorithm. You’ll save on training costs compared to starting from scratch. With SageMaker Jumpstart, built-in algorithms such as LightGBM, CatBoost, XGBoost, and Scikit-learn, also require no coding to start running experiments. SageMaker Jumpstart provides you notebooks that already contain instructions on how to use the algorithms or finetune pre-trained models on your data. The only inputs you need to provide are the data, hyperparameters, and compute resources. This allows you to run experiments more quickly, with less overhead for tracking results and code changes."
+            ]
+        },
+        {
+            "type": "H2",
+            "content": "Foundation Models"
+        },
+        {
+            "type": "P",
+            "content": "SageMaker JumpStart now also offers a wide range of state-of-the-art foundation models such as Llama-2, Falcon, Stable Diffusion and others catering to diverse use cases like content writing, code generation, question answering, copywriting, summarization, classification, and information retrieval. It offers access to both publicly available and proprietary foundation models. One can either deploy them directly out of the box or finetune on custom data and then deploy it."
+        },
+        {
+            "type": "P",
+            "content": "Note: AWS Bedrock presents an additional option to access foundation models, including those developed by Amazon, a feature not found in SageMaker Jumpstart. Furthermore, Bedrock relieves you from deployment worries, whereas SageMaker Jumpstart requires you to handle deployment. For Bedrock, this means users don’t have control over data encryption and privacy, security concerns and others. So, you should verify whether the Bedrock’s data handling practices and encryption mechanisms meet your stringent security demands. As of writing this blog post, Bedrock is still in its preview phase. A detailed comparsion between Bedrock and SageMaker can be found in the blogpost: Amazon Bedrock vs Amazon SageMaker: Understanding the difference between AWS’s AI/ML ecosystem."
+        },
+        {
+            "type": "H2",
+            "content": "Example of Finetuning with SageMaker Jumpstart"
+        },
+        {
+            "type": "P",
+            "content": "To illustrate the practical usage of SageMaker Jumpstart, let’s explore a concrete example. We will walk through an example where we finetune the distill-bert-base-uncased language model on SST-2dataset for Text Classification."
+        },
+        {
+            "type": "P",
+            "content": "Note: To begin with, it is important to verify that the dataset conforms to SageMaker Jumpstart’s expected format based on the task you have chosen. Regarding Text Classification, the input should be a directory containing a data.csv file inside a AWS S3 bucket. This data.csv file should comprise two columns:"
+        },
+        {
+            "type": "OL",
+            "items": [
+                "The first column must contain integer class labels ranging from 0 to the total number of classes.",
+                "The second column should contain the corresponding text data.",
+                "The file should not have any header."
+            ]
+        },
+        {
+            "type": "P",
+            "content": "So, in the end your “data.csv” should look something like this:"
+        },
+        {
+            "type": "FIGURE",
+            "filename": "bd4cb5d7e15dcb0a31d6fbf22b03bba9.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*pvjmTRII2DJiRFSdCrUXRg.png",
+            "caption": "Fig. 1. Example of how custom dataset should look like"
+        },
+        {
+            "type": "P",
+            "content": "Using Sagemaker Jumpstart UI for Finetuning"
+        },
+        {
+            "type": "P",
+            "content": "If you’d rather steer clear of complicated coding, no problem at all! Say hello to a new level of convenience: the Sagemaker Jumpstart UI. It’s your shortcut to fine-tuning models, all with some simple clicks of your mouse. The first step is to look up the specific model you want to work with. You’ll find a handy search bar right there, where you can simply type in the name of the model you’re interested in."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "6c92b33bd635ab2bc3b04f1432c4082c.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*s2OMILFU70tk9LMjhHJx8A.png",
+            "caption": "Fig. 2. Searching Model in SageMaker Jumpstart UI"
+        },
+        {
+            "type": "P",
+            "content": "Once you have selected the model, all that is left to do is fill in some parameters:"
+        },
+        {
+            "type": "UL",
+            "items": [
+                "Data Source: Location of your training dataset.",
+                "Hyperparameters: Epochs, batch-size, learning rate and others.",
+                "Deployment Configuration: Machine type for training the model (e.g. ml.g4dn.xlarge), Model name and others."
+            ]
+        },
+        {
+            "type": "FIGURE",
+            "filename": "fee1183d774fa413d4c281ae7673dae2.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:650/1*RD4_Iutfmvw5eBjtlL8lxA.png",
+            "caption": "Fig. 3. Finetuning Model using Jumpstart UI"
+        },
+        {
+            "type": "P",
+            "content": "After providing the configuration, all you have to do is click on the Train button and model will be finetuned. The Sagemaker Jumpstart UI doesn’t specify the precise costs involved in model fine-tuning, and it also doesn’t offer specific time estimates for the fine-tuning process. However, you’ll come across a message in the UI that informs you about the ongoing training job progress."
+        },
+        {
+            "type": "P",
+            "content": "Utilizing SageMaker Python SDK for Finetuning"
+        },
+        {
+            "type": "P",
+            "content": "SageMaker Jumpstart also provides a SageMaker notebook where one can finetune the model programmatically with the SageMaker API on the managed SageMaker service. All the code for finetuning is already present there and one just needs to change the values for the Data Source, Hyperparameters, Deployment Configuration and others."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "8df8b885ae07f7f9b9fb39bc8b0875c7.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*UYCUbOLpPe2u02OrdQjbmw.png",
+            "caption": "Fig. 4. Snapshot of setting parameters"
+        },
+        {
+            "type": "P",
+            "content": "The SageMaker notebook is well-documented and easy to follow, so you can get started with minimal learning curve. However, do bear in mind that certain factors such as batch size, learning rate, and evaluation metrics might potentially necessitate a certain level of familiarity with machine learning concepts. Once you are done, all you have to do is execute the cell containing the training job which looks like:"
+        },
+        {
+            "type": "FIGURE",
+            "filename": "a72dc8c624906778f07b46ba9e6d620a.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*38Dp7Jh82U1tduWMLBukGg.png",
+            "caption": "Fig. 5. Snapshot of Jupyter Notebook containing the training job"
+        },
+        {
+            "type": "P",
+            "content": "In Fig. 5, observe how the training code is wrapped within the Estimator Class. You need to provide parameters like model_uri and hyperparameters and others — a convenient approach, for those seeking a hassle-free training experience without the need for in-depth expertise. Nevertheless, this convenience comes with a trade-off: certain finer details such as custom loss function, criteria for early stopping, and others have been abstracted, limiting your ability to make extensive modifications within the training process."
+        },
+        {
+            "type": "P",
+            "content": "An interesting feature of SageMaker Jumpstart is its capability to log various metrics, such as training loss, validation loss, and more. Moreover, it automatically generates plots for these metrics, relieving you of any concerns about visualizing the fine-tuning progress. This seamless visualization makes SageMaker Jumpstart a truly user-friendly tool for model development and evaluation."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "b54e75a8aca6d9303fd8102039ba2c70.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*hQp6bjFeT_ixVOaKquoj8w.png",
+            "caption": "Fig. 6. Snapshot of Plots for metrics from SageMaker Jumpstart"
+        },
+        {
+            "type": "P",
+            "content": "After the fine-tuning process is finished, SageMaker JumpStart offers valuable information about the model, including details such as the parent model, training job name, training time, and output path. The output path is where you can find your new model in an Amazon S3 bucket. The folder structure uses the model name that you provided and the model file is in an /output subfolder and it's always named model.tar.gz . JumpStart utilises SageMaker services for deploying the model and establishing an endpoint that facilitates inference. You can select the deployment configuration such as machine type, security settings (e.g. VPC, Encryption keys) for hosting your model."
+        },
+        {
+            "type": "H2",
+            "content": "Conclusion"
+        },
+        {
+            "type": "P",
+            "content": "SageMaker Jumpstart provides a user-friendly interface that caters to individuals with minimal coding experience (low code), those without any coding background (no code) and for individuals looking for quick prototyping or developing proof of concepts. So, whether you prefer deploying existing pre-trained models or fine-tuning pre-existing models without delving deep into training process, SageMaker Jumpstart is a right tool for running those experiments. This saves time and costs compared to starting from scratch."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "5f82e67d41d74f09697aa583f51c91fb.jpg",
+            "src": "https://miro.medium.com/v2/0*r0ORVP-yy_w16FmU.jpg",
+            "caption": null
+        },
+        {
+            "type": "P",
+            "content": "Although, SageMaker Jumpstart’s built-in algorithms, pre-trained models and solution templates provide convenience, they may not suffice for highly specialized or unique use cases that demand significant customization. Although it provides a notable selection of pre-trained models, it offers only specific NLP models sourced from HuggingFace and a limited set of Computer Vision models. Also, due to its low-code, no-code nature, certain complexities have been abstracted away, which means that while it offers convenience, you might not have complete control over all aspects of the process."
+        },
+        {
+            "type": "P",
+            "content": "In essence, if you’re interested in getting started with machine learning, Amazon SageMaker JumpStart is a great place to start. To learn more, please visit the SageMaker JumpStart website: https://aws.amazon.com/sagemaker/jumpstart/"
+        }
+    ]
+}

@@ -1,0 +1,294 @@
+{
+    "title": "Predicting enzyme heat stability during Christmas break",
+    "author": "Pieter Coussement",
+    "readTime": "10 min read",
+    "publishDate": "Jul 10, 2023",
+    "blocks": [
+        {
+            "type": "FIGURE",
+            "filename": "95c2220cde9237afa9c896d2eb25da1e.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*ueMOtLBKq-mMlogoD8KaRw.png",
+            "caption": "A christmas themed robot analysing a protein structure in steampunk style. — Midjourney"
+        },
+        {
+            "type": "P",
+            "content": "When Christmas is nearing, everybody is looking forward to the Christmas tree, maybe snow, presents, Santa Claus and the new year. For us at ML6, there is something more! We get some time off our regular projects and get to spend time exploring new horizons for ML6: new tech, new applications, new areas of interest. How cool is that?"
+        },
+        {
+            "type": "P",
+            "content": "So we (Thomas, Thomas, Andres and myself) geared up trying to move the boundaries for ML6 in life sciences. We chose to participate in a Kaggle competition: Novozymes Enzyme Stability challenge. The goal of the challenge was to predict thermostability of enzymes. But before we tackle exactly what we did, first some context."
+        },
+        {
+            "type": "H1",
+            "content": "Why is AI relevant in life sciences?"
+        },
+        {
+            "type": "P",
+            "content": "Biology is intrinsically complex and diverse. Despite, decades of research, nature still holds many secrets. Today, there is an opportunity for AI to support the experts: mapping experiment input and output over very complex biological functions."
+        },
+        {
+            "type": "P",
+            "content": "One well-known example is protein folding. Until recently, it was impossible to predict the structure with high confidence, this all changed with the release of AlphaFold 2 from DeepMind in 2020."
+        },
+        {
+            "type": "P",
+            "content": "AlphaFold 2.0 (and RosettaFold, ESMFold,…) showed it can accurately predict 3D models of protein structures and is accelerating research in nearly every field of biology. It tremendously sped up the research of bioengineered solutions that can revolutionize the battle against plastic pollution to the problem of antibiotic resistance."
+        },
+        {
+            "type": "P",
+            "content": "But it doesn’t stop there. ML provides a wide array of solutions that can accelerate companies in the bio/healthcare industry. AI/ML is having an impact on"
+        },
+        {
+            "type": "UL",
+            "items": [
+                "The production of personalized medicine, promising minimal drug intake, maximal outcome avoiding the use of unnecessary drugs.",
+                "How drugs are developed and manufactured. Better predicting enzyme functionality, allows for a greener chemistry, but also a better targeting of certain enzymes (e.g. antibiotics)",
+                "Speeding up the time to market of new drugs: e.g. AI/ML is used to design better clinical trials.",
+                "How chemical processes can become greener. By designing enzymes that can perform chemical reactions under moderate conditions, that needed harsh conditions in the past, reducing the environmental impact.",
+                "The predictability of the cells and organisms, spurring biotech forward."
+            ]
+        },
+        {
+            "type": "P",
+            "content": "To conclude, machine learning can bring a lot of value in different facets of life sciences."
+        },
+        {
+            "type": "P",
+            "content": "So, let’s dig a bit deeper and show how we developed an enzyme stability prediction model."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "edad565a1fba4b143de648db1079ebde.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*TFPJ-loczdSS74cvYMKXcg.png",
+            "caption": "Example of a protein fold; top view of a triosephosphateisomerase (TIM) barrel, colored from blue (N-terminus) to red (C-terminus) — (N-term/C-term). From link"
+        },
+        {
+            "type": "H1",
+            "content": "Enzymes? Proteins? Stability?"
+        },
+        {
+            "type": "P",
+            "content": "In essence, a living cell is the combination of thousands of biochemical reactions. Some are needed to burn sugar to water and CO2, other reactions (re)build parts of the cell."
+        },
+        {
+            "type": "P",
+            "content": "Almost all of these biochemical reactions are performed (catalyzed) by enzymes. Enzymes are proteins that are able to convert a certain molecule into another. And this can be anything. Cut a piece off, glue molecules together, and so on."
+        },
+        {
+            "type": "P",
+            "content": "Inherently, these enzymes are unstable."
+        },
+        {
+            "type": "P",
+            "content": "It didn’t take long before humans discovered the power of enzymes, e.g. for making cheese or beer. Enzymes can excel in an industrial setting because they are natural, renewable products, and they act under “soft” conditions: in water at moderate temperatures. However, for industrial processes, it is preferred to have long, stable processes."
+        },
+        {
+            "type": "P",
+            "content": "Enzymes, like all proteins, are complex molecules composed of many amino acids linked together, comparable to a beaded necklace, with the amino acids as beads. These long molecules will curl up, resulting in a 3D structure (a protein fold), which defines its function."
+        },
+        {
+            "type": "P",
+            "content": "The order of the amino acids in the sequence fully defines how the protein will fold, because of interactions between different sequential amino acids."
+        },
+        {
+            "type": "P",
+            "content": "The original long sequence of amino acids is information complete, as the complete fold is defined and thus also its function."
+        },
+        {
+            "type": "P",
+            "content": "It is possible to exchange certain amino acids without disrupting the function of the enzyme. However, these exchanges (point mutations) can have an impact on the stability of the protein."
+        },
+        {
+            "type": "P",
+            "content": "We learned that enzymes are very powerful in an industrial setting, however naturally they tend to be unstable. On the other hand, we also learned that we can slightly change the amino acids without disrupting the function of the enzyme."
+        },
+        {
+            "type": "P",
+            "content": "The combination of both is one of the starting points for protein engineering. Unfortunately, it seems very hard to find predictable rules for the drivers for thermostability, and very often, making proteins more stable requires an experiment heavy process of trial and error."
+        },
+        {
+            "type": "P",
+            "content": "And this is exactly where the Kaggle competition comes in. Can ML help out? Can a model extract information from experimental data, and help predict what protein/mutations should be more stable?"
+        },
+        {
+            "type": "H1",
+            "content": "The Kaggle competition"
+        },
+        {
+            "type": "H2",
+            "content": "Kaggle"
+        },
+        {
+            "type": "P",
+            "content": "Kaggle is an organisation that wants to drive ML forward. To achieve that goal, it organises, amongst other things, competitions in which anybody can compete.For these competitions, Kaggle provides some training data, as well as a test dataset. Results can be submitted, and your solutions get scored on the test set, resulting in leaderboard ranking. Appearances can be deceiving however, as there is also a hidden test set, and at the end of the competition, the highest scoring team for the hidden test set is the actual winner of the competition. Overfitters beware!"
+        },
+        {
+            "type": "H2",
+            "content": "Getting started"
+        },
+        {
+            "type": "P",
+            "content": "For this competition, Kaggle provided a training dataset consisting of 28.000 experimentally confirmed thermostability measurements for different proteins (77) and protein variants and pH value. The test set is limited to point mutations on one single wild-type protein and consists of 2400 rows. The dataset did not include any kind of protein folding information, an important note to make, as getting these folds from the sequence is a non-trivial problem, and is today generally solved by compute intensive solutions such as AlphaFold and RosettaFold.Submissions were evaluated on the Spearman’s correlation coefficient between the ground truth and the predicted thermostability."
+        },
+        {
+            "type": "H2",
+            "content": "Off we go!"
+        },
+        {
+            "type": "P",
+            "content": "We entered the competition towards the end and only had a few days to work on this, so we had to work smart and make use of what was available."
+        },
+        {
+            "type": "P",
+            "content": "Luckily, Kaggle is a very collaborative platform, and we were able to catch up on the state of the art solutions relatively quickly. Kaggle not only has discussion forums where contestants can share information, but the platform also lets users share their own datasets, and has their own fully fledged Jupyter notebook variant with the infrastructure to run them. This means it is really easy for people to swap data, and build on the results of each other’s work. Luckily for us, this also meant we were able to learn a lot and go a lot further than we would have been able to do ourselves in a few days by reading up on the latest discussion threads and reviewing the notebooks and datasets shared by the contestants."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "61f58dbc75f849fcfd1c5f47c1bfca62.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*uma2ujX23AC-swe2D-ukfg.png",
+            "caption": "Conceptual plan of attack. Parsing the input data and augment that data as much as possible. Different option can and should be tried, ranging from pure 3D structure based features, NLP based features, rule based features, … and everything in between. Finally using a regression like model, e.g. XGBoost will be used to map the different features on the experimental data."
+        },
+        {
+            "type": "P",
+            "content": "Conceptually this was the plan we came up with to get started:"
+        },
+        {
+            "type": "OL",
+            "items": [
+                "parse the protein sequences",
+                "extract as many as possible features out of the sequences using different tools",
+                "combine the outcome of the calculated features into a regressor-like model to predict."
+            ]
+        },
+        {
+            "type": "P",
+            "content": "It should be clear that 2. is where the magic happens. Using 3D models generated with ML, NLP and even simple, rule based features would be the driver here."
+        },
+        {
+            "type": "H2",
+            "content": "Preprocessing and external data"
+        },
+        {
+            "type": "P",
+            "content": "It took us some time to really grasp how different training and test data were. The training dataset covered very different proteins, while the test data was solely focused on a single protein."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "52fea6836af1ee076f824bd8bed4ca37.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*KiZBH-iZRs8e9jsz-hzOAQ.png",
+            "caption": "The complete training dataset contained multiple variants derived from different wild type proteins. This dataset was split up based on their predicted wild type protein. A delta melting temperature was used for further modelling"
+        },
+        {
+            "type": "P",
+            "content": "Instead of bluntly using all protein sequences of the training set at once, this data had to be split up into subgroups to only cover protein variants (proteins that are very similar and only differ from each other on some point mutations). The idea is to calculate the difference in stability between the natural protein versus the point mutated one, instead of calculating the absolute stability. This stability delta would be transferable to the test dataset. In order to do this, we first had to calculate the wild types (original proteins) in the training data (out of scope for this blog post)."
+        },
+        {
+            "type": "P",
+            "content": "Another important learning is the value of external data, outside of the training set supplied by Kaggle. Data from Jinyuan Sun e.g. played a crucial role and was needed to increase our score significantly. The Jin dataset is a collection of experimentally determined stability data for different proteins."
+        },
+        {
+            "type": "P",
+            "content": "As mentioned in the introduction, 3D structures are very important regarding enzyme stability. Alphafold2 calculated 3D structures of the wild types per group sequence group were also shared and used."
+        },
+        {
+            "type": "H1",
+            "content": "Feature engineering"
+        },
+        {
+            "type": "H2",
+            "content": "Basic Features"
+        },
+        {
+            "type": "P",
+            "content": "We started simple, by creating a bulk of basic features about the amino acid chains. For example the length, molecular weight, number of oxygen atoms,… These gave a marginal improvement to the predictive power of the final model. This is to be expected because the search for stability in proteins is a complex process."
+        },
+        {
+            "type": "H2",
+            "content": "Evolutionary Scale Modelling (ESM)"
+        },
+        {
+            "type": "P",
+            "content": "Next, we want to capitalize on large pretrained models to extract an interpretation of the protein structure. Interestingly, a protein structure is represented by a sequence looking a bit like a language. This allows to use a transformers like architecture to pretrain a model on a large protein dataset for a generic task and fine-tune it on a specific dataset for downstream task"
+        },
+        {
+            "type": "FIGURE",
+            "filename": "ccd6b11d0218b273e35d4957b6f04e7b.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*Ahl-qxXYarbynTQuKgj3QA.jpeg",
+            "caption": "Architecture from ESMFold of Meta. ESMFold is able to generate a structure directly from a single protein sequence. Link"
+        },
+        {
+            "type": "P",
+            "content": "In this case, we used ESM (Evolutionary Scale Modelling) of Meta. ESMFold extracts the complete structure of a protein from the amino acids sequence. This is in contrast with Alpha Fold 2, where the actual start is a multiple sequence alignment. Both have their merits."
+        },
+        {
+            "type": "P",
+            "content": "ESM and ESMFold can elegantly be retrieved from the HuggingFace transformers library. The original repository for the transformer model used, can be found here."
+        },
+        {
+            "type": "P",
+            "content": "When using ESM for this use case, we are not directly interested in the final output of the ESM model (the actual protein structures). We are interested in features about the structure that can be used to predict thermal stability. In order to achieve this, we extracted the embedding of the last activation layer of the model. Next to this we also extracted some features which represent the mutation probability and mutation entropy from the MLM pretrain task. The embedding extraction gave us a lot of features to work with (over a 1000), but because we had a rather small training set, we decided to use PCA to reduce the amount of features."
+        },
+        {
+            "type": "H2",
+            "content": "Rule based features"
+        },
+        {
+            "type": "P",
+            "content": "We finally added some chemical features derived from the raw protein sequence using BioPython’s protein analysis module. These features are aromaticity, instability index, isoelectric point, secondary structure fraction, the molar extinction coefficient, GRAVY (grand average of hydropathy) and the protein’s charge at pH 7 and 8. Most of these are a bit too complex to dive into here, though the above BioPython link has the references to the literature where they originate from. The bottom line for us here is that these features are relatively inexpensive and straightforward to calculate (with the help of BioPython), but do provide information that might be relevant to the stability according to the literature."
+        },
+        {
+            "type": "H1",
+            "content": "One model to rule them all"
+        },
+        {
+            "type": "P",
+            "content": "In this final section we leverage all our engineered features in one model. Due to the bulk of features and time constraint with the competition, we opted to thin the feature herd once again. This time we did it by ranking the features by feature importance in an XGBoost model and doing an arbitrary cut-off. Finally, with our most powerful features we trained and fine-tuned a XGBoost model with a 10 fold cross-validation."
+        },
+        {
+            "type": "H1",
+            "content": "Results"
+        },
+        {
+            "type": "P",
+            "content": "Our best submission landed us comfortable in the top half of the leaderboard with a public score of 0.499, placing 1042 out of 2482 teams. The absolute leader was Chris Deotte, Kaggle grandmaster with 0.86514. However, looking at private score, we scored 0.47248, at position 1027, whilst the leader of the board, Eggplanck ended with 0.54541. This is a result we are proud of. For the time we invested into this project (five days) we learned a lot about biology and protein engineering, while having a lot of fun. Even though we learned a lot, we still have not scratched the surface of what is possible with ML in a biology context. So a lot of opportunities are still ahead of us."
+        },
+        {
+            "type": "P",
+            "content": "The outcome of the competition also shows how difficult biology predictions can be (a correlation coefficient of 0.54 between predicted and actual thermostability is decent and likely useful in industry, but the problem is far from completely solved)."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "97b2667e786468223e092b036ef28988.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*UWZV2ozelBdtFPy5MgMw8g.jpeg",
+            "caption": "From"
+        },
+        {
+            "type": "H1",
+            "content": "Learnings / conclusions"
+        },
+        {
+            "type": "P",
+            "content": "How cool was this Xmas project! We had a lot of fun, learning new stuff."
+        },
+        {
+            "type": "P",
+            "content": "The fun of a Kaggle competition, is the actual competition component, but also the community support on the discussion boards. We learned a lot."
+        },
+        {
+            "type": "P",
+            "content": "From a modelling perspective, something we already knew from working at ML6, is that data cleaning and data preprocessing is crucial for machine learning to deliver value. The way the data had to be preprocessed, because of the difference between training and test set, was a crucial first step."
+        },
+        {
+            "type": "P",
+            "content": "And finally, from a biology point of view, as non-biology/biotech schooled engineers learned more about amino acids and proteins, and how ML can provide value in this field. This opens new opportunities for us and ML6 to go into this field."
+        },
+        {
+            "type": "H1",
+            "content": "Shoutouts"
+        },
+        {
+            "type": "P",
+            "content": "Thanks to Thomas Vrancken, Thomas Janssens and Andres Vervaecke, my fellow ML6 agents on this project."
+        }
+    ]
+}

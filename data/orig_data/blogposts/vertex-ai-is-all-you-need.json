@@ -1,0 +1,429 @@
+{
+    "title": "Vertex AI is All You Need",
+    "author": "Pankaj Singla",
+    "readTime": "13 min read",
+    "publishDate": "Oct 26, 2022",
+    "blocks": [
+        {
+            "type": "H2",
+            "content": "ML6"
+        },
+        {
+            "type": "FIGURE",
+            "filename": "5ebe0870c54fb084ec0623724f006d39.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*OGoFuUzo3mJ4Eds_U6v1ag.png",
+            "caption": "From labeling data to explaining predictions, Vertex AI can do it all. (Vertex AI)"
+        },
+        {
+            "type": "H2",
+            "content": "TL;DR: here is the notebook with the code."
+        },
+        {
+            "type": "H2",
+            "content": "Contents:"
+        },
+        {
+            "type": "OL",
+            "items": [
+                "Introduction",
+                "Overview",
+                "Notebook Walkthrough",
+                "Vertex AI — The Good, the Bad, and the Ugly",
+                "Vertex AI — Some Tips and Tricks",
+                "Conclusion",
+                "Appendix: Why LightGBM?"
+            ]
+        },
+        {
+            "type": "H1",
+            "content": "1. Introduction"
+        },
+        {
+            "type": "P",
+            "content": "You get some data, you build a model. You train the model, you evaluate it on the data. It does fine. Now what? Mic drop, ML engineer out?"
+        },
+        {
+            "type": "P",
+            "content": "Not quite. The model needs to be deployed. In other words, you need to go from “it works on my laptop!” and “it works with my data!” to “it works”. How? You need Machine Learning Operations, or MLOps."
+        },
+        {
+            "type": "P",
+            "content": "From data preparation and setting up the model infrastructure, to model deployment and prediction monitoring, MLOps is an umbrella term for all the steps you need to take to put a machine learning model out in the real world. MLOps aims to unify ML system development (Dev) and ML system operation (Ops). Sounds a bit of a mouthful, but for the machine learning engineers who would rather focus more on the machine learning aspects of the process, and not bother too much about model deployment, there is Vertex AI. During my internship at ML6, I explored the model deployment process on Vertex AI for custom containers to serve explainable predictions."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "f8be1d331242d636cf4e4e23cd56a63e.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*6ucNFu9rxBaMt7CiwpMzfQ.png",
+            "caption": "Steps in MLOps (MLOps Principles)"
+        },
+        {
+            "type": "P",
+            "content": "Vertex AI is a unified toolbox to develop and manage machine learning workflows. It lets you manage your entire machine learning pipeline — right from the moment you gather some data, to the point where you serve real time predictions. Read this for an excellent introduction to Vertex AI by one of my colleagues Ward Van Driessche at ML6. (Triton inference server, Amazon Sagemaker, and Azure ML Studio are some of the alternatives to Vertex AI.)"
+        },
+        {
+            "type": "P",
+            "content": "Vertex AI provides many, many examples for deploying models built using Tensorflow/Sklearn/XGBoost, but there are very few working examples explaining the deployment of custom container models, and almost none that show how to get explainable predictions for such models. This blog and the accompanying notebook are meant to bridge that gap."
+        },
+        {
+            "type": "H1",
+            "content": "2. Overview"
+        },
+        {
+            "type": "H2",
+            "content": "2.1 The Dataset"
+        },
+        {
+            "type": "P",
+            "content": "The famous Titanic dataset. We use a combination of numerical and categorical features. (The focus isn’t so much on the training, but on the steps to follow after you have successfully trained a model.)"
+        },
+        {
+            "type": "H2",
+            "content": "2.2 The Model"
+        },
+        {
+            "type": "P",
+            "content": "A Scikit-learn pipeline combined with a LightGBM classifier.The pipeline reduces redundancy, allowing you to combine a set of data transformations with an estimator. LightGBM is a gradient boosted decision tree — similar to XGBoost, but faster, and more efficient."
+        },
+        {
+            "type": "H2",
+            "content": "2.3 The Tools"
+        },
+        {
+            "type": "P",
+            "content": "A FastAPI web server for handling prediction requests, Docker for creating custom containers, Vertex AI SDK for everything else."
+        },
+        {
+            "type": "H1",
+            "content": "3. Notebook Walkthrough"
+        },
+        {
+            "type": "P",
+            "content": "We will go through the steps we need to take to train and deploy our Sklearn pipeline + LightGBM model on Vertex AI to serve explainable predictions. (If you are more interested in the learnings, feel free to skip to the next section.)"
+        },
+        {
+            "type": "H2",
+            "content": "3.1 Model structure"
+        },
+        {
+            "type": "P",
+            "content": "The directory structure for our model looks like this:"
+        },
+        {
+            "type": "P",
+            "content": "📁 training: The training directory contains the dockerfile and module dependencies for the docker container for training.└──📁 trainer: The code for creating and training the model is inside train.py."
+        },
+        {
+            "type": "P",
+            "content": "📁 inference: The inference directory contains the dockerfile and module dependencies for the docker container for making inferences.└──📁 app: Here we have the code to set up the FastAPI server for handling prediction requests through Vertex AI. └────📋main.py creates the FastAPI HTTP server, to handle the health and predict requests sent to the server.└────📋server.py loads the trained model from GCP bucket, processes the input, and passes on the predictions to be served through Vertex AI.└────📋 prestart.sh contains the code that needs to be executed before we start the server. Here, we set the PORT environment variable to AIP_HTTP_PORT so that FastAPI runs on the same port expected by Vertex AI."
+        },
+        {
+            "type": "H2",
+            "content": "3.2 Training the model on Vertex AI using a custom training job"
+        },
+        {
+            "type": "P",
+            "content": "You can take a look at the training file here. For more details on training the Scikit-learn Pipeline + LightGBM model, see this notebook, from which the training code has been derived. (For our purposes, the dataset and the model training steps are not the most crucial part of the process.)"
+        },
+        {
+            "type": "BLOCKQUOTE",
+            "content": "A note on the training code:If you use a Scikit-Learn pipeline in your model, you need to set the handle_unknown parameter for the OrdinalEncoder. Otherwise, while trying to get explainable predictions, you might get errors like this one: “ValueError: Found unknown categories [‘’] in column 1 during transform”. This happens when the encoder gets data during prediction/testing that it hasn’t seen during training. See this for reference."
+        },
+        {
+            "type": "P",
+            "content": "We create a docker container for training the model, and pass the container image to a custom training job, to train our model on Vertex AI servers.Once the training job finishes, our model artifact file (we’re using pickle here, but you can use other formats like joblib/onnx) gets uploaded to our GCP bucket, which we can later load for serving predictions."
+        },
+        {
+            "type": "H1",
+            "content": "3.3 Creating a custom docker container to serve predictions"
+        },
+        {
+            "type": "P",
+            "content": "For models trained using Tensorflow/Sklearn/XGBoost, Vertex AI provides convenient to use pre-built container images for prediction. The moment you step away from these three frameworks though, things suddenly start getting interesting. For our custom model that includes LightGBM, we can’t just use one of the readymade images provided by Vertex AI — we have to create our own container image for prediction."
+        },
+        {
+            "type": "P",
+            "content": "We use FastAPI to create a web server that links with Vertex AI. The server takes prediction/explanation requests through Vertex, processes the input, loads the trained model from GCP, gets the prediction values from the loaded model, and passes them on to Vertex to serve to the user."
+        },
+        {
+            "type": "P",
+            "content": "Dockerfile"
+        },
+        {
+            "type": "P",
+            "content": "The dockerfile for our prediction container is fairly minimal - we select a Python image, copy the FastAPI app code, and install the required modules."
+        },
+        {
+            "type": "P",
+            "content": "server.py"
+        },
+        {
+            "type": "P",
+            "content": "The next part is setting up the model server. This includes the code to parse the input, load the trained model from GCP bucket, and generate the prediction output."
+        },
+        {
+            "type": "P",
+            "content": "main.py"
+        },
+        {
+            "type": "P",
+            "content": "We then add a FastAPI HTTP server on top. This listens to prediction requests, and invokes the model server. The model server generates the predictions, which are then formatted and returned to the user. (The dictionary format with {“predictions”: [output values]} is a Vertex AI requirement.)"
+        },
+        {
+            "type": "H2",
+            "content": "3.4 Configuring the model for explanations"
+        },
+        {
+            "type": "P",
+            "content": "3.4.1 Explanation metadata"
+        },
+        {
+            "type": "P",
+            "content": "You can configure the explanation metadata for a model with multiple input features as shown below. Both our inputs and output are keyed (see example in the snippet below)."
+        },
+        {
+            "type": "P",
+            "content": "3.4.2 Explanation parameters"
+        },
+        {
+            "type": "P",
+            "content": "The explanation parameters are comparatively the easier part of the process - you basically need to decide on the explanation algorithm and the corresponding parameters. You can choose between Shapley, Integrated Gradients, and XRAI. For an overview of the different methods, see this.I went with Shapley explanations in this notebook."
+        },
+        {
+            "type": "H2",
+            "content": "3.5 Uploading and deploying the model to Vertex AI"
+        },
+        {
+            "type": "P",
+            "content": "3.5.1 Uploading the model"
+        },
+        {
+            "type": "P",
+            "content": "Once you have the prediction image, the explanation metadata and the parameters, you are ready to upload the model. Vertex AI SDK provides a method to do it conveniently; the process can take anywhere between a minute to several minutes."
+        },
+        {
+            "type": "P",
+            "content": "3.5.2 Deploying the model"
+        },
+        {
+            "type": "P",
+            "content": "After the model has been uploaded, you can already get batch predictions from it. Batch predictions refer to prediction requests sent asynchronously to the model, in the form of a file with aggregated inputs, such as a csv file. In contrast, to get real time, online predictions, you need to deploy the model to an endpoint resource. The endpoint serves as the entry point to your deployed model - you send your requests to the endpoint, and it returns the prediction results. For our example, we will consider online predictions. Here is how you deploy the model:"
+        },
+        {
+            "type": "H2",
+            "content": "3.6 Getting explainable predictions from the deployed model"
+        },
+        {
+            "type": "P",
+            "content": "After deploying the model, you can get both explainable as well as plain predictions from it in real time. To do so, you just need a list of inputs called instances. You pass them to the endpoint.predict() method for predictions without explanations."
+        },
+        {
+            "type": "P",
+            "content": "3.6.1 Predictions without explanations"
+        },
+        {
+            "type": "P",
+            "content": "This is what the prediction output from Vertex AI looks like for our model:"
+        },
+        {
+            "type": "P",
+            "content": "3.6.2 Predictions with explanations"
+        },
+        {
+            "type": "P",
+            "content": "For explainable predictions, we just need to use the endpoint.explain() method instead. And voila, Vertex AI returns the explainable predictions for each of the inputs! The notebook also shows you how to convert the explanation values into a table to understand them better."
+        },
+        {
+            "type": "P",
+            "content": "We got Vertex AI to train our model, deploy it, and give us online predictions with explanations. It can sometimes be a challenge to make everything work. From my experience, here are some of the things I liked and didn’t like about Vertex AI."
+        },
+        {
+            "type": "H2",
+            "content": "4. Vertex AI: The Good, the Bad, and the Ugly"
+        },
+        {
+            "type": "H2",
+            "content": "4.1 Vertex AI: The Good"
+        },
+        {
+            "type": "UL",
+            "items": [
+                "Everything, everywhere, all at onceWith Vertex AI, you can have everything in one place. From creating and managing datasets to training and deploying your model, to finally serving predictions and providing explanations, Vertex AI can handle every step of the process. This can make for a convenient pipeline, without the need to integrate different tools or having to worry about compatibility."
+            ]
+        },
+        {
+            "type": "FIGURE",
+            "filename": "b7db7a2e514d0b4e063a759511e1369f.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*NcmUR6CmPR8ENl_Q8GPHJg.png",
+            "caption": "One ML platform to rule them all (TechCrunch)"
+        },
+        {
+            "type": "UL",
+            "items": [
+                "Weapon of choiceYou can choose between the Vertex AI SDK, the Gcloud command line, and the UI console to accomplish any step of the machine learning pipeline on Vertex AI. This allows for a lot of flexibility. In my experience, the console UI approach doesn’t scale well, and is only useful if you are not comfortable with command line or the Python SDK. The SDK works best, and is more easily customizable compared to the command line, but that is more of a personal preference. The fact that there are multiple ways to do anything in Vertex AI can also cause confusion at times. Some of the notebooks you might refer to could be using the SDK approach, some CLI, and if you don’t try to make it uniform, the end product can be quite a mishmash."
+            ]
+        },
+        {
+            "type": "FIGURE",
+            "filename": "8e5fd9856cc2d7a1977b4792b02eb4f3.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*wcn5V64Gpd1ywBXkp7DxXA.png",
+            "caption": "SDK/CLI/UI — Pick your poison!"
+        },
+        {
+            "type": "UL",
+            "items": [
+                "Proof of conceptThere are plenty of great working examples provided by Vertex AI to show you how to go about getting something done. The official notebooks are pretty comprehensive, and for models trained using Tensorflow/SKlearn/XGBoost, chances are that you will find the answers to most of your questions within one of these notebooks.",
+                "The devil is in the detailsThe documentation is pretty good in most cases, and there are detailed instructions on how to proceed at every step. This is incredibly useful, since for a new user, it can be a bit overwhelming to keep track of all the details. However, when you are dealing with custom containers, it can be a little vague at times, and you get the feeling that an illustrative example or two might have made things much easier."
+            ]
+        },
+        {
+            "type": "FIGURE",
+            "filename": "c2a8d22889ca4359bb1e503c1ec04cd5.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*wWVjj5fBg7X4FXRVFCJAbg.png",
+            "caption": "Vertex AI Documentation (Model upload)"
+        },
+        {
+            "type": "H2",
+            "content": "4.2 Vertex AI: The Bad, and the Ugly"
+        },
+        {
+            "type": "UL",
+            "items": [
+                "$$$The pricing. One of the most annoying aspects of model deployment is that when you deploy a model, you get charged irrespective of whether or not you actually query predictions from the model. Vertex AI’s prediction endpoint requires at least 1 node to be always active. There is a keenly watched issue for this on Google’s issuetracker where people have been expressing their frustration with the current approach."
+            ]
+        },
+        {
+            "type": "FIGURE",
+            "filename": "9e5c63bbdf04b88243209bf3da2bdf0a.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*heb3mLixk_Zq0w3r6gO0Dw.png",
+            "caption": "Endpoints or Pain-points? (Pricing @Vertex AI)"
+        },
+        {
+            "type": "UL",
+            "items": [
+                "Vertex AI can be very needyIf you want predictions with explanations (which feature contributed how much to the output taking a certain value), Vertex AI has pretty specific requirements on how the model is supposed to be configured. This is less of a problem when you work with models built on Tensorflow/Scikit-learn/XGBoost, since Vertex AI provides the container images itself. However, for models built outside of these three frameworks (LightGBM for instance), you have to build the containers yourself, and configure them as per the exact requirements laid out by Vertex AI. These requirements are very specific, but not always very clear. You might have to spend quite some time trying to pinpoint exactly what the input and output format should be for your model, or how the metadata should be configured. Chances are you will have to do a lot of back and forth to get everything right, which given the turnaround time for deployment on Vertex AI, can be quite time consuming. To top that, the errors shown by Vertex AI when the predictions/explanations fail can be quite vague, leaving you to scratch your head in frustration and make changes again and again. See this for instance: “Unable to explain the requested instance(s) because: Invalid response from prediction server — the response field predictions is missing.”This is the error message you get in many situations where Vertex AI fails to provide explainable predictions for your input. However, it doesn’t tell you much about the reason why it failed — plain predictions might work just fine in most of these cases. Not cool, right?",
+                "Don’t rock the boatWhen it comes to custom trained models, there are very few examples provided by Vertex AI, unlike for Tensorflow/SKlearn/XGBoost."
+            ]
+        },
+        {
+            "type": "H1",
+            "content": "5. Vertex AI: Some Tips and Tricks"
+        },
+        {
+            "type": "H2",
+            "content": "5.1 Trust your local host"
+        },
+        {
+            "type": "P",
+            "content": "Always test your model server locally before deploying your model to Vertex AI. The deployment can take a long time (up to half an hour at times), and it can be incredibly frustrating to realize once your model is deployed that you missed a couple of braces somewhere in your server code, because of which the predictions won’t work. The notebook shows a way to do this using Curl, but you can easily setup a local FastAPI/Flask server with the prediction code and ping it using Postman."
+        },
+        {
+            "type": "P",
+            "content": "All you need for this is the model artifact file from the GCP bucket — which is available after training — and some test inputs. Before you proceed with deployment, try to verify that the prediction server handles the inputs correctly and generates the output in the format required by Vertex AI. Trust me, it will save you plenty of backtracking later."
+        },
+        {
+            "type": "P",
+            "content": "Here is a demo on how to do this with a Flask server:"
+        },
+        {
+            "type": "FIGURE",
+            "filename": "54a0d6225bc99702ef599680f9d5fa57.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*S2K5EcFo8de35XwvCmtw3A.png",
+            "caption": "Postman — to conveniently ping the local server with prediction requests"
+        },
+        {
+            "type": "H2",
+            "content": "5.2 Clean your room, bucko!"
+        },
+        {
+            "type": "P",
+            "content": "The pricing on Vertex AI is set up in way that your deployed model will incur costs whether or not you query it for predictions. Avoid that, and undeploy the model as soon as it has served its purpose. It takes no time, and you can copy the code from the notebook! This is less of a concern when it comes to the model artifact files, or the images pushed to the GCP artifact registry - storage is not exactly free, but it’s nowhere near as expensive as a deployed model ready to serve predictions. Still, to avoid unwanted surprises, remember to clean up once you are done getting predictions from your model."
+        },
+        {
+            "type": "H1",
+            "content": "6. Conclusion"
+        },
+        {
+            "type": "P",
+            "content": "We saw how to deploy a custom trained model to Vertex AI and get explainable predictions. We also looked at some ways to reduce the turnaround time for the whole process, and evaluated the features of Vertex AI. In the end, it’s a matter of choice - if you are someone who likes to think deeply about model infrastructure and deployment and wouldn’t mind spending a lot of time figuring out the details for it, you might find some parts of the Vertex AI pipeline a little restrictive. For most others though, it can be extremely convenient to let Vertex AI do the heavy handling when it comes to taking care of the ML model post training, and focus more on the machine learning proper."
+        },
+        {
+            "type": "P",
+            "content": "As for my internship at ML6, just like Vertex AI, it was challenging, rewarding, sometimes exasperating, but always a lot of fun! :D"
+        },
+        {
+            "type": "H1",
+            "content": "7. Appendix: Why LightGBM?"
+        },
+        {
+            "type": "FIGURE",
+            "filename": "1375dd6b4b18bada070b08e76e37e2e8.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*Aa0kDV0t6hSib5pOwhssVg.png",
+            "caption": "Ensemble Methods: More Trees, (Usually) Better Accuracy (Econoscent)"
+        },
+        {
+            "type": "H2",
+            "content": "7.1 Bagging"
+        },
+        {
+            "type": "P",
+            "content": "LightGBM belongs to a class of algorithms called ensemble learning methods. The core idea is to combine a lot of weak learners to create a strong learner. One very popular ensemble method is bagging, where you build models in parallel using a random subset of data (bootstrapping), and take the average of the predictions from all the models (aggregating). Random forests use bagging."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "04c4031dc08532f54bc28559ad251f7e.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:696/1*d-sG5CozyUjzLmlulOdzCQ.png",
+            "caption": "Bagging = Bootstrap + Aggregating. (Random Forest)"
+        },
+        {
+            "type": "H2",
+            "content": "7.2 Boosting"
+        },
+        {
+            "type": "P",
+            "content": "Another commonly used ensemble method is gradient boosting, where you build models sequentially from the whole data, with each model improving on the errors of the previous one. XGBoost and LightGBM are both examples of gradient boosted machines (GBM)."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "d1731415ac6fd6283a06edb68c36c506.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*jwFsj0uhOMgeW-5OvnoC8g.png",
+            "caption": "Gradient Boosting. Example: XGBoost (Ensemble Learning)"
+        },
+        {
+            "type": "H2",
+            "content": "7.3 LightGBM"
+        },
+        {
+            "type": "P",
+            "content": "We use LightGBM because it is surprisingly fast, memory efficient, and performs really well. It relies on"
+        },
+        {
+            "type": "UL",
+            "items": [
+                "GOSS (Gradient Based One Side Sampling) — retaining instances with large gradients, and randomly sampling instances with small gradients",
+                "EFB (Exclusive Feature Bundling) — identifying mutually exclusive features and bundling them together."
+            ]
+        },
+        {
+            "type": "P",
+            "content": "LightGBM is optimized for parallel, distributed and GPU learning. Unlike most decision tree methods, LightGBM grows the trees leaf-wise rather than level wise. Check out this comparison between XGBoost and LightGBM. TL;DR: it’s much faster than XGBoost while providing pretty similar levels of accuracy."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "93eb7aae5dc72ed84b825ac2886475d9.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*mePglxLVl930zQ_Uf0PWfQ.png",
+            "caption": "LightGBM vs XGBoost — Tree Growth (LightGBM)"
+        },
+        {
+            "type": "P",
+            "content": "***"
+        },
+        {
+            "type": "H2",
+            "content": "Pankaj Singla"
+        },
+        {
+            "type": "P",
+            "content": "For all things machine learning, follow ML6!"
+        }
+    ]
+}

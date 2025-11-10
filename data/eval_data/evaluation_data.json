@@ -1,0 +1,98 @@
+[
+  {
+    "query_id": "text_questions_1",
+    "query_type": "text",
+    "query_content": "Which blog post explains how to construct a knowledge graph from unstructured scientific literature using Large Language Models (LLMs) to aid biomedical research?",
+    "relevant_doc_title": "accelerating-biomedical-knowledge-graph-construction-with-llms"
+  },
+  {
+    "query_id": "text_questions_2",
+    "query_type": "text",
+    "query_content": "ML6 developed a benchmarking framework to evaluate object detection models on diverse datasets beyond the commonly used MS COCO, aiming to bridge the gap between academic research and real-world industry applications. By testing models like YOLOv4 and EfficientDet on the Google Open Images dataset, they uncovered interesting performance variations across different object classes, highlighting the limitations of relying solely on standard benchmark metrics.",
+    "relevant_doc_title": "the-why-and-what-of-our-computer-vision-benchmark-tool"
+  },
+  {
+    "query_id": "text_questions_3",
+    "query_type": "text",
+    "query_content": "Home batteries can be made smarter by connecting them to dynamic electricity price data, allowing them to automatically charge when energy is cheapest. By using this intelligent charging strategy, simulations show that homeowners can save up to 35% on their electricity costs.",
+    "relevant_doc_title": "smart-energy-how-to-make-your-home-battery-smart-and-save-money"
+  },
+    {
+    "query_id": "text_questions_4",
+    "query_type": "text",
+    "query_content": "Which blog post demonstrates how to use Large Language Models (LLMs) as judges for unsupervised evaluation of information retrieval systems, showing that LLM-generated relevance judgments can closely approximate ground-truth human labels?",
+    "relevant_doc_title": "unsupervised-evaluation-of-semantic-retrieval-by-generating-relevance-judgments-with-an-llm-judge"
+  },
+  {
+    "query_id": "text_questions_5",
+    "query_type": "text",
+    "query_content": "I'm interested in approaches for evaluating semantic retrievers in domain-specific knowledge bases without human-annotated relevance labels. Which post explains an LLM-driven method for generating synthetic labels and computing IR metrics like NDCG and Top-k accuracy?",
+    "relevant_doc_title": "unsupervised-evaluation-of-semantic-retrieval-by-generating-relevance-judgments-with-an-llm-judge"
+  },
+  {
+    "query_id": "text_questions_6",
+    "query_type": "text",
+    "query_content": "Which article discusses how retrieval-augmented generation (RAG) pipelines can be improved by leveraging unsupervised evaluation techniques with generative LLMs, specifically comparing the effectiveness of question-only and question-answer prompts?",
+    "relevant_doc_title": "unsupervised-evaluation-of-semantic-retrieval-by-generating-relevance-judgments-with-an-llm-judge"
+  },
+  {
+    "query_id": "text_questions_7",
+    "query_type": "text",
+    "query_content": "Looking for a resource that covers pitfalls and noise factors when using LLMs to judge passage relevance, including analysis of metrics’ correlation to supervised benchmarks and the impact of prompt engineering. Which blog should I read?",
+    "relevant_doc_title": "unsupervised-evaluation-of-semantic-retrieval-by-generating-relevance-judgments-with-an-llm-judge"
+  },
+  {
+    "query_id": "text_questions_8",
+    "query_type": "text",
+    "query_content": "Where can I find an in-depth explanation of how to construct a lightweight evaluation dataset for retrieval model selection, and how LLMs can automatically generate binary relevance judgments, greatly speeding up the development of custom RAG solutions?",
+    "relevant_doc_title": "unsupervised-evaluation-of-semantic-retrieval-by-generating-relevance-judgments-with-an-llm-judge"
+  },
+  {
+    "query_id": "text_semantic_1",
+    "query_type": "text",
+    "query_content": "Which blog post explains how semantic search helps lawyers reduce time spent on information retrieval by understanding the meaning of queries rather than exact wording?",
+    "relevant_doc_title": "semantic-search-a-practical-overview"
+  },
+  {
+    "query_id": "text_semantic_2",
+    "query_type": "text",
+    "query_content": "I'm looking for a post that describes how sentence embeddings are used in semantic search to match queries with relevant documents, even when their wording is very different.",
+    "relevant_doc_title": "semantic-search-a-practical-overview"
+  },
+  {
+    "query_id": "text_semantic_3",
+    "query_type": "text",
+    "query_content": "Is there a blog post that discusses the limitations of lexical search, such as TF-IDF or BM25, and compares them with the advantages of semantic search for diverse enterprise data?",
+    "relevant_doc_title": "semantic-search-a-practical-overview"
+  },
+  {
+    "query_id": "text_semantic_4",
+    "query_type": "text",
+    "query_content": "Which article provides a high-level overview of semantic search, covering when to use it, its main benefits, and practical considerations for real-world implementation?",
+    "relevant_doc_title": "semantic-search-a-practical-overview"
+  },
+  {
+    "query_id": "text_semantic_5",
+    "query_type": "text",
+    "query_content": "Point me to the post that explains how 'retrieve & rerank' architectures combine fast lexical filtering with semantic reranking for efficient large-scale document search.",
+    "relevant_doc_title": "semantic-search-a-practical-overview"
+  },
+  {
+    "query_id": "image_1b088998f96bd288122061fa023194f9",
+    "query_type": "image",
+    "query_content": "1b088998f96bd288122061fa023194f9.jpg",
+    "relevant_doc_title": "state-of-the-llm-unlocking-business-potential-with-large-language-models.json"
+  },
+  {
+    "query_id": "image_1ea578d22b96606251ef585efe954315",
+    "query_type": "image",
+    "query_content": "1ea578d22b96606251ef585efe954315.jpg",
+    "relevant_doc_title": "potential-applications-of-discrete-diffusion-models.json"
+  },
+  {
+    "query_id": "image_64892e3e4df8432a1ae0ac54067e4469_bw",
+    "query_type": "image",
+    "query_content": "64892e3e4df8432a1ae0ac54067e4469_bw.jpg",
+    "relevant_doc_title": "fine-tuning-whisper-for-dutch-language-the-crucial-role-of-size.json"
+  }
+]

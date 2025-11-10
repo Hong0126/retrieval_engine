@@ -1,0 +1,184 @@
+{
+    "title": "How LLMs access real-time data from the web",
+    "author": "Michiel De Koninck",
+    "readTime": "8 min read",
+    "publishDate": "Apr 30, 2024",
+    "blocks": [
+        {
+            "type": "P",
+            "content": "Let’s beat this dead horse one last time: Large Language Models (like GPT, Claude, Gemini, …) have knowledge on a wide range of topics because they’ve been trained on vast amounts of internet data. But once their training is complete, their knowledge is fixed. They can’t go for a sneaky little toilet Google-search when they run out of arguments in the middle of a hypothetical discussion with their know-it-all brother-in-law. Or can they?"
+        },
+        {
+            "type": "P",
+            "content": "Any decent LLM will be able to tell you when the French Revolution went down: 1789. It doesn’t need to know anything about Ridley Scott’s Napoleon film for that. Nor does it need to know (and neither should I) the link between this year and my dad’s super duper protected bank account."
+        },
+        {
+            "type": "P",
+            "content": "However, imagine we’re interested in knowing whether Mr. Scott’s Napoleon won an Oscar yesterday. The model would suddenly need real-time web information. That’s something very different. How does that work?"
+        },
+        {
+            "type": "FIGURE",
+            "filename": "628a69df4d9b2c4cf26ef950109be50a.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:729/1*EsB5OkDsRn5qFxCGN79qWQ.png",
+            "caption": "Perplexity knows that Mr.Scott needs to get his act together. Fingers crossed for Gladiator 2."
+        },
+        {
+            "type": "H2",
+            "content": "An Icy Analogy: WebUI vs actual Large Language Model"
+        },
+        {
+            "type": "P",
+            "content": "I promise I’ll stick to just one simple analogy. Moreover it’ll be an analogy that makes sense. Yes, a very close-fetched analogy indeed."
+        },
+        {
+            "type": "P",
+            "content": "So you are a philosopher, lost at sea. Suddenly you see: an iceberg (ChatGPT). Naturally, you ask this iceberg to explain to you what it is. It tells you it’s the tip of an iceberg, and it can answer any question you throw at it."
+        },
+        {
+            "type": "P",
+            "content": "You mean to ask where this iceberg gets its information from, when suddenly ….RING RING RING … why it’s ya boy Archimedes here to teach you a lesson on buoyancy:"
+        },
+        {
+            "type": "BLOCKQUOTE",
+            "content": "most of an iceberg’s mass is actually BENEATH THE SURFACE, in the salty water of the ocean, only about 10% of its mass sticks out above."
+        },
+        {
+            "type": "P",
+            "content": "But of course, you realise: the tip of the iceberg is just what we see! It can only exist because of the mass beneath the surface."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "18422eeb72dcb860f4b0a46e8e5e7f0f.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:875/1*dLbjMtPi8LawwWyV7Cuoiw.png",
+            "caption": "You, the philosopher, interacting with the tip of the iceberg (i.e. ChatGPT)"
+        },
+        {
+            "type": "P",
+            "content": "So enough with the crazy talk. The point is: when you interact with a tool like ChatGPT (or Google’s Gemini Chat, Anthropic’s Claude, Perplexity,…) you’re talking to a Web UI that takes your input and sends that beneath the surface through to the software system that they have designed."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "34d8e83bdaba91dc6670f8cbcec36d83.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:875/1*Qw1k1iGIc1ytDP2bKDw1ug.png",
+            "caption": "The real magic happens underneath the surface. A control layer is placed before the Large Language Model."
+        },
+        {
+            "type": "P",
+            "content": "This system beneath the surface consists of the actual Large Language Model (LLM) and a control layer defining what input is sent to the model and what is finally sent back through to the Web UI."
+        },
+        {
+            "type": "P",
+            "content": "The LLM is represented by Billy the bookworm (introduced first in this blogpost) to underline the vast amount of internet training data that these models go through to achieve their impressive capabilities."
+        },
+        {
+            "type": "P",
+            "content": "It’s crucial to note that those LLM capabilities are literally nothing else than “next token (~word) prediction”; for a given input it just comes up with a sequence of highly likely next words. Note that for many LLM Web UIs you can make a choice for which LLM you want to use; you’re simply just swapping the red block for another LLM (e.g. swap GPT-4 for GPT-3.5, or Claude 3 for Claude2, or Llama-2–13B for Mistral-7B)."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "a0f2a83eaaeca18091962276aab7a4d9.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:875/1*dlgs9yJEKYQOkZNNtA5_lg.png",
+            "caption": "Zooming in: what control is performed under the hood."
+        },
+        {
+            "type": "P",
+            "content": "So there we go! When you ask a question through a Web UI there is a controlling layer that decides whether Web Knowledge access is needed."
+        },
+        {
+            "type": "P",
+            "content": "But as discussed, these LLMs cannot browse the internet themselves, so when you pose a question on how Ridley Scott has performed in the very recent Oscars, Billy the LLM won’t know that from the knowledge it was trained on. However, luckily for us, the controlling layer of the Web UI is able to do a quick search of the web (just like a human would), fetch the right information and deliver that to the LLM as context to form its response with."
+        },
+        {
+            "type": "P",
+            "content": "Additionally, it should be clear that if you’re building a separate software solution that talks directly to the red block, the LLM API (e.g. the GPT-4 API), you will not be getting the sweet benefits of the Web Knowledge Access functionality. We will look into why that is below but first, we have to build a mutual understanding of the Web Search Process."
+        },
+        {
+            "type": "H2",
+            "content": "How players approach the Web Search game"
+        },
+        {
+            "type": "P",
+            "content": "Let’s shine a light on how some different LLM Web UI providers approach the search capability. Below we compare ChatGPT, Gemini and Perplexity."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "405f68839f762ecc992f06f5b63a2961.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:875/1*AyBKzuebhIsfcJwD6ZfC7A.png",
+            "caption": "🎵and I still haven’t found what I’m looking for"
+        },
+        {
+            "type": "P",
+            "content": "All these providers use a specific Search Engine to perform search across the web. Search Engines are quite complex but in short we can state that these engines are built by crawling through the entirety of the internet and for each webpage storing pieces of information that can be used to find these pages. The result of such a crawling exercise is an index. For more specific information on how search engines look through these indexes to find relevant web page results, I’ll refer to our piece on semantic search."
+        },
+        {
+            "type": "P",
+            "content": "Perplexity built a Search Engine specifically to be used by their Generative AI application; therefore they cut some corners and don’t index “the entire internet” every day. If you ask about the front page of your favourite news page today; it might answer you based on the news from two days ago simply because the Perplexity engineers decide to only re-index your favourite site every three days."
+        },
+        {
+            "type": "P",
+            "content": "Now, you may have a brilliant search engine, you still have to configure exactly how and when to use it. And that’s exactly where the control layer comes into play. Consider the flow below. It should be clear from the diagram, that it’s the specific Control system that determines what happens e.g. “how many results from the Bing Search engine do we consider”, “how many pages do we want to fetch content from”, “how do we filter that content to lower the chances of misguiding our GPT-4 generator (cfr. prompt injection dangers)."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "1f94a763abed3a0e8bee8e7709108f0c.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:875/1*9Ep9_n7yiX1Bfk1URcJpfg.png",
+            "caption": "Summary of ChatGPT’s approach to Web Access"
+        },
+        {
+            "type": "P",
+            "content": "There’s one crucial note to make here when thinking about leveraging this search functionality: as a user, you have NO control on how the search flow works. You can be impacted:"
+        },
+        {
+            "type": "UL",
+            "items": [
+                "if the indexing system of the search engine changes (e.g. to reduce crawling costs)",
+                "if the mechanism to visit specific subURLs (instead of just the main URL) of web pages changes",
+                "if the amount of pages to be visited per question changes (e.g. ChatGPT considers just one today)"
+            ]
+        },
+        {
+            "type": "P",
+            "content": "And so we reach the conclusion that when using the WebUI, your capabilities with regards to web access will be limited. And that’s only natural: imagine ChatGPT had no limit on how many web pages were visited after the control layer decides on doing a Bing Search. Then a single user question could lead to drawing in information from 15 different sources thus increasing the amount of tokens that are passed to the LLM and thus directly impacting cost (and possibly also performance as content may be conflicting). Given users today pay a fixed cost for the LLM WebUI that is ChatGPT, the mechanism has to be restricted for it to be safe and maintainable."
+        },
+        {
+            "type": "P",
+            "content": "So then, if we need to take control, how can we do that?"
+        },
+        {
+            "type": "H2",
+            "content": "What if I access LLM capabilities through the API?"
+        },
+        {
+            "type": "P",
+            "content": "Conceptually this should be quite obvious. You design your own control system and use that to guide the input/tasks going towards the generator LLM API (e.g. GPT-4) and the output flowing back out from it. This way you harness the reasoning capabilities but have full control of e.g. what search engine is used, how the resulting search content is filtered, how many sub pages are then visited …"
+        },
+        {
+            "type": "FIGURE",
+            "filename": "bfdea96769494cbc9dfc2f5aa39af2ab.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:875/1*N4DZxdtGWexSvyW-JyJ6cw.png",
+            "caption": "Building a custom solution for your specific use case by taking control into your own hands"
+        },
+        {
+            "type": "P",
+            "content": "Note that we’ve visualised the LLM as before in the iceberg but of course the same requirements for custom control hold if you are self-hosting an LLM instead of talking to it through some API."
+        },
+        {
+            "type": "H2",
+            "content": "Looking at a practical use case that needs real-time web access"
+        },
+        {
+            "type": "P",
+            "content": "Scratch all that weird philosopher stuff. You are now a down-to-earth solar panel manufacturer trying to sell your sweet panels. You have a list of 10000 roof repair companies. You want to check which of these offer the service of placing solar panels and potentially also which panels they supply so that you can contact specifically those companies that are most likely to be interested to work with your panels."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "d3192bea8946b18f520509aadb7a9bb8.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:875/1*DaPGt8dF9eFB24Vv5J6hrw.png",
+            "caption": "So uhm you there, Fiddler guy. Do you uhm also do like solar panels and stuff?"
+        },
+        {
+            "type": "P",
+            "content": "Below we draft a solution for the given challenge. We can build a system that, for each roof operator, finds the site_url to visit and then visits that site to fetch content from it, filter it (beware of prompt injection and don’t send unnecessary tokens to your model) and then analyse whether perhaps it is needed to visit a separate tab (perhaps the site has a tab “solar panel installation”) to make a final decision or whether it’s already crystal clear from the home page."
+        }
+    ]
+}

@@ -1,0 +1,205 @@
+{
+    "title": "Deploy AI models in your OT environment and do it securely",
+    "author": "Rob Vandenberghe",
+    "readTime": "6 min read",
+    "publishDate": "Aug 3, 2023",
+    "blocks": [
+        {
+            "type": "P",
+            "content": "Digital transformation is changing the manufacturing industry. More and more companies are incorporating digital technologies into their production processes. The benefits and importance of this is undeniable. However, as those technologies are being introduced, it is important to be aware that they can also introduce new security risks to critical infrastructure."
+        },
+        {
+            "type": "P",
+            "content": "At ML6, we often deploy AI models in OT environments. For example, with the In-line quality inspection and process steering solution which allows our customers to produce efficiently, minimise waste and deliver quality with the power of AI."
+        },
+        {
+            "type": "P",
+            "content": "Join us as we delve into the world of AI-driven manufacturing and discover the paths to safeguarding your operations against cyberthreats."
+        },
+        {
+            "type": "P",
+            "content": "Let’s first get some definitions straight:"
+        },
+        {
+            "type": "P",
+            "content": "Operational Technology are systems and devices that have direct impact on the physical environment (in the control loop of the process). The OT environment is where systems like SCADA and PLC are used to directly monitor and control industrial equipment such as machines, sensors, robots, conveyor belts etc."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "834d937d1c2761108c219533fc4030be.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/0*K0nqeIauJ0gg-a09",
+            "caption": null
+        },
+        {
+            "type": "P",
+            "content": "Information Technology is the use of computers that process and store all kinds of information to make the business run efficiently. Typical examples include ERP systems, mailing, file sharing etc."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "4e63358ac60c4ada5dd8bfde5a3e19f3.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:640/0*m6Mrsg1Nd-6JuQYe",
+            "caption": null
+        },
+        {
+            "type": "H1",
+            "content": "Splitting IT and OT"
+        },
+        {
+            "type": "P",
+            "content": "IT and OT have different security considerations and vulnerabilities. IT systems are more exposed to external cyber threats, such as data breaches and ransomware attacks, while OT systems can face serious consequences if compromised, such as physical damage to industrial processes or infrastructure. Isolating and securing each domain independently helps reduce the risk of cross-contamination of threats and enhances overall security."
+        },
+        {
+            "type": "P",
+            "content": "The split between IT and OT is increasingly important to protect your physical environment. This was illustrated during the 2015 Ukraine power grid hack. The cyberattack took place during the ongoing Russian-Ukrainian conflict (2014-present) and is attributed to a Russian advanced persistent threat (APT) group known as Sandworm."
+        },
+        {
+            "type": "P",
+            "content": "The Ukraine power grid hack involved several steps:"
+        },
+        {
+            "type": "OL",
+            "items": [
+                "Spear-phishing emails (IT) with BlackEnergy malware were used to compromise corporate networks beforehand.",
+                "The attackers gained control over the SCADA system (OT), allowing them to remotely turn off substations.",
+                "OT infrastructure components such as uninterruptible power supplies, modems, PLCs, and commutators were disabled or destroyed.",
+                "The KillDisk malware was employed to destroy files stored on servers and workstations.",
+                "A denial-of-service attack targeted the call-center, preventing consumers from receiving real-time information about the blackout.",
+                "As a final blow, the emergency power at the utility company’s operations center was deliberately switched off."
+            ]
+        },
+        {
+            "type": "P",
+            "content": "We highly recommend reading “Sandworm: A New Era of Cyberwar and the Hunt for the Kremlin’s Most Dangerous Hackers” by Andy Greenberg (2019, Doubleday) for further insights into how these APTs work and how advanced cyberattacks unfold."
+        },
+        {
+            "type": "P",
+            "content": "Not every manufacturing company is in the crosshairs of advanced persistent threat groups such as Sandworm. But these groups do create collateral damage during their cyber operations."
+        },
+        {
+            "type": "P",
+            "content": "During the 2017 NotPetya attack, also attributed to the Sandworm group, the target of the attacks were Ukrainian governments and companies. But the self spreading malware caused damage far beyond the borders of Ukraine. Some of the most notable companies that were affected are:"
+        },
+        {
+            "type": "UL",
+            "items": [
+                "Maersk Line",
+                "Merck & Co. (MSD)",
+                "DHL",
+                "DLA Piper",
+                "Mondelez"
+            ]
+        },
+        {
+            "type": "P",
+            "content": "The separation and security of IT and OT systems are crucial to mitigate the risk of cyber threats and protect physical environments."
+        },
+        {
+            "type": "H1",
+            "content": "Converging IT and OT"
+        },
+        {
+            "type": "P",
+            "content": "So there are a lot of reasons to keep a clean split between IT and OT. But there are as many reasons to converge IT and OT. Especially with the ever-increasing capabilities of AI models and internet-of-things (IoT) systems, there are unlimited possibilities to automate processes, have more cost- and resource-efficient production lines, and improve the quality of processes and products."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "de627377537109ee7a69d87e2855655f.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/0*nD6LvpOvWkbo2w-B",
+            "caption": null
+        },
+        {
+            "type": "P",
+            "content": "AI models, cloud technology, and IoT are typically reserved for the IT domain. However, they can bring great value to the OT domain. In this blog post, we explore how these new technologies can be deployed in your OT environment and how it can be done securely."
+        },
+        {
+            "type": "H1",
+            "content": "The Purdue Model"
+        },
+        {
+            "type": "P",
+            "content": "The Purdue Model is a reference model for segmentation of OT and IT networks. High level it describes 3 zones."
+        },
+        {
+            "type": "P",
+            "content": "The first zone is the IT zone with systems like ERP, CRM, Mail servers and other traditional IT systems. The last zone is the OT zone, where the action happens. Here, the systems are in the direct control loop of physical processes, such as SCADA and PLCs. The third zone is right in the middle, it is the Demilitarized Zone (DMZ)."
+        },
+        {
+            "type": "P",
+            "content": "By establishing a DMZ to facilitate communication between IT and OT systems, an additional level of segregation and scrutiny is introduced into the overall architecture. This setup ensures that systems in the lower layers remain shielded from potential attacks or compromises. In the event of a breach within the DMZ, it can be promptly deactivated, thereby isolating the compromised systems and allowing uninterrupted production to proceed."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "8eb80ceae87c1a8a74bf82e9956c632f.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/0*EVIR1UnAVhtv_8M4",
+            "caption": null
+        },
+        {
+            "type": "P",
+            "content": "This model was published in the 1990s. We now live in a world where IoT sensors can collect machine data (Level 0 in the OT) and stream it real-time to the cloud (Level 5 in the IT) for predictive maintenance. Therefore, it seems that this model is obsolete."
+        },
+        {
+            "type": "H1",
+            "content": "Bypassing the DMZ"
+        },
+        {
+            "type": "P",
+            "content": "Let’s first explore a naive approach to implement a machine learning model, developed and deployed in the cloud, to steer a machine via a PLC. The schematic implementation is mapped to the Purdue Model below."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "54eaf74a4d7eb8dba3d77bb790837a9f.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/0*X1tDvXtNsfdrJr6q",
+            "caption": null
+        },
+        {
+            "type": "P",
+            "content": "This approach is arguably the easiest way to implement machine learning in your physical processes. And it certainly can deliver great value to your business, for example automating the quality inspection process with AI results in lower waste, higher efficiency, better customer experience and cost savings."
+        },
+        {
+            "type": "P",
+            "content": "But there are plenty of risks that are introduced when using this naive approach, because OT is directly impacted by IT. Some threat scenarios:"
+        },
+        {
+            "type": "OL",
+            "items": [
+                "If the IT/cloud infrastructure becomes unavailable, it hinders the ability to monitor and adjust the production process effectively, potentially leading to disruptions and inefficiencies in the factory.",
+                "In the event of an IT compromise, the operational technology (OT) systems are vulnerable to exploitation through malicious traffic. This puts the entire factory at risk of compromise and even leads to safety issues on the factory floor with hackers that have control over the machines.",
+                "If the IT/cloud infrastructure is compromised, it opens the possibility of flooding the IoT devices with fake requests, potentially disrupting their functionality and compromising production monitoring capabilities."
+            ]
+        },
+        {
+            "type": "H1",
+            "content": "Deploying AI while respecting in the DMZ"
+        },
+        {
+            "type": "P",
+            "content": "Jumping the DMZ is bad and should be avoided at all times. Below, there is a secure implementation of AI models in your OT environment."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "6c7f4e638f4898715335cf91726da792.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/0*J7IWqybdrBUeT6li",
+            "caption": null
+        },
+        {
+            "type": "P",
+            "content": "In this implementation, the DMZ acts as a clear segregation between the 2 zones. Connections originate either for IT or OT, never from within the DMZ itself. By enforcing this rule, the DMZ acts as a boundary or buffer zone between the IT and OT systems, preventing direct communication between them."
+        },
+        {
+            "type": "P",
+            "content": "Typically, an FTP server exists within the DMZ that facilitates the data transfer between IT and OT. Alongside the FTP server additional malware scanning and antivirus capabilities are deployed to prevent that malicious traffic is passing."
+        },
+        {
+            "type": "P",
+            "content": "This approach combines the best of both worlds. Cloud technology is used to access scalable computing resources, enabling AI models to be trained on powerful hardware and distributed systems. This scalability allows for faster and more efficient training processes."
+        },
+        {
+            "type": "P",
+            "content": "But also the Model of Purdue is respected by not jumping the DMZ like in our first naive approach. It creates the crucial isolation between IT and OT that protects physical environments from cyberattacks."
+        },
+        {
+            "type": "P",
+            "content": "Contact one of our experts if you want to deploy AI models in your OT environment and do it securely."
+        }
+    ]
+}

@@ -1,0 +1,250 @@
+{
+    "title": "Explainable AI: Building more trusted and valuable AI solutions",
+    "author": "Caroline Adam",
+    "readTime": "11 min read",
+    "publishDate": "Dec 16, 2021",
+    "blocks": [
+        {
+            "type": "P",
+            "content": "Machine learning models are being used more and more often to support important decisions — from assisting doctors to diagnose a health problem, to recommending suitable candidates for a job opening, or detecting fraudulent transactions in the financial industry. However, AI algorithms are still often perceived as “black boxes” — systems for which we can observe the data that flows in and the predictions that come out, but are not able to interpret or explain the inner workings. Explainable AI, also often called XAI, attempts to solve the black box nature of certain machine learning models."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "f93da57e2335ecca0989d82c70245608.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:512/1*W8D6jvEd2CfeVrHLwADkdA.jpeg",
+            "caption": null
+        },
+        {
+            "type": "P",
+            "content": "At ML6, we like to take a broader view on explainability. We see explainability as part of the entire AI project, not just as part of the model. For us it is important to consider all steps in the ML workflow, starting from the problem definition and data used, the model itself, all the way to the user interface — because in each step, we can take actions to make the results of our models more interpretable & useful."
+        },
+        {
+            "type": "P",
+            "content": "What an explainable AI solution looks like depends heavily on the project and on the problem we are trying to solve. In the following blog post, we will share insights and practical case studies demonstrating the goals and importance of explainable AI. We will then move on to look at how a machine learning solution can be made more explainable or interpretable, not only on a model level but considering the entire ML project."
+        },
+        {
+            "type": "H1",
+            "content": "FIRST THINGS FIRST, WHY IS EXPLAINABILITY IMPORTANT?"
+        },
+        {
+            "type": "P",
+            "content": "When humans are interacting with ML solutions, a good understanding of how and why predictions are made is often crucial in order to create trust and thereby foster the adoption of a solution. This in turn ultimately leads to added business value of AI projects."
+        },
+        {
+            "type": "P",
+            "content": "The reasons for introducing explainability often differ based on the maturity of the AI solution. An AI solution can be either 1) weaker than humans, 2) on par with humans, or 3) stronger than humans. Let’s take a look at the goals of explainability for each maturity level* in this section."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "969ad89a5993bf7d0ffecbad906ea6a8.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/0*YvF6ssgzUCBeS0Ro",
+            "caption": "*Sources: Dhruv Batra; Selvaraju et al."
+        },
+        {
+            "type": "H1",
+            "content": "When AI is weaker than humans"
+        },
+        {
+            "type": "P",
+            "content": "When an AI model is weaker than humans, explainability is important in order to find errors in the model. The goal in this scenario is to improve the machine, by finding out what is going wrong."
+        },
+        {
+            "type": "H2",
+            "content": "Finding errors in the model"
+        },
+        {
+            "type": "P",
+            "content": "Imagine we are training a computer vision model to detect horses. We notice that the model is not performing well on new images, but we don’t know why. Adding an explainability layer to it, for example by visualizing salient areas, we realize that the model has only learned how to recognize a descriptive text present in the training data set on images with horses, instead of learning how to identify a horse. Knowing this, we can remove the text and correct the error to improve our model."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "037313c8c8683e0b3e32d2a413146ec6.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:596/1*Fmjj18DZXKTnuiYFO3No7g.png",
+            "caption": "Source: https://www.nature.com/articles/s41467-019-08987-4"
+        },
+        {
+            "type": "H2",
+            "content": "Improving the model by efficiently leveraging human insights"
+        },
+        {
+            "type": "P",
+            "content": "Another example is active learning. With active learning, the goal is to improve the performance of our algorithm by leveraging human knowledge in the most efficient way. Imagine we want to do quality control on a manufacturing line. We only have a limited set of labelled pictures available, and the manual labelling process is expensive. With an active learning algorithm, we can identify images where the algorithm makes mistakes, and prioritize data to be labeled by a human that has the highest impact to train a model, thereby improving our model quicker and with less human resources."
+        },
+        {
+            "type": "H1",
+            "content": "When AI is on par with humans"
+        },
+        {
+            "type": "P",
+            "content": "Let’s move on to the next maturity level. If AI is mature enough to be on par with humans, explainability is about building trust with those who use the model and providing additional useful insights. Consequences of some predictions can be important, for example for a model predicting a malignant tumor. A doctor working with such a model would surely be thinking about the questions: Can I trust that the predictions are right? Why did the model predict this result, and how can I explain it to my patient? With explainable AI, we try to provide the reason why a certain prediction has been made, aiming at building trust and increasing adoption of the ML solution."
+        },
+        {
+            "type": "H2",
+            "content": "Building trust and increasing uptake"
+        },
+        {
+            "type": "P",
+            "content": "Creating trust in an AI solution through explainability can be crucial — like in this use case. We were developing an ML solution for data-driven sales for a client, predicting whether a deal was going to result in a sale or not. We realized quite quickly however that whenever a prediction was not in line with a sales person’s intuition, the recommendation would easily get discarded as not accurate. More explainability was needed in order for users to start trusting the models and actually changing their behaviour. Stay tuned to read how we added explainability in this specific use case later on in this post, and what effects it had."
+        },
+        {
+            "type": "H2",
+            "content": "Providing insights to increase business value"
+        },
+        {
+            "type": "P",
+            "content": "Sometimes, additional insights can directly lead to more business value of an AI solution. Let’s demonstrate this on a project we conducted in the real estate sector. Our client, a real estate broker, wanted to digitize the process of finding interested tenants for commercial properties — basically creating a recommendation engine for matching businesses with their ideal business space. Together we built an AI solution that could predict which commercial customers would be interested in a certain property — after all, different businesses have different needs: some might prefer being close to a highway, a school or a metro station, others might focus more on size of the property, the availability of parking spaces, or many other possible features. During the solution development, we realized however that for our client, just knowing who was a match didn’t have that much value — it left an important question unanswered: what do I say to my customer why I believe that this specific property is the right one for him? So we switched to an explainable approach, providing also the reasons why there’s a match. This allowed our client to approach their potential customers with very targeted information (“We found a property for you, and believe you could be interested because it is the right size for your company and is located next to a school and office district”). Our client increased the number of contacts tenfold with a response rate of 70%, and became 600% more efficient in servicing their customers."
+        },
+        {
+            "type": "H1",
+            "content": "When AI is stronger than humans"
+        },
+        {
+            "type": "P",
+            "content": "There are also situations where an AI model can outperform humans. We are of course not talking about AI taking over the world — with stronger we refer to the ability to process more or more complex data than the human mind could process at once."
+        },
+        {
+            "type": "P",
+            "content": "In this case, the goal of explainability in the AI model is to inform humans or help them understand. Complicated concepts or relations can be unraveled and made explainable for humans."
+        },
+        {
+            "type": "H2",
+            "content": "Finding patterns and reason in abundant data"
+        },
+        {
+            "type": "P",
+            "content": "A good example of this situation is root cause analysis. Earlier this year, we conducted a project with a wind farm provider. The goal of the project was to identify root causes for underperformance for wind turbines, in order to reduce power losses. We have built a ML model to accurately predict the output power in an explainable way, based on a too-large-to-humanely-process amount of data such as sensor values and turbine information. The predictions, together with the explanations behind the prediction, could then be used to identify the main root causes for underperformance when it occurs, giving us insights into an otherwise too complicated process, and allowing us to reduce the energy output losses."
+        },
+        {
+            "type": "H1",
+            "content": "HOW CAN WE MAKE AN AI SOLUTION EXPLAINABLE?"
+        },
+        {
+            "type": "P",
+            "content": "Explainable AI clearly has strong benefits across many use cases and can have direct influence on the business impact of machine learning models. This leads us to the next question — how can you make an AI solution explainable? Let us give you a high level overview, without going too much into detail."
+        },
+        {
+            "type": "P",
+            "content": "As mentioned in the introduction, for us at ML6 explainability it is not only about explainable models, it is about including explainability in the entire AI project lifecycle. Let us therefore have a look at 3 very simplified(!) stages of AI model development."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "37a5ea86acb61c1db93823d358abc9c0.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/0*MzHFprjaD9NmmnIb",
+            "caption": null
+        },
+        {
+            "type": "H1",
+            "content": "1. Problem definition & Data gathering"
+        },
+        {
+            "type": "P",
+            "content": "Explainability can already be considered as early as in the problem definition. Sometimes, we can make our solution more explainable by simply reframing the problem. When defining a problem, we need to challenge ourselves to look at a problem from different angles, asking how we can create a more impactful solution by adding more explainability."
+        },
+        {
+            "type": "P",
+            "content": "Here’s an example. A client had asked us to build a model to detect if a car has a scratch or not. This problem can be solved with a computer vision classification model — answering the question “does the car have a scratch — yes or no”. When we thought about the solution to this use case, we decided that it would be more understandable to the user to use an object detection approach instead — answering the question “detect and point to the scratch on the car”. In the new problem framing, the user can much easier check if the model is right, thereby creating trust between the user and the model and making the AI solution more valuable."
+        },
+        {
+            "type": "P",
+            "content": "We have encountered another example where redefining the problem helped for explainability. Let’s think back at the data-driven sales case mentioned earlier. The first solution coming to mind was this one: Given some parameters about a potential upcoming deal, predict the probability that it will actually go through. In this definition, we would be treating the problem as a regression problem. Reframing the problem, we could however turn the solution around, and instead predict the most likely reason the deal will fail (e.g., not the right fit for our company, not enough follow-up actions, etc.). This method is much more interpretable, and can even help to take follow up actions."
+        },
+        {
+            "type": "P",
+            "content": "What both cases have in common is that, in order to do problem reframing, you need a very good understanding of the use case, the data and the problem you are trying to solve. Talking to the end user, understanding their worries and how they will use the solution, as well as consulting domain experts will allow us to come up with the best solution for a particular problem."
+        },
+        {
+            "type": "H1",
+            "content": "2. Model building"
+        },
+        {
+            "type": "P",
+            "content": "This is the stage in the AI model development that usually gets most attention when it comes to explainability. To build more explainability into our models, we have two possibilities: We can use interpretable models (e.g., decision trees) from the get go, or use tooling on top of “blackbox” models."
+        },
+        {
+            "type": "H2",
+            "content": "Interpretable models:"
+        },
+        {
+            "type": "P",
+            "content": "An interpretable model is a model which can be understood by a human on its own, without using additional techniques or tooling. To rephrase that, we can look at the model itself and understand how it makes a prediction. An easy example of an interpretable model is a decision tree — going through each node of the tree, we can observe how the model made each prediction."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "d6cc78d69024d2961b7574f04255b32d.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/0*De4-zZT7DruJdWFQ",
+            "caption": "Source: https://algobeans.com/2016/07/27/decision-trees-tutorial/"
+        },
+        {
+            "type": "P",
+            "content": "There is often a trade-off between more interpretable models vs increased performance. However, in contrast to academics, real life use cases often need a model that only works ‘good enough’; in other words, interpretability can often add more value than a slight improvement in performance. In those cases, we can consider using a simpler, more interpretable model, such as logistic regression, decision trees or KNN."
+        },
+        {
+            "type": "P",
+            "content": "Another way to make a model more interpretable is through combining manual (business) rules with machine learning. This is called “hybrid AI”, a field that has been gaining quite some attention."
+        },
+        {
+            "type": "H2",
+            "content": "Explainable models — using tooling to explain a black box:"
+        },
+        {
+            "type": "P",
+            "content": "Usually, interpretable models are preferred — they are easier to understand and explain. However if using a simpler, more interpretable model is not the go to option in a certain case, we can use different techniques and tooling to shed light on black box models (this is actually what people most typically refer to when they talk about Explainable AI). In this case, we can use different techniques or tooling, such as feature importance: which features (or influences) contributed the most to the result. These techniques however often only provide an approximation for how the model works, in retrospective."
+        },
+        {
+            "type": "P",
+            "content": "Which tool to use is heavily dependent on the model and the use case. When working with structured data, a commonly used tool is SHAP to determine the importance or influence of each feature on a prediction (think back for example on the wind turbine use case mentioned earlier). As shown in the picture below, SHAP will tell you for each prediction (output), which feature (e.g. age, sex, bmi) contributed to what extent to the final value of the prediction."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "4b084aaa7f3b2ad1e58f3935c4f93dbc.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/0*Il5nToEmtkZb1Alq",
+            "caption": "Source: https://stats.stackexchange.com/questions/466278/machine-learning-feature-importance-method-disagreement-shap"
+        },
+        {
+            "type": "P",
+            "content": "There are of course many more tools and techniques, not only for structured data but also for images and natural language. Too many in fact for today — keep posted for a separate (more technical) blogpost!"
+        },
+        {
+            "type": "H1",
+            "content": "3. Result visualization"
+        },
+        {
+            "type": "P",
+            "content": "In the final step of the AI workflow, we usually want to visualize our results (let’s keep the whole, very important deployment topics of the AI workflow out, just for this once). Adding intuitive visualisations usually helps the users to understand the outcome better and is a great tool to help people understand how certain models work — increasing explainability and trust in the solution."
+        },
+        {
+            "type": "P",
+            "content": "Let’s get back on our earlier example in the real estate market. After figuring out the reasons why a property was deemed fitting for a commercial customer with the appropriate tooling, we visualized those reasons in an intuitive user interface. This helps the user understand the results without being overloaded with the technical details of the model, further contributing to interpretability."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "e4f930bf1283fe204644a63c8d113bc7.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/0*5lZ5jSBqQUnV0e3Z",
+            "caption": null
+        },
+        {
+            "type": "H1",
+            "content": "CONCLUSION"
+        },
+        {
+            "type": "P",
+            "content": "In this blog post, we have presented a high level overview of the reasons why we believe Explainable AI is important, as well as some pointers on how to go about it. To sum it up:"
+        },
+        {
+            "type": "UL",
+            "items": [
+                "What an explainable AI solution looks like is always problem specific. Depending on the maturity of the model or solution, explainability can be used with different goals in mind, always focused on better leveraging human-AI collaboration and increasing trust in AI solutions — which will ultimately also benefit the business.",
+                "Explainable AI can be considered as part of the entire AI project, not just as part of the model. It starts with documenting the dataset and reframing the problem, explainable models and tooling, and ends with an intuitive user interface",
+                "When it comes to explainable models itself, there is still a tradeoff between performance and explainability (although research is advancing fast in the area of explainable AND performant models!). In practice, the added value from more explainability often outweighs a slight decrease in performance, however this needs to be decided for each specific use case."
+            ]
+        },
+        {
+            "type": "P",
+            "content": "We hope we were able to convince you that explainable AI can have significant business impact. If you have any comments, questions or feedback — let’s chat!"
+        },
+        {
+            "type": "P",
+            "content": "Credits: Inspiration on the three levels of XAI and its goals has been drawn from Dhruv Batra and Selvaraju et al."
+        }
+    ]
+}

@@ -1,0 +1,176 @@
+{
+    "title": "Translating sign language with AI on a Google Glass",
+    "author": "CAO,Zhuo",
+    "readTime": "8 min read",
+    "publishDate": "Mar 27, 2023",
+    "blocks": [
+        {
+            "type": "FIGURE",
+            "filename": "6874889edec7b31f781661be99a39ac7.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*SSSsEe5iCOlDPFI4bP_56w.gif",
+            "caption": "American Sign Language ‘But’"
+        },
+        {
+            "type": "P",
+            "content": "Sign Languages (SLs), which use the visual-manual modality to convey meaning, serve as the primary form of communication for 70 million Deaf or Hard-of-Hearing (DHH) people around the world. They are natural languages with their own grammar and lexicon. Furthermore, they vary from country to country and region due to geographical and cultural factors. For example, the figure below illustrates the similarity between the Chinese character ‘person’ and the Chinese Sign Language (CSL) expression for ‘person’. Therefore, different sign language users have difficulties understanding each other."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "52517ff771debfe2ae6d6c19c038bae2.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*naNzqqho3sKht-uBWh-P2w.png",
+            "caption": "The Chinese character for the word ’person’ (left) and the expression for that same word in Chinese Sign Language (right)."
+        },
+        {
+            "type": "P",
+            "content": "Furthermore, the communication barrier between the DHH community and the rest of the world is difficult to overcome, as the latter usually is unaware of SL."
+        },
+        {
+            "type": "P",
+            "content": "The Sign Language Recognition (SLR) was proposed to solve this problem. SLR is a computational task that recognizes the meaning in sign languages using modalities such as vision, depth, and other sensory information.In addition to helping SL and non-SL users to understand each other, it can also serve as a novel method by which DHH users could interact with the Internet of Things (IoT) or assist the sign language educational system."
+        },
+        {
+            "type": "P",
+            "content": "Although many researchers have been working in this field, the development of SLR is still far behind its spoken language counterpart. Despite the growth of speech recognition products on the market, sign language recognition products are still a rarity. There are several reasons behind this."
+        },
+        {
+            "type": "P",
+            "content": "On the one hand, the methods that can easily extract the spatial features required by SLR (e.g. human pose) from images and videos are only used and interest in recent years, especially after the introduction of convolutional neural networks (e.g. OpenPose, MMPose, AlphaPose, Vision API, and MediaPipe). Moreover, unlike spoken language, in which the time series data can be decomposed to waves, there is no mathematical model to describe the temporal feature of human pose movement. This difficulty is being solved by recent sequential machine learning models, such as RNN and Transformer."
+        },
+        {
+            "type": "P",
+            "content": "On the other hand, in scenarios such as medical treatment, the doctors need to understand the sign language while their hands are occupied. In order to address this, the SLR product must be portable and easy to operate, making wearable devices (e.g. Google Glass) an ideal platform."
+        },
+        {
+            "type": "P",
+            "content": "As a result, this internship project at ML6 aims to establish a SLR model (part 1) that can accurately and efficiently recognize the semantics of sign languages and design an application (part 2) on Google Glass performing the SLR task. Without further ado, let’s checkout the details!"
+        },
+        {
+            "type": "H1",
+            "content": "Part 1: Backend Model"
+        },
+        {
+            "type": "H2",
+            "content": "Datasets"
+        },
+        {
+            "type": "P",
+            "content": "As mentioned, sign languages are not universal. Therefore, datasets of different sign languages are required. This makes the SLR problem complicated: usually, a specific model is tested only on one or two datasets. It is difficult to compare one model’s performance with another if they are not trained on the same dataset. Luckily, there are benchmark datasets available, allowing us to compare and improve models and pick a good one. Admit and Yoav made a thorough summary of existing datasets."
+        },
+        {
+            "type": "P",
+            "content": "In this project, we use American Sign Language (ASL) to demonstrate the ability of the final application without losing generality. Actually, ASL is used by approximately 500,000 users in the US alone and is widely spread to the DHH communities in over 20 countries around the world. Nevertheless, we emphasize that the application can be trained with any other sign language as long as a high quality dataset exist. The figure below compares the publishing year, number of videos (in log scale), and type of ASL benchmark datasets, where the type of a dataset means whether the videos contains a word (isolated) or a sentence (continuous) of sign language."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "9c630cb45d9eb8ffbf5637edb4c44e9e.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:600/1*6LFoUTXBKjZuH7TC8avyTg.png",
+            "caption": "The ASL datasets’ information. The x-axis shows the publishing year, y-axis represents the size (number of videos) of the dataset. The colored markers indicate the type of sign languages, namely continuous (orange) or isolated (green) sign language. A blue dot means the dataset contains both continuous and isolated sign language videos."
+        },
+        {
+            "type": "P",
+            "content": "The recently published WLASL dataset was selected for the next step. It contains 21,083 videos covering 2,000 words performed by 119 signers. The classes of the dataset are sorted according to the number of videos they appear in, based on which the dataset is split into four subsets. The subsets WLASL{100, 300, 1000, 2000} include top-{100, 300, 1000, 2000} classes respectively. The author has split the dataset into train, validation, and test sets, which makes model comparison easier. For larger dictionaries, recognition difficulty increases significantly, so we focus on the WLASL100 subset in this project."
+        },
+        {
+            "type": "H2",
+            "content": "Models"
+        },
+        {
+            "type": "P",
+            "content": "The SLR problem has been studied for many years. There are too many great models to list here. Interested readers are referred to review papers, such as Koller2020, Adeyanju2021, and Elakkiya2021. In this section, we discuss only benchmarks on the WLASL dataset. The type (see below) and accuracy onWLASL100/300 of each model have been summarised in the table below."
+        },
+        {
+            "type": "P",
+            "content": "In recent years, the main research directions for the isolated SLR problem are appearance-based and pose-based models. Appearance-based models extract features from images for classification (e.g. VGG-GRU and Tk-3D). As a comparison, pose-based models directly use body keypoints for classification (e.g. Pose-GRU, GCN-BERT, and SPOTER). Since body keypoints are high-order features, pose-based models are usually light-weighted and more efficient. However, image data contains much more information than skeleton data. As a result, appearance-based models are generally more accurate but also slower than pose-based models. In addition to the spatial features listed above, temporal features are also important for SLR problem."
+        },
+        {
+            "type": "P",
+            "content": "Two solutions are proposed to handle this. The first method feeds the extracted spatial features into a temporal sequence classifier, such as Gated Recurrent Unit (GRU) and LSTM. Other than this, 3D models that consider spatio-temporal features are also proposed (e.g. I3D, Pose-TGCN, and 3DRCNN). This kind of model is usually more accurate but less efficient because of its complexity."
+        },
+        {
+            "type": "P",
+            "content": "For its high accuracy, the efficient pose-based model SPOTER is selected to ensure the final product runs in real-time. The model takes 54 body keypoints and makes the classification using a Transformer-like architecture. Compared with a baseline model I3D, SPOTER achieves a similar accuracy with much less parameters. Note that the original SPOTER model was trained with the keypoints data extracted by Apple’s Vision API. We use MediaPipe, a light-weight open source library developed by Google. With such a minor difference, the accuracy is boosted by ~15%, which leaves us an interesting research direction."
+        },
+        {
+            "type": "H2",
+            "content": "Model Training and Performance"
+        },
+        {
+            "type": "P",
+            "content": "Now that we have selected our dataset (WLASL) and model (SPOTER), it’s time to combine them to get a working SLR tool."
+        },
+        {
+            "type": "P",
+            "content": "The first step is feature extraction. The holistic function of MediaPipe is applied to the WLASL100 subset. This function extracts the keypoints of the body, hands, and face all at once. The keypoints will be normalised in the next step. Bounding boxes are determined based on the signer’s shoulder distance and hand sizes, so that the model is insensitive to the signers’ position in the scene and their figure type. Finally, the model is trained using body keypoints that are augmented using methods such as rotation, squeeze, and perspective transformation. There is nothing special in this step: the Cross-Entropy loss function and an SGD optimiser with a fixed learning rate of 0.001 are combined to train the model."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "ae72490dbcd9f1a9ad123fafe936809b.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:500/1*aMFTGkqtFUUFfhFGRTpOaw.gif",
+            "caption": "The WLASL video frames with keypoints and bounding box overlaid. The normalised body and hands keypoints are shown above."
+        },
+        {
+            "type": "P",
+            "content": "However, the trained model gets a surprisingly good result: 77%! This is about 15% better than the original setup. Note that the only significant difference between the two setups is the feature extraction tool. Although the feature leading to this difference remains unclear, this inspires us to think: whether the quality of the pose data people used to train their model is high enough? Since this setup has achieved SOTA accuracy with ten times faster inference time, it has been submitted to the top-tier conference CVPR AVA workshop. The proposal, poster, and demo can be found on the huggingface website."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "5209e4c16b400f8d9c63acf1bd5401ea.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:600/1*XGFjRzpx4W6ATR-OB37T_A.png",
+            "caption": "The accuracy and confusion matrix of our model on the WLASL100 test set."
+        },
+        {
+            "type": "H1",
+            "content": "Part 2: The Google Glass Application"
+        },
+        {
+            "type": "P",
+            "content": "We need a portable, easy-to-operate device with an interface before our accurate model can be used. A Google Glass is a suitable candidate thanks to its glasses-shaped wearable design. Nevertheless, there are several technical difficulties during implementation."
+        },
+        {
+            "type": "UL",
+            "items": [
+                "The computational power of a Google Glass limits its development of AI applications. As a solution, a server hosting an SLR pipeline collaborates with Google Glass to create an end-to-end application. The structure of the application is shown in the figure below. The Transmission Control Protocol (TCP), which ensures minimal data loss and the correct data order, is responsible for data communication."
+            ]
+        },
+        {
+            "type": "FIGURE",
+            "filename": "7dadf3b24fe4b3818c74d6e1ff1a22c9.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*vGSsX9zzCQj4ixnKZbXy0g.png",
+            "caption": "The app structure demonstration. The video captured from the Google Glass camera is transferred to the server for sign language recognition. The result is then sent back to the Google Glass for users to see. Source Google Glass image: https://secureangel.fr/fr/website/option/lunettear"
+        },
+        {
+            "type": "UL",
+            "items": [
+                "The model is trained using an isolated SLR dataset, where each video only contains one word. Therefore, we need to artificially determine the boundary between words in the real world, where the video frames are continuously fed to the model. To solve this, we define a ‘still-standing state’ as a separator between two signs according to the elbow and shoulder abduction angle (see figure below)."
+            ]
+        },
+        {
+            "type": "FIGURE",
+            "filename": "d0952a44f0d6e4aacfbb2a625c02ba5a.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:300/1*PM9Z0mx0NyCBaYnU95irPg.png",
+            "caption": "The angles used to define a still standing state. The shoulder abduction angle measures how high the arm rises and the elbow angle measure the degree of bending of the arm."
+        },
+        {
+            "type": "P",
+            "content": "Other details, such as image compression/decompression and data transfer are are not covered in this blogpost. Eventually, after several weeks of exploring, struggling, and programming, the Google Glass application finally worked. It is able to send the recorded video constantly to the server for inference, after which it receives and displays the predicted result. Thanks to our light-weight backend model, the application achieves ~12 FPS while using a MacBook Air (M1, 2020) as the server, which is more than good enough for a smooth user experience. The performance can be definitely boosted by replacing the server with a GPU device, e.g. a Jetson. The UI is designed as simple as possible because of the small Google Glass screen. An example of the UI is shown below."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "d97f281c3c2ecdb0e91111b997aed665.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*t9V5patwYL0rypBKMdF3wQ.png",
+            "caption": "The user interface design. The figures are screenshots taken from the Virtual Scene in Android Emulator, which simulates a physical device on a computer to test the application. The icon in the top-left corner indicates the state of the signers (whether still-standing or not). The green filled person icon with a plus sign means the signer is moving. The still-standing state is represented by a yellow person icon. When the white person outline icon appears, it means there is no person detected in the frame. The number of frames that used for inference (buffer size) is shown in the top-right corner. The predicted sign is placed at the center of the screen with a large enough font size."
+        },
+        {
+            "type": "H1",
+            "content": "Conclusion"
+        },
+        {
+            "type": "P",
+            "content": "In this article, we have introduced a novel pipeline that enables Google Glass to support Sign Language Recognition (SLR) tasks. It consists of a backend model and a frontend user interface. On the backend aspect, we have successfully combined MediaPipe and the Transformer-like model SPOTER to achieve state of the art accuracy with a much higher level of efficiency. On the frontend aspect, we implemented a server-client architecture that gets rid of the computational power limitations of Google Glass. Combined, the pipeline is accurate and real-time."
+        },
+        {
+            "type": "P",
+            "content": "This is a big step towards our goal, which is reducing the communication barrier between the DHH communities and the rest of the world. However, it is not perfect yet. While there is improvement potential for this specific project, the whole SLR field is not mature enough for industrial products. For example, full sentence-level recognition, which is the goal of SLR, is only possible when the word-level tools support a large enough dictionary and the human pose sequence is better modeled. It is challenging, but very interesting from a technical standpoint. I’m looking forward to what the coming years will bring for the SLR field!"
+        }
+    ]
+}

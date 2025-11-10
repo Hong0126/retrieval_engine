@@ -1,0 +1,120 @@
+{
+    "title": "My authentic opinion on the autonomous anatomy of AutoGPT",
+    "author": "Jens Bontinck",
+    "readTime": "5 min read",
+    "publishDate": "Apr 18, 2023",
+    "blocks": [
+        {
+            "type": "P",
+            "content": "In this blogpost, I share my view on the status quo of AutoGPT. In this blogpost, you will not learn how to run it, nor will I go into details of the technical solution. Therefore, if you are a product owner, a functional analist, or a commercial enthousiast, this should be right up your alley. Happy to read your feedback!"
+        },
+        {
+            "type": "P",
+            "content": "I have been closely following the development of AutoGPT, created by Significant Gravitas. AutoGPT stands for Autonomous Generative Pre-training Transformer and is an open-source experiment that is drawing a lot of attention at the moment of writing(GitHub link). AutoGPT goes beyond an ordinary chatbot, and its decision-making power reduces the need for human intervention and thus allows for future automation and value creation. Did you skipped a heartbeat when seeing the first possibilities, or did the current missing features made you rather nervous?"
+        },
+        {
+            "type": "FIGURE",
+            "filename": "fab13c09603533f608e15590e1884612.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*FmoCmyM_ln9-8n31SjAhgw.png",
+            "caption": "Auto-GPT is drawing a lot of attention these days on GitHub"
+        },
+        {
+            "type": "H1",
+            "content": "The anatomy of how AutoGPT works?"
+        },
+        {
+            "type": "P",
+            "content": "AutoGPT is provided with an identity/role and a task, providing details about what it is supposed to do. This is fairly easy, and the perceived power of AutoGPT lies in what it does with that starting context. AutoGPT can be seen as an agent that seeks to complete the task autonomously by using a framework that allows it to reason and act. Each task is handled by an ‘Execution Agent’ (GPT-4) and provides input to one or more other GPT-4 agents, which is adding new (sub-)tasks to be completed by the agent. In short, AutoGPT is able to unravel a bigger objective in smaller tasks and mainly act as an orchestrator to achieve the initial objective."
+        },
+        {
+            "type": "BLOCKQUOTE",
+            "content": "AutoGPT is able to unravel a bigger objective in smaller tasks and I see it currently as a ‘ task orchestrator’ to achieve the initial objective."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "5d81f6728f2856c14dc596cd149d1df6.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*5o8WETS5G5p3x1YyjOqsdw.png",
+            "caption": "source: Lesswrong — https://www.lesswrong.com/posts/566kBoPi76t8KAkoD/on-autogpt"
+        },
+        {
+            "type": "H1",
+            "content": "Why is it perceived better than ChatGPT?"
+        },
+        {
+            "type": "P",
+            "content": "Some enthousiasts degraded ChatGPT directly when wrapping their head around the first results of AutoGPT. In essence, I believe the difference boils down to following features, allowing AutoGPT to differentiate from ChatGPT:"
+        },
+        {
+            "type": "UL",
+            "items": [
+                "Smart(er) (and faster) prompting helps LLMs overcome their inherent limitations in areas such as the content window and math problem-solving.",
+                "Internet access allows AutoGPT to access more and up-to-date information.",
+                "(long term) Memory supports keeping a context across the executed tasks."
+            ]
+        },
+        {
+            "type": "P",
+            "content": "Another facet that is contributing to this overall perception is that AutoGPT doesn’t require us to trigger the next steps (besides the approval to execute commands, for cost purposes I believe), while ChatGPT required a human (you!) to swiftly come with a well-crafted prompt to assure the quality and effectiveness of the subsequent outputs. This ‘compounding effect’ of an agent handling a series of tasks by itself is new to us, and is leaving a big impact to the community today."
+        },
+        {
+            "type": "H1",
+            "content": "Impact on Business Applications"
+        },
+        {
+            "type": "P",
+            "content": "The current possibilities of AutoGPT seem endless, but we are in the early days of its development (yes, it’s hyping today). Today, AutoGPT is still limited by a set of pre-defined commands (of which more will come every day) and its true scale will lie in the number of atomic tasks it supports.Also, these days you quickly experience that AutoGPT can get stuck in a loop, is not able to handle the tasks and thus not able to provide you the expected output."
+        },
+        {
+            "type": "P",
+            "content": "However, the genie is out of the bottle, and more and more people will test and improve AutoGPT. Everyday AutoGPT will be able to handle more and more atomic tasks and the perception of it’s power will further increase."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "8658d90eee91bbc5ad1bda0c219658a0.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*hdg8jQiT524Rv8LdbGSlqQ.png",
+            "caption": "An overview of additional atomic tasks (e.g. Bing Search, email, Twilio, Telegram, …)"
+        },
+        {
+            "type": "P",
+            "content": "In the coming months, I anticipate the business impact of AutoGPT will still be limited to the fairly easy processes, of which the subtasks are known and ‘supported’ . Over time, we will have a clearer distinction between use cases where AutoGPT is useful (e.g. initial research, composing an itinerary for your next travel destination, …) and where it is not doing a great job at all. For these successful use cases, it will further revolutionise the way we work and interact with machines and the role of humans overall."
+        },
+        {
+            "type": "P",
+            "content": "One key element to keep in mind: as long as third parties do not allow access to perform operations via an API, AutoGPT will not suddenly (and magically) be able to execute the tasks successfully. People will need to tell to AutoGPT how to handle atomic tasks (e.g. how to send an email, how to browse, how to query the latest flights to Malta, … how to launch a rocket…) in order for AutoGPT to benefit from it."
+        },
+        {
+            "type": "H1",
+            "content": "Is This a Next Step towards AGI?"
+        },
+        {
+            "type": "P",
+            "content": "AutoGPT is not the only system that performs similar functions. Other systems include Microsoft Jarvis and BabyAGI. All three initiatives are a promising a first step towards AGI, Artificial General Intelligence, and I believe the evolution will go faster and faster. From that perspective, I believe it is good that there is much time spent on investigating the possibilities of such systems today already."
+        },
+        {
+            "type": "P",
+            "content": "Today we know already that if AutoGPT knows how to perform an atomic task, it is able to generate results in a much higher rate than our brain. However it is still in our hands to provide the possibility to interact with e.g. a rocket via an API. In other words, if we create a way that allows everyone to interact with a rocket launcher, than AutoGPT could learn how to interact with it."
+        },
+        {
+            "type": "P",
+            "content": "Another reasonable threat we should anticipate on, is the ability of AutoGPT, and thus the LLMs behind it, to sound like human and to reason like human. This could encourage the instructor to take action outside of the possibility of AutoGPT. A drastic example to make my point: if you ask AutoGPT to solve a dispute, it could identify that sending a rocket is the best thing to do and that you should do it tomorrow. (Don’t do it!)"
+        },
+        {
+            "type": "H1",
+            "content": "Conclusion"
+        },
+        {
+            "type": "P",
+            "content": "In conclusion, AutoGPT is an exciting development in the field of AI, and we should closely follow its progress. Future versions will have improvements on functionality, memory, UI, … which all will contribute to the overall perception of AutoGPT as a first step to AGI. These rapid evolutions will provide further insights in the significant benefits to businesses it will bring."
+        },
+        {
+            "type": "P",
+            "content": "I believe we must also be aware of the fact that AutoGPT is still an experiment and therefore I tend to be more conservative than ‘the internet’ today. AutoGPT is still quite expensive to run, ends up in infinite loops quite often and is not capable of ‘everything’ (as stated by some online). The genie is out of the bottle but it will take some additional human intelligence to maximise the value of AutoGPT."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "0da9ab63c9d10693e5763f4cb415179b.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*GEmKcQYzfuGe3d5Eg7sHAg.png",
+            "caption": null
+        }
+    ]
+}

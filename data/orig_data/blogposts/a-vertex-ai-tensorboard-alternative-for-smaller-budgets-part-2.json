@@ -1,0 +1,228 @@
+{
+    "title": "A Vertex AI TensorBoard alternative for smaller budgets (Part 2)",
+    "author": "Tim De Smet",
+    "readTime": "6 min read",
+    "publishDate": "Feb 15, 2022",
+    "blocks": [
+        {
+            "type": "FIGURE",
+            "filename": "91f375d296e3ff48b9f2f5d3b7a03d75.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/0*MKFb5f1E3t_XENZO.png",
+            "caption": null
+        },
+        {
+            "type": "BLOCKQUOTE",
+            "content": "This post follows up on a previous post written by my colleague Maximilian, where he explains how difficult it is to share TensorBoards securely with others. This second post explains the solution to that exact issue."
+        },
+        {
+            "type": "P",
+            "content": "As an MLOps proponent, I believe experiment tracking is important. If you’re not doing it already you should probably start."
+        },
+        {
+            "type": "P",
+            "content": "Having information about what stuff you tried and the corresponding results is vitally important. It ensures you’re able to retrace your steps, improve incrementally, and not waste time and compute on stuff that has been tried before by anyone on your team."
+        },
+        {
+            "type": "P",
+            "content": "Being able to share the reporting with other people is an important part of experiment tracking. That way everyone knows what worked and what didn’t."
+        },
+        {
+            "type": "P",
+            "content": "In this post, I’ll explain:"
+        },
+        {
+            "type": "UL",
+            "items": [
+                "What TensorBoard is",
+                "What the issue is with Vertex AI TensorBoard (hint: 💰)",
+                "The cheaper solution (including the code)"
+            ]
+        },
+        {
+            "type": "P",
+            "content": "Feel free to skip to the last part if you are familiar with the topic and/or read Part 1 to this post."
+        },
+        {
+            "type": "H1",
+            "content": "What is TensorBoard?"
+        },
+        {
+            "type": "P",
+            "content": "TensorBoard is an open-source tool that provides the visualization and tooling needed for machine learning experimentation. It has many cool features including:"
+        },
+        {
+            "type": "UL",
+            "items": [
+                "Tracking and visualizing metrics such as loss and accuracy",
+                "Visualizing the model graph",
+                "And much more"
+            ]
+        },
+        {
+            "type": "FIGURE",
+            "filename": "e331eeec2020fa3c74c3a83e0ee7c5c3.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/0*XqtimFMxLqCmhnwE.gif",
+            "caption": null
+        },
+        {
+            "type": "P",
+            "content": "As you can see TensorBoard is a super valuable tool. But how exactly would you share this with colleagues? As explained in Part 1 of this post you have a few options. But none of them are optimal:"
+        },
+        {
+            "type": "UL",
+            "items": [
+                "Some options make your data publicly available (it goes without saying but this is a big nono when working with customer data 🙅‍♂️)",
+                "Other solutions require other people to set up a local environment to run TensorBoard and thus require certain technical skills from those people"
+            ]
+        },
+        {
+            "type": "P",
+            "content": "Is there no way of sharing a TensorBoard easily and securely? Well, there is actually. It’s Google Cloud managed TensorBoard service: Vertex AI TensorBoard. But there’s a catch…"
+        },
+        {
+            "type": "H1",
+            "content": "What’s the issue with Vertex AI TensorBoard?"
+        },
+        {
+            "type": "P",
+            "content": "It’s the pricing plan. Next to the basic cloud infrastructure cost, Google charges $300 per active user…"
+        },
+        {
+            "type": "P",
+            "content": "That’s everyone that visits the UI…"
+        },
+        {
+            "type": "UL",
+            "items": [
+                "Want to share some results with your teammate? + $300 💰",
+                "Want to share them with your boss? + $300 💰",
+                "Want to share them with your customer? + $300 💰"
+            ]
+        },
+        {
+            "type": "P",
+            "content": "You get the gist, this gets expensive pretty quickly. IMO this is a shame. I can’t stress enough how important experiment tracking is and making this service that expensive doesn’t promote the practice nor does it lower the barrier to entry."
+        },
+        {
+            "type": "H1",
+            "content": "The cheaper solution"
+        },
+        {
+            "type": "BLOCKQUOTE",
+            "content": "To recap: our goal is to host our TensorBoards so we can share them in a secure and cost-effective way to enable experiment tracking for our ML projects."
+        },
+        {
+            "type": "H2",
+            "content": "The architecture"
+        },
+        {
+            "type": "P",
+            "content": "I’ll first explain the architectural choices a bit, afterward, the code will be shared."
+        },
+        {
+            "type": "BLOCKQUOTE",
+            "content": "I used infrastructure as a service tool Terraform so replicating this setup should be done in no time."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "c547428fd8bbb4b7fa877997ba3327f3.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*kFrRPRw8k8SQFyVqpqgxhQ.png",
+            "caption": null
+        },
+        {
+            "type": "P",
+            "content": "The logs should be stored in a GCS bucket of your choice. TensorBoard will read the logs directly from your bucket and will update automatically if the logs change. That means you and your colleagues can all watch your fancy new model training in real-time! 🕵️‍♂️"
+        },
+        {
+            "type": "P",
+            "content": "We use IAP (Identity-Aware Proxy) to authenticate our users. IAP allows us to use identity and context to guard our TensorBoard app. We simply put this in front of our TensorBoard app and all requests are routed through IAP first to ensure that only the people that we gave access to are allowed through. Setting up IAP requires us to create an OAuth consent screen and other stuff. I’m assuming you’re familiar with IAP. If not this guide explains it well."
+        },
+        {
+            "type": "BLOCKQUOTE",
+            "content": "Big-brain security note here: To be completely secure you want your app to check whether it is behind IAP (ref). That way you are sure that even if someone turns off IAP in the future, your data still doesn’t become publicly available. Our setup handles this as well!"
+        },
+        {
+            "type": "P",
+            "content": "Lastly, we have to deploy TensorBoard as an app. I went with App Engine over Cloud Run. Integrating Cloud Run with IAP (at least at the time of writing) is kind of a hassle. You’d have to create a reverse proxy between IAP and the Cloud Run instance. Additionally, in order to create that reverse proxy, a domain name is needed and we have an organizational policy in place that prevents creating those on the fly."
+        },
+        {
+            "type": "P",
+            "content": "Integrating IAP with App Engine is much easier, and since App Engine also scales to zero (at least if you stick to the standard environment) it’s a good fit for this use case."
+        },
+        {
+            "type": "P",
+            "content": "People that are familiar with App Engine and TensorBoard are probably asking themselves how we managed to get TensorBoard running in an App Engine standard environment."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "91a87e7f55306e68686807e41391c5a9.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:681/0*Ob0NSSq3yoPAPi2y.jpg",
+            "caption": null
+        },
+        {
+            "type": "P",
+            "content": "Fair question, standard environments are language-specific environments so having a bash tool in there may sound strange. I needed a few neat tricks to pull this off:"
+        },
+        {
+            "type": "UL",
+            "items": [
+                "I use a standard python environment. By simply including a requirements.txt TensorFlow (which includes TensorBoard) will get installed automatically in the environment by App Engine.",
+                "I don’t use a main.py file at all. Normally you’d code your app in that file. Instead, I use the entrypoint field you would find in the app.yaml file to run the tensorboard command.",
+                "Lastly, I use the handlers field you’d find in the app.yaml file I’m able to shut down all functionality of my app if there’s no logged-in user. That’s how I ensure that my data remains private even if IAP would get turned off by mistake."
+            ]
+        },
+        {
+            "type": "P",
+            "content": "By worming my way into the App Engine standard environment we can reap the rewards of our app scaling to zero."
+        },
+        {
+            "type": "BLOCKQUOTE",
+            "content": "Only the App Engine standard environment scales to zero. The flexible environment, where you would be able to use a more obvious Docker approach, doesn't scale to zero."
+        },
+        {
+            "type": "P",
+            "content": "Luckily the explanation is quite a lot more involved than the actual code! 🧑‍💻"
+        },
+        {
+            "type": "H2",
+            "content": "The code"
+        },
+        {
+            "type": "P",
+            "content": "The code defines everything we need using Terraform. We won’t even need the classic App Engine files ( app.yaml , main.py , and requirements.txt)."
+        },
+        {
+            "type": "P",
+            "content": "This chunky Terraform file does quite a few things:"
+        },
+        {
+            "type": "UL",
+            "items": [
+                "It makes sure we have a bucket for our logs",
+                "It creates a requirements.txt file in that bucket",
+                "It sets up IAP correctly (enables the service, creates a consent screen, and creates an OAuth client)",
+                "It does all the necessary App Engine stuff"
+            ]
+        },
+        {
+            "type": "P",
+            "content": "In the last part of the tensorboard.tf Terraform file we can explicitly define who should have access to our TensorBoard."
+        },
+        {
+            "type": "H1",
+            "content": "Wrapping up"
+        },
+        {
+            "type": "P",
+            "content": "The Terraform file abstracts away some engineering complexities concerning this setup. Feel free to reach out if you have any questions."
+        },
+        {
+            "type": "P",
+            "content": "Cost-wise you’re looking at the classic Cloud Storage, App Engine, and IAP costs. In contrast to Vertex AI TensorBoard, this approach has no extra per-user cost."
+        },
+        {
+            "type": "P",
+            "content": "I hope this cost-effective solution can lower the barrier to entry for all those interested in securely sharable TensorBoards. Keep on experiment tracking!"
+        }
+    ]
+}

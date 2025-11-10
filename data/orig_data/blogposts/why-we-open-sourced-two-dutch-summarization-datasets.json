@@ -1,0 +1,165 @@
+{
+    "title": "Why we open sourced two Dutch summarization datasets",
+    "author": "Jakob Cassiman",
+    "readTime": "4 min read",
+    "publishDate": "May 12, 2022",
+    "blocks": [
+        {
+            "type": "P",
+            "content": "Dutch NLP lovers, listen up! We recently shared two (2) huge machine-translated Dutch summarization datasets with the Hugging Face community (here and here they are if you can’t hold your pants)."
+        },
+        {
+            "type": "P",
+            "content": "Both datasets come from English news organizations. The first dataset is a machine-translated version of CNN and Dailymail data. The second dataset is based on BBC articles (XSum)."
+        },
+        {
+            "type": "P",
+            "content": "We translated both datasets with the English-to-Dutch Opus MT model, hosted on Hugging Face. Because it took multiple days of GPU power and half a horse to get the full dataset translated, we’ll show here why and how the dataset can be useful."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "5f0edd78e7b8cdf3fad84c6aeb084617.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/0*3JXOGyWNnYp8SKnd",
+            "caption": "ML6 loves Hugging Face"
+        },
+        {
+            "type": "P",
+            "content": "At ML6, we often get projects that involve Dutch natural language processing. Unfortunately, most open source datasets and pretrained machine learning models are in English."
+        },
+        {
+            "type": "P",
+            "content": "That means we have to get creative every now and then if we have to Dutchify them."
+        },
+        {
+            "type": "H1",
+            "content": "How to summarize Dutch news articles"
+        },
+        {
+            "type": "P",
+            "content": "Let’s say we get 500 example summaries and we want to train a machine learning model on those examples to summarize billions of news articles automatically."
+        },
+        {
+            "type": "P",
+            "content": "One of the approaches we can use is transfer learning. Transfer learning works in two phases."
+        },
+        {
+            "type": "OL",
+            "items": [
+                "The model learns general knowledge about language from huge unlabeled text corpora. Thanks to initiatives like Hugging Face, lots of those pretrained models are open sourced which saves everyone else the effort of doing that.",
+                "Then later, the model is further finetuned on labeled datasets that are more specific for the final use case."
+            ]
+        },
+        {
+            "type": "P",
+            "content": "Let’s see how that approach translates to our use case of summarizing Dutch news articles."
+        },
+        {
+            "type": "P",
+            "content": "First, notice how the use case is defined on three different axes:"
+        },
+        {
+            "type": "UL",
+            "items": [
+                "The task: summarization",
+                "The language: Dutch",
+                "The domain: news articles"
+            ]
+        },
+        {
+            "type": "P",
+            "content": "All effort we do throughout the transfer learning process is meant to collect language knowledge that will improve the model’s skills on one or more of those axes."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "ee9a110b58a16e4fdff5e1c2d893f38d.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:668/1*w9R82s3cVIrlao3JmQDZ0w.png",
+            "caption": "An NLP model has to be good on 3 aspects: domain language, task and language."
+        },
+        {
+            "type": "P",
+            "content": "To start off strong, we pluck a ripe ‘n juicy pretrained model from Hugging Face. Since our language is Dutch and our task is summarization, we’re looking for a multilingual sequence-to-sequence model. Let’s go for the mBART model."
+        },
+        {
+            "type": "P",
+            "content": "For step 2 in the transfer learning process, we could just use the 500 summarized news articles to finetune the mBART model and get okay results. But okay results are just okay and ML6 is not called OKL6, so let’s try to do better!"
+        },
+        {
+            "type": "H1",
+            "content": "Sequential adaptation is the new transfer learning"
+        },
+        {
+            "type": "P",
+            "content": "One night, a burning bush snuck up on one of our Thomasses here at ML6 (Thomas Dehaene, lord of NLP), and it whispered in his ear: “Try to use sequential adaptation with a machine-translated dataset.”"
+        },
+        {
+            "type": "FIGURE",
+            "filename": "2a2ba6201331ae03fd7ef7360a6ddb9c.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:557/0*btFFFujZnEuo3VZ9",
+            "caption": "The Holy Bush enlightening Thomas about how to solve the summarization problem."
+        },
+        {
+            "type": "P",
+            "content": "So, after putting some Flamigel on Thomas’s ear, we tried out the bush’ advice. And it worked!"
+        },
+        {
+            "type": "BLOCKQUOTE",
+            "content": "Sequential adaptation is when you use multiple adaptation phases for finetuning a pretrained model."
+        },
+        {
+            "type": "P",
+            "content": "Each of those sequential steps is meant to improve the pretrained model on some of the three axes we defined above:"
+        },
+        {
+            "type": "FIGURE",
+            "filename": "1a8be39bc7c2ffa81fa9d5a561f640f6.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*etQQrocE51qPpYFskWzCfA.png",
+            "caption": "Sequential adaptation in two stages. In each stage, the skill level increases for one of the axes. It is transfer learning, but the finetuning step consists of multiple phases."
+        },
+        {
+            "type": "P",
+            "content": "The clue is that we first use the datasets that we open sourced to adapt the model before using the 500 given summaries."
+        },
+        {
+            "type": "P",
+            "content": "We expect that those machine-translated datasets will not teach the model Dutch perfectly, but the task (summarization) and the domain (news) are perfect. After the first finetuning step, we then perform a second finetuning step with the 500 summaries."
+        },
+        {
+            "type": "P",
+            "content": "As a baseline, we compare the double finetuned model with an mBART model that’s only finetuned on the 500 news articles."
+        },
+        {
+            "type": "H1",
+            "content": "The subtle art of evaluating summarizations"
+        },
+        {
+            "type": "P",
+            "content": "At the bottom of the blog post, you will find five (non-cherrypicked) example summaries."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "d91bf2acb8b15f60fe821990875a33bd.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:640/1*aYBlR1EwBA0WNuugs5rANQ.jpeg",
+            "caption": "Evaluating summaries is a hard task. Just looking at the summaries can be a better metric than ROUGE scores."
+        },
+        {
+            "type": "P",
+            "content": "It’s very hard to properly evaluate the quality of summarizations. Common proxy metrics like the ROUGE scores are just that: proxy metrics. The underlying issue is that the one true summary doesn’t exist. So, in theory, you need a better summarization model than the ones you’re evaluating to properly evaluate summaries."
+        },
+        {
+            "type": "P",
+            "content": "Since this is just a blog post and no one will slap anyone based on these results, we’ll just use our own unbiased opinion. Have a look for yourself, but it seems as if the double pretrained model is the better one. Curious to know what you think!"
+        },
+        {
+            "type": "H1",
+            "content": "Conclusions"
+        },
+        {
+            "type": "UL",
+            "items": [
+                "We open sourced two machine-translated Dutch news summarization datasets",
+                "We tried out the datasets and it turns out it is useful as an extra finetuning step during transfer learning!",
+                "As a bonus, we also open sourced the final finetuned Dutch news summarization model here. Enjoy!"
+            ]
+        }
+    ]
+}

@@ -1,0 +1,205 @@
+{
+    "title": "Copilot: RAG Made Easy?",
+    "author": "Nicholas Sujecki",
+    "readTime": "7 min read",
+    "publishDate": "Jul 23, 2024",
+    "blocks": [
+        {
+            "type": "FIGURE",
+            "filename": "352d550dd43268667fd8531fa67f96d9.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:875/1*QX3UHbf0_R1hINmMOjZslQ.png",
+            "caption": "Myself, as of these past few weeks."
+        },
+        {
+            "type": "P",
+            "content": "In recent years, Large Language Models (LLMs) have revolutionised natural language processing by enabling machines to understand and generate human-like text with unprecedented accuracy and coherence. Their applications span across diverse fields such as chatbots and content creation, driving significant advancements in automation and AI-driven solutions. As a result, LLMs have become crucial tools in both academic research and commercial innovation, pushing the boundaries of what AI can achieve. Though, I’m sure you already knew this."
+        },
+        {
+            "type": "P",
+            "content": "What is a RAG Solution?"
+        },
+        {
+            "type": "P",
+            "content": "Enter, RAG (Retrieval-Augmented Generation). RAG solutions have gained popularity for their ability to enhance natural language generation tasks by incorporating retrieved information from external sources. They combine traditional language models with retrievers that fetch relevant information from large corpora or databases, allowing models to generate more accurate and contextually relevant outputs."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "050121bd3e51b7f2787ac1d0509621e2.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:875/1*GqdbT0QJ6qLQpbfHSgxFjA.png",
+            "caption": "A RAG system ft. ML6 celebrity Billy the Bookworm, as from here."
+        },
+        {
+            "type": "P",
+            "content": "What is Copilot?"
+        },
+        {
+            "type": "P",
+            "content": "Well, very good question! Microsoft’s Copilot is in essence a helper chatbot, able to assist with task automation, document summarisation, emailing and question answering, amongst others. Copilot’s RAG capabilities by default extend to any data within the 365 ecosphere (Teams, Word, PowerPoint, Outlook, etc.)."
+        },
+        {
+            "type": "P",
+            "content": "Without trying to start this article by throwing shade at Microsoft, the term ‘Copilot’ can be very vague and confusing, so bare with me. With some luck by the end of the article you’ll have a better understanding of exactly what Copilot is, when it’s useful, and why you might choose to use it. At the beginning of it all we have Copilot for Microsoft 365."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "9aaea36d2278fd2482229c501904a063.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:250/1*WF0TR0t_OsoBEHQsHJ0L4w.png",
+            "caption": null
+        },
+        {
+            "type": "P",
+            "content": "Copilot for 365"
+        },
+        {
+            "type": "P",
+            "content": "Copilot for Microsoft 365 is an out-of-the-box RAG assistant for Microsoft 365 services. Copilot for 365 integrates with all your 365 data, so everything in emails, teams, docs, excel is automatically available for querying."
+        },
+        {
+            "type": "P",
+            "content": "These benefits, however, are also Copilot 365’s downside. These conveniences mean you have no ability to customise them, meaning model type, guardrails and indexing/chunking are all out of your control. Extending Copilot to include additional functionality or data sources isn’t trivial without the help of additional software, so we’ll touch on this in a second."
+        },
+        {
+            "type": "P",
+            "content": "A Copilot 365 licence costs $30/User/Month for out-of-the-box Gen-AI and RAG capabilities. The cheaper alternative, Copilot Pro, is $20/User/Month without access to RAG and is instead purely for integrating Gen-AI capabilities within Microsoft 365."
+        },
+        {
+            "type": "P",
+            "content": "Overall, Copilot 365 is a great choice for quickly integrating Gen-AI and RAG capabilities without worrying about infrastructure. If an organisation primarily has data within 365 and wants a quick internal or customer-facing chatbot solution, it’s likely a pretty good choice."
+        },
+        {
+            "type": "P",
+            "content": "Copilot is more than just an out-of-the-box solution and can be extended, though for that you need:"
+        },
+        {
+            "type": "FIGURE",
+            "filename": "aaae5af248c959087d30b5ea9099c05d.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:185/0*CFx9uCPZlHy2KO7I",
+            "caption": null
+        },
+        {
+            "type": "P",
+            "content": "Copilot Studio"
+        },
+        {
+            "type": "P",
+            "content": "In Copilot Studio you can add ‘Knowledge’ via hundreds of premade connectors to external data like hugging face and salesforce, create conversational flows through triggers with ‘Topics’ (legacy from Power Virtual Agents, which Copilot absorbed) and add ‘Actions’ — things your Copilot can do, such as summarising data or getting a row from excel. There are thousands of these pre-supported actions, though in Copilot Studio you will not be able to make your own."
+        },
+        {
+            "type": "P",
+            "content": "It requires a licence of $200/Business/Month for developers and incurs additional usage costs, which can be a little confusing. 25000 messages costs $200, with the ability to top up as needed. A ‘message’ consists of any Copilot query, and counts as 2 when it uses Gen-AI. These costs come from the user end, so the additional license cost is only for the developers. Those using the Copilot in 365 only need a regular 365 licence."
+        },
+        {
+            "type": "P",
+            "content": "There are thousands of pre-supported Actions, though they’re most valuable when working together. And for that you need:"
+        },
+        {
+            "type": "FIGURE",
+            "filename": "e6bf16c4dfd043901c6023d948f82b77.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:240/1*vHuhxPYD6bwKT9LI7cK2rA.png",
+            "caption": null
+        },
+        {
+            "type": "P",
+            "content": "Power Automate"
+        },
+        {
+            "type": "P",
+            "content": "Power Automate allows us to chain them together to automate tasks and create new chains of functionality. Connectors for custom data ingestion can also be created in the Power Automate platform, or via Microsoft Graph APIs if one favours the pro-code approach. Once published, all automations become automatically callable by all Copilots within the same solution environment."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "4ffd2b351e51b000d80dd324d392fcec.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:250/1*IXVuhU6pgoTTrxhXE8133A.png",
+            "caption": null
+        },
+        {
+            "type": "P",
+            "content": "Bot SDK Framework"
+        },
+        {
+            "type": "P",
+            "content": "Earlier I mentioned you cannot create new actions in Copilot Studio. The way to do this is through the Bot SDK Framework, which can be considered the pro-code equivalent of Copilot Studio. At a basic level, a custom action is just an API specifying how Copilot can interact with another entity, which means they can be anything from a custom function to a complete other chatbot. They can be added to Copilot Studio as ‘Skills’, or to Microsoft 365 Copilot through the admin console. Entire Copilot solutions can be created just through the Bot SDK Framework, though RAG isn’t inherently supported. For that you need:"
+        },
+        {
+            "type": "FIGURE",
+            "filename": "69a221e496372ef6d3ab111cddedc19b.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:275/1*GoZPnFLQo3Y02ZtI3vHbTg.png",
+            "caption": null
+        },
+        {
+            "type": "P",
+            "content": "Semantic Kernel"
+        },
+        {
+            "type": "P",
+            "content": "The Bot Framework SDK can create RAG solutions through Semantic Kernel, which is essentially Microsoft’s LangChain. At this level we’re a world away from Copilots and closer to completely custom RAG implementations, though if you trawl the Microsoft documentation you’ll still find references to ‘Copilots’ here."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "b2c9a56dbca88b71141afb1851cf0064.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:281/0*MxzVF9Aw931Mj5SC",
+            "caption": null
+        },
+        {
+            "type": "P",
+            "content": "Azure AI Studio"
+        },
+        {
+            "type": "P",
+            "content": "Finally, Azure AI Studio is another platform used to develop Gen-AI solutions. It’s a bit more pro-code than Copilot Studio and gives users control over model type, indexing, fine-tuning and many other features, while still providing easy interfaces for data ingestion and flows. It allows greater control over creating Copilots than Copilot Studio, but does so at a cost."
+        },
+        {
+            "type": "P",
+            "content": "With Bot SDK Framework, Semantic Kernel and Azure AI Studio, all the infrastructure is your own problem. Costs are incurred therein and by model usage, and so only an active Azure subscription is required."
+        },
+        {
+            "type": "P",
+            "content": "So, What is a Copilot?"
+        },
+        {
+            "type": "P",
+            "content": "If the term ‘Copilot’ is feeling murky, I understand. Microsoft hasn’t done a very good job of consolidating their services or of making it obvious where to use what. There are a million other related Microsoft products and SDKs that all interact with small parts of the Copilot ecosphere, but for your own sanity simply ignore them. Below is the best abridged summary I’ve been able to come up with:"
+        },
+        {
+            "type": "UL",
+            "items": [
+                "I want Gen-AI in Microsoft 365: Copilot for 365",
+                "I want to casually extend it: Copilot Studio",
+                "I want task automation or custom connectors: Power Automate",
+                "I want control over my model: Azure AI Studio",
+                "I want to define custom functionality: Bot SDK Framework",
+                "I want a fully custom RAG solution: Semantic Kernel"
+            ]
+        },
+        {
+            "type": "FIGURE",
+            "filename": "99a381d694798f5b2351c05372c3132e.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:875/1*jZ5h9uVuReTLbX6ErT5mtg.png",
+            "caption": "One big, happy family."
+        },
+        {
+            "type": "P",
+            "content": "RAG Made Easy?"
+        },
+        {
+            "type": "P",
+            "content": "With Copilot Studio and Power Automate, it’s possible to create really comprehensive RAG solutions with very little overhead. Microsoft obviously wants to ship Copilot Studio and frankly, it makes automation and customisation super easy, but it’s important to remember that through Power Automate and the Bot SDK Framework, the savvy programmer can avoid the additional licensing charges, especially given for deeper customisation you’ll likely be using these tools anyway."
+        },
+        {
+            "type": "P",
+            "content": "At the end of the day, Copilot at its heart is meant to be an ease-of-use RAG solution, and in some respects it is, but overall I’m left underwhelmed with it’s feeling of friendliness. A user shouldn’t need to learn about this many different software’s just to understand what a ‘Copilot’ can and cannot do. If Microsoft chooses to include many options, great, but choose different product names. One additional notable example being ‘Github Copilot’, which is also owned by Microsoft, but has nothing to do with any of the services mentioned here. The confusion, overlapping of terms, unconsolidated services and lack of clarity in their documentation make approaching Copilot very difficult on any kind of non-trivial level. And for a RAG solution posing itself as friendly and low-effort, these are things Microsoft needs to consider."
+        },
+        {
+            "type": "P",
+            "content": "It took me a week to find enough coherent resources in Microsoft’s documentation to write these distinctions, so whether working within Microsoft’s framework is worth it is up to you. For the latest updates in all things RAG, be sure to stay tuned here, and if you are thinking about implementing a RAG solution or want advice on anything else that remains unclear, we’re always here to help."
+        },
+        {
+            "type": "P",
+            "content": "Feel free to contact me here: nicholas.sujecki@ml6.eu."
+        },
+        {
+            "type": "P",
+            "content": "Good luck out there."
+        }
+    ]
+}

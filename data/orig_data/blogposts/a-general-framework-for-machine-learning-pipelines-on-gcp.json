@@ -1,0 +1,445 @@
+{
+    "title": "A General Framework for Machine Learning Pipelines on GCP",
+    "author": "Maximilian Gartz",
+    "readTime": "13 min read",
+    "publishDate": "Jun 28, 2022",
+    "blocks": [
+        {
+            "type": "FIGURE",
+            "filename": "efeefc123038e87cf82c7e86808b731a.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:472/1*0TmJIk4eKyJDoN2t3iReDA.png",
+            "caption": null
+        },
+        {
+            "type": "P",
+            "content": "The goal of this blogpost is to provide a general framework for developing Vertex AI pipelines. Independent of the domain and specifics of the use-case you are working on, this is a blueprint for creating an end-to-end machine learning pipeline."
+        },
+        {
+            "type": "P",
+            "content": "To provide some concrete code for you to get started, I have implemented an image classification pipeline following this blueprint, but I will also detail how this can be adapted to any other problem. The example is implemented in a Colab, but I might provide a more structured implementation of this in a follow-up post."
+        },
+        {
+            "type": "P",
+            "content": "First, we will be reviewing what Vertex AI Pipelines are. Then I will introduce the general idea of the blueprint and describe its structure. In the end we will dive into how to use this blueprint for your specific use-case."
+        },
+        {
+            "type": "H1",
+            "content": "What are Vertex AI Pipelines?"
+        },
+        {
+            "type": "P",
+            "content": "Technically, a machine learning pipeline corresponds to various components being combined into a directed acyclic graph (DAG). There are many frameworks and services you can use to develop and run such pipelines."
+        },
+        {
+            "type": "P",
+            "content": "Every major cloud provider now provides their own machine learning toolbox. For AWS it is Sagemaker, Azure has Azure ML Studio and GCP recently released Vertex AI."
+        },
+        {
+            "type": "P",
+            "content": "Within Vertex AI, we find the Vertex AI Pipelines service, which allows us to run machine learning pipelines in a serverless manner. That is, we do not need to provision any compute resources. They will be spun up and shut down dynamically, based on the requirements defined for each component. You will just pay for the actual compute time used and a few cents per run on top. Every pipeline component will actually be run in a separate Vertex AI CustomJob, which is simply a container run on a machine with a certain resource configuration."
+        },
+        {
+            "type": "P",
+            "content": "To develop a pipeline that can be run on Vertex AI Pipelines, we need to define it either using TFX or the Kubeflow Pipelines SDK (kfp). I chose kfp for this guide, because it is machine learning framework agnostic and the developed pipelines can generally be run in a standalone Kubeflow Pipelines deployment on Kubernetes, so you are not necessarily locked into the GCP ecosystem."
+        },
+        {
+            "type": "P",
+            "content": "Note, however, that we will make use of a lot of Vertex AI features like hyperparameter tuning and training jobs, which would have to be replaced in a deployment on another cloud provider."
+        },
+        {
+            "type": "P",
+            "content": "I do assume basic knowledge about how Kubeflow pipelines work, so please review the documentation if you are unfamiliar with it. Google Cloud also has comprehensive guides on Vertex AI Pipelines to get you started."
+        },
+        {
+            "type": "H1",
+            "content": "The basic blueprint idea"
+        },
+        {
+            "type": "P",
+            "content": "The basic idea of the blueprint is that we do the same stuff all over the place. For different problem domains or tasks, we usually still follow the same overall process, but the models we choose and processing we do varies. The idea then is to define our pipelines in a way that we only have to replace these particular components to move from one use-case to the next."
+        },
+        {
+            "type": "P",
+            "content": "There are some assumptions made here, for example that you have your data in place already. I assume that you have your data readily available in GCS or BigQuery, for example prepared via separate data processing pipelines (e.g. using Dataflow)."
+        },
+        {
+            "type": "P",
+            "content": "Independent of the specifics, every use-case follows the same structure:"
+        },
+        {
+            "type": "UL",
+            "items": [
+                "Processing and splitting the dataset into training and test data",
+                "Training and tuning the model on the training data",
+                "Evaluating the trained model on the test data",
+                "Uploading the model to a model registry (conditional on evaluation)",
+                "Deploying the model (conditional on evaluation)"
+            ]
+        },
+        {
+            "type": "P",
+            "content": "For this blueprint we will focus on uploading models to the Vertex AI model registry and deployments to Vertex AI endpoints. This simplifies things somewhat, because we can make use of predefined pipeline components provided by Google Cloud. Note however, that you can define custom components for those steps depending on your needs. You could for example have the whole deployment part be taking up by NVIDIAs Triton inference server deployed on Kubernetes (or make use of the new Triton integration with Vertex AI Endpoints instead). Another example within the GCP ecosystem would be creating a component for deployment on Cloud Run, which would allow autoscaling the underlying compute resources to zero, but currently does not provide GPU or TPU support."
+        },
+        {
+            "type": "P",
+            "content": "The main contribution of this blueprint lies in the solution to the problem of how to easily make use of Vertex features in your pipeline, basically providing simple, reusable components for combining the use of Google’s components. For example, Google provides components for running CustomTrainingJobs, HyperparameterTuningJobs, uploading a model to the registry, and deploying a model to an endpoint, but they are fairly difficult to stitch together."
+        },
+        {
+            "type": "H1",
+            "content": "The blueprint structure"
+        },
+        {
+            "type": "P",
+            "content": "The blueprint is based on a few simple reusable components which allow for a very easy workflow and construction of Vertex AI pipelines. First, let’s distinguish between the kfp importer, blueprint components, google cloud components, and the use-case specific components of a pipeline."
+        },
+        {
+            "type": "H2",
+            "content": "The kfp importer"
+        },
+        {
+            "type": "P",
+            "content": "The kfp importer is a standard functionality of the Kubeflow pipelines SDK. It is a tool for importing artifacts, e.g. the dataset on GCS, into your pipeline. This is usually the first step of your pipeline, so you can pass the dataset artifact to the next component of the pipeline. It can also be used to import some pre-trained model or other files as pipeline artifacts."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "f4d3f2d1002ad2f52df190a4ff1aa1e7.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*tXCw6o9gaYPrDxAQHzLUug.png",
+            "caption": "Kfp importer example usage for importing a dataset artifact."
+        },
+        {
+            "type": "H2",
+            "content": "Google Cloud components"
+        },
+        {
+            "type": "P",
+            "content": "The google cloud components are Google maintained Kubeflow pipeline components. We will use them for some basic parts of the blueprint when interacting with Vertex AI features."
+        },
+        {
+            "type": "P",
+            "content": "Given some worker pool specs and a base output GCS path for the job, the CustomTrainingJobOp allows us to trigger a custom training job on Vertex AI. The job is defined in the worker pool specs and will save all the outputs to the provided GCS path. Vertex AI provides some additional environment variables for use in the training script, which I will discuss later."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "e40ee6c67cc9ecd6c804eb83a490dfb8.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*H47Mk8lWTShkt5uTpOmCxg.png",
+            "caption": "CustomTrainingJobOp example usage"
+        },
+        {
+            "type": "P",
+            "content": "The worker pool specs are a list of machine and container configurations. Often this is just the definition of one machine with the required resources and the Docker image, command and arguments for the container to run on that machine. In case of distributed training, you can provide a list of worker specs. The following is a very simple example for a worker pool spec."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "4a20b174ed1177ac1c9ccdefafaeab73.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*NaHu_ZUJnv7CJJdAwRwJvg.png",
+            "caption": "Example of worker-pool-specs without container args."
+        },
+        {
+            "type": "P",
+            "content": "The HyperparameterTuningJobRunOp is very similar to the custom training job operator. The main difference is that the worker pool specs provided have to lack the hyperparameters in the provided arguments for the container and we need to instead provide a parameter spec and a metric spec with an optimization goal. We also need to choose a search algorithm (Bayesian optimization by default) and the number of total and parallel training runs to do."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "15bd7b7073c2ee1b3ab5486ad7a1f7a6.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*17AtCvPN0MBtyQZUa-Hy8w.png",
+            "caption": "Example of metric and parameter specs."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "bcab34a8dc4ec85dc5ae0205d92d5422.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*2MFw_PyuwGOGZN6dEziOkQ.png",
+            "caption": "HyperparameterTuningJobRunOp example usage."
+        },
+        {
+            "type": "P",
+            "content": "What Vertex AI does in the background, is to run the desired amount of parallel and total training runs with different hyperparameter configurations based on proposals from Vertex AI Vizier."
+        },
+        {
+            "type": "P",
+            "content": "Finally, we have some more or less self explanatory components like: ModelUploadOp, EndpointCreateOp and ModelDeployOp. The ModelUploadOp allows us to upload a model artifact into the Vertex AI model registry, given some serving Docker image. EndpointCreateOp creates a Vertex AI endpoint and ModelDeployOp deploys a model in the registry to some endpoint."
+        },
+        {
+            "type": "H2",
+            "content": "Blueprint components"
+        },
+        {
+            "type": "P",
+            "content": "The blueprint components are reusable components provided by myself, adapted from some of the available examples from Google, which can be easily applied in any use-case:"
+        },
+        {
+            "type": "UL",
+            "items": [
+                "GetWorkerPoolSpecsOp",
+                "GetCustomJobResultsOp",
+                "GetHyperparameterTuningJobResultsOp",
+                "AddServingConfigOp"
+            ]
+        },
+        {
+            "type": "P",
+            "content": "The implementation details for these components can be found in the provided code."
+        },
+        {
+            "type": "P",
+            "content": "The GetWorkerPoolSpecsOp allows you to construct worker pool specs by taking an existing one, like the one shown in the previous subsection, and adding arguments and environment variables in the container spec definition. For convenience, it allows two separate inputs for training and hyperparameters, which will both be added to the container args, because those can be outputs of different previous steps."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "ebff7357f996bfb920145e69144660c4.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*EjX8xDhVoWU8eeyzKY98qg.png",
+            "caption": "GetWorkerPoolSpecsOp example usage."
+        },
+        {
+            "type": "P",
+            "content": "The purpose of the GetCustomJobResultsOp is to extract the results from the training job and create the respective trained model and metric artifacts. The following is a usage example for this."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "9465e747ccd0e38a0ac2becb2165fe1c.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*J4fG_0kSEkPaTlqr2lmY6Q.png",
+            "caption": "GetCustomJobResultsOp example usage."
+        },
+        {
+            "type": "P",
+            "content": "The GetHyperparameterTuningJobResultsOp does a similar thing for the tuning job, but outputs the best hyperparameter configuration as a dictionary."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "f76b2ee26fb524ae8a6bcf58b1a288da.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*leeJf9aQWnHyS4NgYUH6Bw.png",
+            "caption": "GetHyperparameterTuningJobResultsOp example usage."
+        },
+        {
+            "type": "P",
+            "content": "Finally we have the AddServingConfigOp component. This one is very simple and just adds a serving configuration, mainly consisting of a model container spec, to a model artifact, which is required by the model upload component."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "b7aa2dbbd95e3fa0fff2fe18f3be9259.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*ZeWaPcO58kO6Agnup0dB5w.png",
+            "caption": "AddServingConfigOp example usage"
+        },
+        {
+            "type": "H2",
+            "content": "Use-case specific components"
+        },
+        {
+            "type": "P",
+            "content": "Finally, we have the use-case specific components, which are the ones you will need to create for each use-case. What this exactly entails will be discussed in the next section on customization of the blueprint. The only use-case specific component I want to discuss here briefly, is the GetTrainingArgsDictOp you will need to write in many cases."
+        },
+        {
+            "type": "P",
+            "content": "Due to limitations of Kubeflow pipelines, we currently cannot provide pipeline parameters wrapped into dictionaries or lists to other components, because this will not be serializable. Apparently, they also don’t have any intention to resolve this."
+        },
+        {
+            "type": "P",
+            "content": "If therefore, you want to provide a pipeline parameter or the output of a previous component as a training argument, you will need a very simple component that takes your training arguments as an input and outputs a dict of those arguments. The following is taken from the provided example."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "abc79b8bb75e106ebae70250672acd60.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*kYqmCr7_ikRjb5xXBNRE5w.png",
+            "caption": "GetTrainingArgsDictOp example."
+        },
+        {
+            "type": "P",
+            "content": "This example shows how you can also dynamically change the training setting from hyperparameter tuning to training, e.g. running more epochs and disabling the hypertune Keras callback."
+        },
+        {
+            "type": "P",
+            "content": "Let’s now look at the visualization of the example pipeline steps and try to recognize all the above components."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "7b5e7dc097025f8e04d5a6c235f47591.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:472/1*aLfio48dcXXQJ39Mhh745A.png",
+            "caption": "Vertex AI pipeline example (without conditional part)."
+        },
+        {
+            "type": "P",
+            "content": "On a first glance, this looks like a lot of different components. In reality, those are just steps based on very few components, which are used with different inputs and get a different name for the visualization only. Regarding the colouring scheme, I marked the kfp importer yellow, the google cloud and blueprint components green and the use-case specific components blue. The tuning and training job components are a mix of green and blue, because they are in fact steps based on google cloud components, but also require a use-case specific training image."
+        },
+        {
+            "type": "P",
+            "content": "On the bottom left you find the condition field, for which the details are hidden in the above visualization. Take a look at those in the next image."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "19768e9f3e07dfe25ad080f915406724.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:298/1*i8CK1C_5ni_1fyee5PWbUA.png",
+            "caption": "Vertex AI pipeline example (only conditional part)."
+        },
+        {
+            "type": "P",
+            "content": "Again, the green steps are based on google cloud and blueprint components, while the Add-Serving-Config step is a blueprint component which requires a serving configuration including a use-case specific Docker image that defines the serving environment."
+        },
+        {
+            "type": "H1",
+            "content": "Step by step guide to customization"
+        },
+        {
+            "type": "P",
+            "content": "Let’s go through the customization of the blueprint step by step. The main work you have to do on any given use-case will be data engineering, but we assume this is done for now. Then you have four major tasks:"
+        },
+        {
+            "type": "UL",
+            "items": [
+                "data processing",
+                "training",
+                "evaluation",
+                "inference (optional)"
+            ]
+        },
+        {
+            "type": "P",
+            "content": "Start by writing python scripts to solve each of those problems locally. The inference part is optional, because for many cases you can use available serving images provided by Google Cloud."
+        },
+        {
+            "type": "P",
+            "content": "Note that there are still some relevant limitations when it comes to deployment on Vertex AI, especially when it comes to PyTorch models, because they don’t yet provide a pre-built serving image for that. Since TorchServe does not decouple model artifacts from the serving web-service, I strongly recommend to look into different solutions like NVIDIAs Triton inference server in combination with TorchScript. This might require some minor modifications of this blueprint. But you can always provide a custom serving image as well, following Google Clouds conventions."
+        },
+        {
+            "type": "P",
+            "content": "In the running example I use a Vertex AI pre-built Tensorflow serving image."
+        },
+        {
+            "type": "H2",
+            "content": "Dataset processing and splitting"
+        },
+        {
+            "type": "P",
+            "content": "Again, assuming your data is available in GCS or BigQuery, you might want to do some processing on the dataset and finally split it into training and test data. If you have your script for that ready, you can move on to convert this into a Kubeflow component. The following is the preprocessing component of the running image classification example using Keras."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "c2d90155fb941d541565413cc65d3cb7.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*qtrZXCiwD4djDBvqF1s1rA.png",
+            "caption": "Data processing component example."
+        },
+        {
+            "type": "P",
+            "content": "It takes the dataset as an input, loads it into training and test tf.data.Datasets using Keras utilities, does some dummy processing and saves them."
+        },
+        {
+            "type": "P",
+            "content": "Note that you are free to also split this into more than one component. This would make sense for example if part of your preprocessing is used in a lot of other use-cases as well, e.g. when you transform your dataset format, or some parts require radically different compute resources."
+        },
+        {
+            "type": "H2",
+            "content": "Training and tuning"
+        },
+        {
+            "type": "P",
+            "content": "The training is actually a little different. You could similarly just convert your training script into a Kubeflow component. Here you can still very easily select appropriate resources. The problem comes about when you want to run distributed training, but also when you are interested in running hyperparameter tuning jobs with Vertex AI. To have a unified approach then, I would suggest to treat training differently and just leave it as a script."
+        },
+        {
+            "type": "P",
+            "content": "The following is the training script for the running example."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "461a960850965ef634a7a08ba9d75f0a.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*Xj6iR7CMFkfQn-8bCewSrg.png",
+            "caption": "Training script example."
+        },
+        {
+            "type": "P",
+            "content": "I leave out some details here by not showing the accompanying utils.py module, but you can look it up in the provided code."
+        },
+        {
+            "type": "P",
+            "content": "There are some other notable things going on here. Lines 9–43 implement the argument parsing. There is some quirky thing going on with hyperparameter tuning results, where int types are provided as floats, which is resolved by my custom int implementation in line 12."
+        },
+        {
+            "type": "P",
+            "content": "There are some environment variables used in the main function that are provided by Vertex AI training and hyperparameter tuning jobs respectively. You can add some default to make this script runnable locally. Finally, we have lines 102–113, which write model metrics and metadata as json files. This is a convention I use to construct the respective pipeline artifacts from this in the GetCustomJobResultsOp."
+        },
+        {
+            "type": "P",
+            "content": "To properly use this script with Vertex AI custom training jobs and hyperparameter tuning, we need to package it as a Docker image and store it in some container registry. The image is referred to in the WorkerPoolSpecs. Vertex AI Pipelines have direct reading access if the images are stored in either Google Container or Google Artifact Registry and can be easily used in a pipeline."
+        },
+        {
+            "type": "P",
+            "content": "This is the basic structure I suggest for the Docker image setup:"
+        },
+        {
+            "type": "CODE",
+            "content": "training├── Dockerfile├── requirements.txt└── src    ├── trainer.py    └── utils.py"
+        },
+        {
+            "type": "P",
+            "content": "With a very simple Dockerfile:"
+        },
+        {
+            "type": "FIGURE",
+            "filename": "dd1f283fa4a301b5c24a328a0ef4d97c.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*1Fa0H-8NBnjJRJJmGHPVSw.png",
+            "caption": "Dockerfile example for training component."
+        },
+        {
+            "type": "P",
+            "content": "In the WorkerPoolSpecs, the command parameter defines the Docker run command that will be called, here command=[“python”, “/src/trainer.py”]."
+        },
+        {
+            "type": "P",
+            "content": "If you want to use GPU during training, this has to be considered here. Either you start from some Nvidia image or use Tensorflow or Pytorch base images which have set up GPU support already."
+        },
+        {
+            "type": "P",
+            "content": "Note how easy it is to switch between different frameworks and kinds of models or to change training details. Just create such a Docker image for anything you want to do."
+        },
+        {
+            "type": "P",
+            "content": "We can use this exact Docker image for hyperparameter tuning later on! If you have very simple models though, e.g. based on Sklearn or XGBoost, it makes sense to just do some tuning in the training script itself. This will be more efficient than using Vertex AI hyperparameter tuning jobs."
+        },
+        {
+            "type": "H2",
+            "content": "Evaluation"
+        },
+        {
+            "type": "P",
+            "content": "Finally, let’s look at the evaluation step. Independent of the framework you are working with, this will consist of loading your model, running inference on the test data and evaluating the results. It should also, based on some provided thresholds, provide a decision about whether or not to upload the model to the model registry and ultimately deploy it."
+        },
+        {
+            "type": "P",
+            "content": "Convert the script that you created into a Kubeflow component, similar to how you did it for the preprocessing step. Here, again, is the example for an image classification evaluation component:"
+        },
+        {
+            "type": "FIGURE",
+            "filename": "b2b5e24ca23f0501ca4bd1e190d31634.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*5TqTvVTqltVIAcaI_pnoig.png",
+            "caption": "Evaluation example component."
+        },
+        {
+            "type": "P",
+            "content": "Here I use sklearn to compute some standard classification metrics and a confusion matrix. Just adapt this to your specific use-case and machine learning task. The upload decision actually has to be a string for it to be usable as a condition in a Kubeflow pipeline later on."
+        },
+        {
+            "type": "P",
+            "content": "Note that we only made some minor assumptions in all of the above steps. To make them explicit again here:"
+        },
+        {
+            "type": "UL",
+            "items": [
+                "processing, training and evaluation have to be consistent with each other",
+                "the training script has to save the model, its metadata and training metrics"
+            ]
+        },
+        {
+            "type": "P",
+            "content": "So you have basically unlimited possibilities when it comes to the details. Depending on the deep learning or machine learning framework you use, however, there are some things to consider here. If you have some custom modules in your PyTorch model for example, you will need the custom model code on your Docker images for the model to be properly loadable."
+        },
+        {
+            "type": "H1",
+            "content": "Conclusion"
+        },
+        {
+            "type": "P",
+            "content": "The blueprint provides a structured approach for designing and implementing Vertex AI Pipelines. This allows you to easily setup a robust end-to-end pipeline for your specific use-case. My goal is to implement various example pipelines for different machine learning tasks using this blueprint. This will enable others to easily get started with Vertex AI Pipelines for their project."
+        },
+        {
+            "type": "P",
+            "content": "In my view this blueprint, or a version of it, can provide a unified approach to tackle future projects, which would not only make the solutions more scalable, but also allow for more easy collaboration in case it is widely adopted across projects."
+        }
+    ]
+}

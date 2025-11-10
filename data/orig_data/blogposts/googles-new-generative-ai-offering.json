@@ -1,0 +1,244 @@
+{
+    "title": "Google’s new Generative AI offering",
+    "author": "Mathias Leys",
+    "readTime": "6 min read",
+    "publishDate": "Jun 5, 2023",
+    "blocks": [
+        {
+            "type": "FIGURE",
+            "filename": "1ac4c0ab6d3b363dea154e44155ed55f.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*3rP9FxUKjQvk6fuSZbXwGQ.gif",
+            "caption": null
+        },
+        {
+            "type": "P",
+            "content": "Another day, another change in the world of generative AI."
+        },
+        {
+            "type": "P",
+            "content": "At this point, even a blind person can see that the generative AI hype train has well and truly left the station and Google has officially jumped aboard. 🚂"
+        },
+        {
+            "type": "P",
+            "content": "It is no secret that Microsoft has thrown the first punch in the fight for generative AI with its investment in OpenAI (and thus ChatGPT) but Google has decided to come out swinging. 🥊"
+        },
+        {
+            "type": "P",
+            "content": "Will Google pull a Tyson Fury on us and rise from the canvas to win the fight, retaining its title as the go-to cloud for AI/ML? Let’s find out! 🔎"
+        },
+        {
+            "type": "H1",
+            "content": "What does the Google generative AI landscape look like?"
+        },
+        {
+            "type": "P",
+            "content": "At Google I/O 2023, generative AI was — to no one’s surprise — one of the main talking points. Big announcements were made and new services went live (in preview).Let’s take a closer look at what they came up with."
+        },
+        {
+            "type": "UL",
+            "items": [
+                "For users 🧑‍💼"
+            ]
+        },
+        {
+            "type": "P",
+            "content": "Google announced Duet AI which is an AI chatbot assistant (one might even call it a copilot) that is planned to be implemented in basically anything Google — from Workspace to GCP. Google search will get a similar feature but doesn’t fall under Duet."
+        },
+        {
+            "type": "P",
+            "content": "All in all nothing too world-shocking in terms of ideas — especially considering the moves Microsoft is making (e.g., Office 365 Copilot, Bing Chat, ...) — but they are practicing what they preach."
+        },
+        {
+            "type": "UL",
+            "items": [
+                "For builders 🛠️"
+            ]
+        },
+        {
+            "type": "P",
+            "content": "The big one here is Generative AI App Builder which is Google’s fast and easy managed solution to enterprise knowledge discoverability."
+        },
+        {
+            "type": "P",
+            "content": "A LLM-powered chat interface connected to internal enterprise documents is such a valuable and general use case. Think about a chat interface where you can ask questions about information in technical manuals, legal documents, etc."
+        },
+        {
+            "type": "P",
+            "content": "Turning this into a standardized offering is the textbook definition of a no-brainer. The ease of development looks very impressive. Turns out these Google folks know what they’re doing when it comes to looking for information. Wonder if they have done this before?"
+        },
+        {
+            "type": "P",
+            "content": "For more on the underlying Retrieval-Augmented Generation (RAG) technology behind Generative AI App Builder, click here."
+        },
+        {
+            "type": "UL",
+            "items": [
+                "For tuners ⚙️"
+            ]
+        },
+        {
+            "type": "P",
+            "content": "There is also a solution for people who want to dig a level deeper and interact and tune the underlying ML models directly. Enter Generative AI Studio and Model Garden which are both in Vertex AI."
+        },
+        {
+            "type": "P",
+            "content": "👉 Model Garden is the place where you can browse through the available models to find the one that fits your use case."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "c727b303edd8f8caabc97c470579b3f6.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/0*YoKcX0HcNTjDTl6r.jpg",
+            "caption": "Overview of model cards available on Vertex Model Garden"
+        },
+        {
+            "type": "P",
+            "content": "👉 Generative AI Studio is the place where you can interact with the models and tune them to meet your use case and/or data."
+        },
+        {
+            "type": "P",
+            "content": "Security and efficiency stand out: when you tune a model, you only train a small adapter model whereas the actual foundation model stays frozen. Both data and adapter model never leave your cloud tenant!"
+        },
+        {
+            "type": "P",
+            "content": "Note: at the time of writing none of the above has public access except for Generative AI Studio and Model Garden which is in public preview."
+        },
+        {
+            "type": "H1",
+            "content": "The stand-outs"
+        },
+        {
+            "type": "P",
+            "content": "In general, we notice a clear convergence in the cloud generative AI offerings towards the same set of ideas. Great minds think alike but clearly cloud providers do too."
+        },
+        {
+            "type": "P",
+            "content": "That said, Google’s genAI stack is by no means a copy and there are some definite differences. Let’s take a look at our first impressions:"
+        },
+        {
+            "type": "UL",
+            "items": [
+                "One size does not fit all 👔"
+            ]
+        },
+        {
+            "type": "P",
+            "content": "With PaLM 2, Google accentuated the wide range of sizes it comes in: Gecko, Otter, Bison and Unicorn. Since only Bison is available in preview (at time of writing), it is too early to compare but this versatility is definitely an interesting avenue with Gecko even poised to be able to run on a mobile device."
+        },
+        {
+            "type": "UL",
+            "items": [
+                "Promise of fine-tuning 🪛"
+            ]
+        },
+        {
+            "type": "P",
+            "content": "The few-shot and fine-tuning behavior is looking very promising — even with as little as 5–10 labeled examples. We notice significant improvements, especially for niche situations such as the legal or medical domains."
+        },
+        {
+            "type": "UL",
+            "items": [
+                "Safety first 🚨"
+            ]
+        },
+        {
+            "type": "P",
+            "content": "It is no secret that generative models are prone to the odd ethical hiccup if let completely loose. Therefore Google is focussing heavily on putting in place guardrails that should inhibit any unethical input from coming in and any unethical output from coming out.To this end, Google uses so-called safetyAttributes that quantify how toxic, hateful, insulting, etc. it predicts a certain in-/output to be.This is a big step towards peace-of-mind that a company who uses generative AI won’t end up making headlines like Microsoft Tay."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "af27d7028b3771f616343d4b3686b490.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*KDxwPk_yfYT-9GDy-3iwVw.png",
+            "caption": null
+        },
+        {
+            "type": "H1",
+            "content": "What can we expect?"
+        },
+        {
+            "type": "P",
+            "content": "Of course it is still early days. What can we expect going forward?"
+        },
+        {
+            "type": "UL",
+            "items": [
+                "Europe compliance 🇪🇺"
+            ]
+        },
+        {
+            "type": "P",
+            "content": "This is a big one: at the time of writing there is no Google generative AI offering where all data stays within Europe!For sensitive use cases, this is of course a BIG no-no in the eyes of GDPR."
+        },
+        {
+            "type": "P",
+            "content": "Obviously Google is more than aware of this and will be working overtime to make this possible in the (near) future."
+        },
+        {
+            "type": "UL",
+            "items": [
+                "To churn or not to churn 🏃"
+            ]
+        },
+        {
+            "type": "P",
+            "content": "We already covered the convergence in offerings by the major players. Whether people will return from e.g., Bing Chat back to Google search after Google catches up with its generative AI efforts will be the burning question on any AI enthusiast’s mind."
+        },
+        {
+            "type": "UL",
+            "items": [
+                "Better language coverage 💬"
+            ]
+        },
+        {
+            "type": "P",
+            "content": "As always, advances in NLP are always English-centered at first. Generative AI Studio is no different as it currently only supports English."
+        },
+        {
+            "type": "P",
+            "content": "However, PaLM 2 is highly multilingual so we assume this limited support is a more a due to the bias/toxicity/… guardrails Google has put in place rather than the capabilities of the underlying model itself."
+        },
+        {
+            "type": "UL",
+            "items": [
+                "Multimodality 🎲"
+            ]
+        },
+        {
+            "type": "P",
+            "content": "Although Google has image, text and speech generative AI offerings, there is no multimodal generative AI yet."
+        },
+        {
+            "type": "P",
+            "content": "Considering multimodality is a booming trend, it is not difficult to envision a world where Google releases multimodal offerings in the near future."
+        },
+        {
+            "type": "UL",
+            "items": [
+                "GenAI-backed ML APIs 🤖"
+            ]
+        },
+        {
+            "type": "P",
+            "content": "Google is practicing what it preaches and we fully expect this to extend to its suite of ML APIs. Offerings such as Google Contact Center AI and Dialogflow seem like obvious candidates to be backed by LLMs. Given the impressive fine-tuning performance, we are especially excited by domain-specific models such as MED-PaLM2 and if/how these will be commoditized."
+        },
+        {
+            "type": "H1",
+            "content": "Conclusion"
+        },
+        {
+            "type": "P",
+            "content": "Things are heating up in the generative AI landscape. OpenAI has hit Google where it hurts (using their own technology no less) but they have come out swinging."
+        },
+        {
+            "type": "P",
+            "content": "Google released services that are largely in line with its competitors and it is practicing what it preaches in its own products (e.g., Google search, Workspace, etc.)."
+        },
+        {
+            "type": "P",
+            "content": "As far as first impressions go, it looks like generative AI on Google will become competitive with Azure and AWS."
+        },
+        {
+            "type": "P",
+            "content": "The big question on everyone’s mind is whether Microsoft can convert its shock upset into generative AI dominance or whether Google will retain its title as the AI champion.The jury is still out on that one."
+        }
+    ]
+}

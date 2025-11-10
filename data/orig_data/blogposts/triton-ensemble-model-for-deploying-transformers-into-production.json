@@ -1,0 +1,294 @@
+{
+    "title": "Triton Ensemble Model for deploying Transformers into production",
+    "author": "Shubham Krishna",
+    "readTime": "8 min read",
+    "publishDate": "Jun 9, 2022",
+    "blocks": [
+        {
+            "type": "FIGURE",
+            "filename": "d1fbebaa042af61afb567f998bca5731.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*Ftf_Idtz3mDrPhdt-vcNPQ.png",
+            "caption": null
+        },
+        {
+            "type": "P",
+            "content": "We all have witnessed the magic of Transformer-based models for a variety of NLP tasks including Name Entity Recognition (NER), Text Classification, etc."
+        },
+        {
+            "type": "P",
+            "content": "However, the job isn’t over when we train a machine learning model that performs well on different datasets. In real life, a machine learning model can only add value to an organization when its insights are routinely made available to the users for whom it was designed."
+        },
+        {
+            "type": "P",
+            "content": "The process of taking a trained ML model and making its predictions available to users or other systems is known as deployment."
+        },
+        {
+            "type": "H1",
+            "content": "What changes when we move from training to deploying models?"
+        },
+        {
+            "type": "FIGURE",
+            "filename": "2d08243af5c2bd78b5855cfc63c7c3fb.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:498/0*oQAuLE9yCSqdT7z7.gif",
+            "caption": null
+        },
+        {
+            "type": "P",
+            "content": "During the model development process, we train different iterations of our model multiple times, optimizing for metrics like loss, accuracy, precision, recall, etc."
+        },
+        {
+            "type": "P",
+            "content": "But, when we move into deployment we have to think about additional aspects such as:"
+        },
+        {
+            "type": "P",
+            "content": "🙏 Client usability"
+        },
+        {
+            "type": "P",
+            "content": "📦 Artifact version management"
+        },
+        {
+            "type": "P",
+            "content": "✂️ Separation of concerns"
+        },
+        {
+            "type": "P",
+            "content": "👨‍💻 Ease of deployment"
+        },
+        {
+            "type": "P",
+            "content": "⏱ Latency"
+        },
+        {
+            "type": "P",
+            "content": "💰 Usage Costs"
+        },
+        {
+            "type": "P",
+            "content": "Aside from these topics, we need to think about how to host the model, what kind of infrastructure will be required, and others. We have to think about tools and frameworks that are better suited for deployment."
+        },
+        {
+            "type": "P",
+            "content": "As for deploying a Transformer model, the complexity increases since besides the model one also needs to consider how to deploy the tokenizer. The questions that need to be answered are:"
+        },
+        {
+            "type": "P",
+            "content": "❓ Is it best to deploy the tokenizer on the server or to have the end users handle it?"
+        },
+        {
+            "type": "P",
+            "content": "❓What is the best way to deploy the tokenizer along with the model on the server so that inference latency and costs are minimized?"
+        },
+        {
+            "type": "H1",
+            "content": "So, How can we deploy Transformers?"
+        },
+        {
+            "type": "FIGURE",
+            "filename": "208043ee47480e5184dc06f12afceb6e.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:540/0*cwqcOy5AZYZvGiqW.png",
+            "caption": null
+        },
+        {
+            "type": "P",
+            "content": "An open-source inference serving software called Triton, developed by NVIDIA, can help us to standardize model deployment in a fast and scalable manner."
+        },
+        {
+            "type": "P",
+            "content": "It provides ML Engineers, and Data Scientists the freedom to choose the right framework for their projects without impacting production deployment. It also helps developers deliver high-performance inference across cloud, on-premise, and edge devices."
+        },
+        {
+            "type": "BLOCKQUOTE",
+            "content": "TL; DRIn other words, Triton checks off most of the additional metrics listed above."
+        },
+        {
+            "type": "P",
+            "content": "The process of deploying an optimized model on a Triton server can be broken down into two steps:"
+        },
+        {
+            "type": "P",
+            "content": "1. Convert the PyTorch/TensorFlow model to a serialized representation of model by using tools like tf2onnx, Torchscript or onnx. During this, one can further optimize the serialized representation by quantizing to FLOAT16."
+        },
+        {
+            "type": "P",
+            "content": "2. Deploy the serialized representation onto a Triton server."
+        },
+        {
+            "type": "H1",
+            "content": "Why one more blogpost about deploying models?"
+        },
+        {
+            "type": "FIGURE",
+            "filename": "b79a751ee64d1a2aa677aa3a0c5005f8.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:498/0*4xP6ILT4DyuAF-P8.gif",
+            "caption": null
+        },
+        {
+            "type": "P",
+            "content": "In this blogpost, we will introduce two alternatives to deploy Transformer models and tokenizers in production leveraging Nvidia Triton."
+        },
+        {
+            "type": "P",
+            "content": "There are many articles on how to deploy a Computer Vision model to production, but the same is not true for NLP models. Through this blog post, we would like to contribute to the NLP in production community. This blog post is inspired by Hugging Face Transformer Inference Under 1 Millisecond Latency , which goes into greater detail on the first step."
+        },
+        {
+            "type": "H1",
+            "content": "Let’s talk about deploying NLP models"
+        },
+        {
+            "type": "P",
+            "content": "Any Transformer model comprises two main artifacts:"
+        },
+        {
+            "type": "UL",
+            "items": [
+                "Tokenizer",
+                "Model"
+            ]
+        },
+        {
+            "type": "FIGURE",
+            "filename": "560346a21360a055c17d504a24da7e51.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*WQldaC78weaIZ4YdZ_suag.png",
+            "caption": "Figure 1. Logical flow of getting prediction from a NLP Model"
+        },
+        {
+            "type": "P",
+            "content": "During inference, the tokenizer first needs to tokenize the text, after which the tokenized output is forwarded to the model for prediction."
+        },
+        {
+            "type": "P",
+            "content": "This two-step process for getting predictions actually already hints two ways in which we can deploy a model onto a Triton server. The two ways are:"
+        },
+        {
+            "type": "P",
+            "content": "1) Client-side tokenization: in this approach, only the model is deployed on the server. The tokenization needs to be handled by the client on its own."
+        },
+        {
+            "type": "P",
+            "content": "2) Server-side tokenization using Ensemble Model: in this approach, both the tokenizer and the model are packaged into one container and deployed on the server. An ensemble model represents a pipeline of one or more models and how the input and output tensors are connected between those models."
+        },
+        {
+            "type": "P",
+            "content": "Ensemble models traditionally refer to combining multiple machine learning models for prediction. However, with the concept of ensembles one can cleverly treat pre-processing or/and post-processing logic as independent models on Triton as well. It all sounds wonderful but one can hardly find an example on how to exactly use this. While the documentation describes how the config.pbtxt file should look like, an example of a working end-to-end ensemble model seems to be rare."
+        },
+        {
+            "type": "P",
+            "content": "Figure 2 visualizes the difference between deployment of a NLP model via Client-side tokenization and Server-side tokenization."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "74a1d78dd930561bb0d404ac65591629.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*a5RoVLUly785rYka4NO-OA.png",
+            "caption": "Figure 2. Deployment difference: Client-side vs Server-side tokenization"
+        },
+        {
+            "type": "H1",
+            "content": "Ensemble Models in Action"
+        },
+        {
+            "type": "FIGURE",
+            "filename": "546e4a3cd5794bf9825782f8f70a7096.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/0*dv9PJfxwsqJ-bo7G.jpg",
+            "caption": null
+        },
+        {
+            "type": "P",
+            "content": "Let’s use an NLP model called distilbert-base-uncased-finetuned-sst-2-english from ​HuggingFace 🤗​. This model is based on distillbert-base-uncased, fine-tuned on SST-2 and is used for Sentiment Analysis."
+        },
+        {
+            "type": "P",
+            "content": "We carry out the first step of deploying the model onto a Triton Server by converting it to the onnx format and then optionally quantizing it toFLOAT16. For the final step, we need to configure the model repository and the config.pbtxt files. In the end, the structure should look like this:"
+        },
+        {
+            "type": "P",
+            "content": "From the structure above, we can see that the folder model_repository contains three different folders:"
+        },
+        {
+            "type": "P",
+            "content": "📁 ensemble_model: this subfolder contains an empty folder 1 indicating the version of the model and a config.pbtxt . The config.pbtxt contains the flow/logic of how an inference request is first passed to the tokenizer and then the tokenized output is passed to the model in order to get the final output. The config.pbtxt contains:"
+        },
+        {
+            "type": "BLOCKQUOTE",
+            "content": "If you want to learn in depth more about different arguments that can be used in config.pbtxt , read it on the official GitHub repository."
+        },
+        {
+            "type": "P",
+            "content": "📁 model: this subfolder contains one folder 1 which contains the serialized representation of the model: distilbert-base-uncased-finetuned-sst-2-english.onnx. The config.pbtxt for this folder is:"
+        },
+        {
+            "type": "P",
+            "content": "📁 tokenizer: this subfolder contains one folder 1 which has different files:"
+        },
+        {
+            "type": "UL",
+            "items": [
+                "📋 *.json and *.txt files are generated when one saves the tokenizer by using Autotokenizer.from_pretrained() from HuggingFace🤗.",
+                "📋model.py : contains the logic for invoking the tokenization of the text. For our case, it looks like this:"
+            ]
+        },
+        {
+            "type": "P",
+            "content": "and the config.pbtxt for this folder is:"
+        },
+        {
+            "type": "H1",
+            "content": "🚧 Client-side vs. 🏠 Server-side tokenization"
+        },
+        {
+            "type": "P",
+            "content": "Both ways of deployment have their own set of pros and cons:"
+        },
+        {
+            "type": "P",
+            "content": "🙏 Client usability: with Server-side tokenization, you just need to send the text as a request, whereas for Client-side tokenization, you have to tokenize the text and then send the tokenized output as a request for inference."
+        },
+        {
+            "type": "P",
+            "content": "📦 Artifact version management: Server-side tokenization enables better artifact version management capabilities compared to Client-side tokenization. The process of developing ML models is iterative, and at the end of a training run, two artifacts will be produced: a tokenizer (a bunch of files) and a model (a single file). If these artifacts are scattered across different places, it can become messy and error prone to link the correct tokenizer version to the correct model version."
+        },
+        {
+            "type": "P",
+            "content": "✂️ Separation of concerns: with Server-side tokenization, the backend service, which interacts with model serving framework, takes care of the request and the business logic. It can be agnostic of the ML aspects. This doesn’t hold true for models deployed via Client-side tokenization."
+        },
+        {
+            "type": "P",
+            "content": "👨‍💻 Ease of deployment: combining the tokenizer with the model in a single container makes the deployment of Server-side tokenization challenging. It becomes challenging because one has to define multiple config.pbtxt files and also properly structure the Triton model repository for a successful deployment. The lack of examples on the internet also makes it a bit difficult."
+        },
+        {
+            "type": "P",
+            "content": "⏱ ️Latency: we benchmarked the inference time for both models deployed using Client-side tokenization and Server-side tokenization on a Tesla T4 GPU for different sequence lengths. We found the inference time for models deployed using Client-side tokenization to be faster than those for Server-side tokenization. We think that ensemble scheduling introduces an overhead which makes the inference slower for Server-side tokenization. However, we also think that if both methods were tested on a relatively large pool of text, each algorithm’s inference time would probably be comparable."
+        },
+        {
+            "type": "P",
+            "content": "A detailed comparison of inference time can be found in figures 3 and 4."
+        },
+        {
+            "type": "P",
+            "content": "💰 Usage Costs: It will be cheaper to deploy models with Server-side tokenization as one needs to send only one request per inference, whereas with Client-side tokenization, one needs to send two requests per inference. First, one needs to send the request to a tokenizer which is being served at a different endpoint. Second, the output from the tokenizer is sent as an additional request to the model in order to get final predictions."
+        },
+        {
+            "type": "H1",
+            "content": "Long Story Short"
+        },
+        {
+            "type": "FIGURE",
+            "filename": "e9db4fa3b4c21099d45c7d7b4ab29170.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:498/0*E4ARCWt-3B7aWJSj.gif",
+            "caption": null
+        },
+        {
+            "type": "P",
+            "content": "👉 Although deployments with Client-side tokenization are slightly faster, Server-side tokenization is a neater way to host NLP models. Deployment with Server-side tokenization gives a lot of freedom in serving the model end-to-end. Ensemble models can also incorporate custom pre-processing and post-processing logic."
+        },
+        {
+            "type": "P",
+            "content": "👉 You need to be more vigilant in creating the model repository and the config files for deployments with Server-side tokenization. The flow of inputs and outputs of different models needs to be carefully designed."
+        },
+        {
+            "type": "P",
+            "content": "👉 With Server-side tokenization, the client just needs to send the text for which the prediction is needed. However, with Client-side tokenization, the client must ensure that the tokenizer they implement is compatible with the model being served."
+        }
+    ]
+}

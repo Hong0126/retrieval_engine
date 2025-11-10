@@ -1,0 +1,118 @@
+{
+    "title": "3D Computer Vision: Unlocking the Third Dimension [Part 1]",
+    "author": "Francisco Pereira",
+    "readTime": "9 min read",
+    "publishDate": "May 17, 2023",
+    "blocks": [
+        {
+            "type": "BLOCKQUOTE",
+            "content": "This blog post is the first part of our on-going blog series about 3D computer vision. This first article (Part 1) provides an overview of 3D computer vision and how this technology is being used today, thus suitable for a diverse audience interested in the subject matter. The subsequent blog posts (Part 2 and 3) are tailored for a more technical audience and for those seeking to implement 3D computer vision applications."
+        },
+        {
+            "type": "H1",
+            "content": "Introduction"
+        },
+        {
+            "type": "P",
+            "content": "In today’s fast-paced world of technology, it’s more important than ever to understand and interpret the details of our surroundings. In recent years, we’ve seen Convolutional Neural Networks (or CNNs, for short) completely change computer vision, allowing us to analyze images with incredible accuracy. As automation, robotics, and retail applications continue to grow, so does the demand for more advanced vision systems. This is where 3D Computer Vision shines, introducing depth information and a level of understanding that was once out of reach for traditional 2D computer vision systems."
+        },
+        {
+            "type": "P",
+            "content": "In our upcoming series of blog posts, we’ll dive deep into the advantages of 3D computer vision and explore how this technology is transforming various sectors. By approaching this topic through the framework of a typical machine learning pipeline (Figure 1), we will gain insights into the process of capturing three-dimensional data, investigate the diverse sensors involved, and ultimately explore the multitude of methods for processing and extracting value from this information."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "3c48d372147eb1a76d12cddc076abf75.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*k-Sfrcua6y6hqYlLRc4ujw.png",
+            "caption": "Figure 1: The machine learning pipeline. In this blog post series we dive into how 3D computer vision is done at each step of the way."
+        },
+        {
+            "type": "P",
+            "content": "In this first part of the series, we uncover the exciting world of 3D computer vision, its real-life applications, and how it’s shaping the future of numerous industries."
+        },
+        {
+            "type": "H1",
+            "content": "2D vs 3D Computer Vision"
+        },
+        {
+            "type": "P",
+            "content": "To truly appreciate the benefits of 3D computer vision, it’s essential to understand the differences between 2D and 3D computer vision. At its core, computer vision is a technology that processes and interprets visual data. In 2D computer vision, data is analyzed based on pixel values, colors, and textures in a flat, two-dimensional image, much like how we view photographs. While it has been highly successful in tasks like image recognition and classification, it falls short when it comes to understanding spatial relationships and depth, making it less suitable for tasks that require accurate perception of real-world environments. By providing depth information, 3D computer vision can address many of the limitations faced by 2D computer vision, such as understanding spatial relationships, handling occlusion, and overcoming issues related to lighting and shadows."
+        },
+        {
+            "type": "P",
+            "content": "To help you see the differences between 2D and 3D computer vision, let’s use a simple, everyday example. Picture yourself looking at a photo of a cozy living room, complete with furniture arranged in various spots. With 2D computer vision, it’s easy to identify and recognize the different pieces of furniture and their colors. However, figuring out the relative distances between the objects and their actual sizes can be tricky since there’s no depth information. As humans, we have to rely on visual cues (Figure 2) like shadows, perspective and overlapping objects to make sense of depth in a 2D image; but these cues aren’t always clear-cut."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "f3ef9aee495de229da6010610ea71bf4.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*jpZq5fnOurC6EO3u10EGDA.png",
+            "caption": "Figure 2: Monocular depth cues. For an interesting example of how perspective and visual cues can be deceiving, check out the Ames room."
+        },
+        {
+            "type": "P",
+            "content": "Now, imagine actually stepping into that same living room. Your understanding of the room, furniture, and their positions in relation to each other suddenly becomes much clearer, thanks to the binocular depth cues our vision provides (our ability to perceive depth using both eyes). This is the kind of enhanced perception that 3D computer vision offers to machines, making it easier for them to understand and interact with their surroundings. This ability is vital in various tasks, including robotic navigation, object manipulation, and accurate volume and shape measurements, enabling machines to interact with and respond to the world more effectively."
+        },
+        {
+            "type": "P",
+            "content": "The depth information provided by 3D computer vision also plays a critical role in improving accuracy. While 2D computer vision can sometimes struggle to differentiate between objects in a cluttered environment, 3D computer vision leverages depth data to distinguish between them, ensuring tasks are carried out with greater precision and reliability (Figure 3)."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "bdbb3e12225844e6c535e7c3f3d8107d.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*5g0qLh2vqEfC0oIAxa73xQ.png",
+            "caption": "Figure 3: Using 3D vision to distinguish different products in a cluttered environment. [Image reference]"
+        },
+        {
+            "type": "P",
+            "content": "Another noteworthy advantage of 3D computer vision is its robustness to lighting and shadows. In the world of 2D computer vision, changes in lighting conditions and the presence of shadows can significantly impact performance, as it relies solely on color and intensity data. However, utilizing depth information allows us to easily overcome these issues. Overall, 3D computer vision provides a strong resilience across a wide range of environments and lighting conditions that allow systems to perform more consistently and reliably."
+        },
+        {
+            "type": "P",
+            "content": "So far, we have seen that 3D vision systems offer numerous advantages over 2D systems by providing an additional layer of information, which can improve performance. However, they also introduce complexities in terms of hardware setup, storage capacity, and processing times. It’s crucial to assess the specific application needs and determine if the benefits of using 3D vision outweigh the challenges. To help guide this decision-making process, in the following section, we explore how 3D data unlocks new possibilities and applications across multiple industries."
+        },
+        {
+            "type": "H1",
+            "content": "Real-World Applications and Trends"
+        },
+        {
+            "type": "P",
+            "content": "3D computer vision is making a significant impact across various industries by offering new possibilities and transforming traditional tasks. A big part of this transformation was also possible due to the advancements in deep learning models, where new model architectures and collection of more and more data have been supporting significant improvements in the field. Let’s explore some of the exciting applications and trends in several key sectors."
+        },
+        {
+            "type": "P",
+            "content": "Manufacturing and Quality Control 🏭"
+        },
+        {
+            "type": "P",
+            "content": "In manufacturing, 3D computer vision is enhancing robotics and automation with depth perception, allowing robots to better understand their surroundings and perform tasks with increased precision, such as picking and placing items or assembling components. Inline quality control and inspection also benefit greatly from 3D computer vision and machine learning combined. 3D deep learning models provide us with accurate object detection and recognition, which can easily help systems identify defects, provide accurate and precise measurements and identify inconsistencies in manufactured products with greater reliability. This improved accuracy leads to higher product quality and reduced waste, which is crucial for maintaining a competitive edge in today’s fast-paced market. The integration of 3D computer vision with emerging technologies like Industry 4.0 and the Internet of Things (IoT) is paving the way for smart factories. Systems are becoming faster and more efficient and we can expect to see more real-time processes integrated seamlessly into manufacturing workflows."
+        },
+        {
+            "type": "H2",
+            "content": "References"
+        },
+        {
+            "type": "P",
+            "content": "[1] — Iris, 3D anatomical visualization service: https://www.intuitive.com/en-us/products-and-services/da-vinci/vision/iris"
+        },
+        {
+            "type": "P",
+            "content": "[2] — Parrot Drones and Autonomous Photogrammetry: https://www.parrot.com/en/drones/anafi-ai"
+        },
+        {
+            "type": "P",
+            "content": "[3] — DJI Aerial Inspection of Infrastructure: https://enterprise.dji.com/electricity/power-grid-management"
+        },
+        {
+            "type": "P",
+            "content": "[4] — LiDAR in Apple’s IPad Pro: https://www.apple.com/newsroom/2020/03/apple-unveils-new-ipad-pro-with-lidar-scanner-and-trackpad-support-in-ipados/"
+        },
+        {
+            "type": "P",
+            "content": "[5] — Deng et al. “3D-aware Conditional Image Synthesis”. CVPR 2023."
+        },
+        {
+            "type": "P",
+            "content": "[6] — Imagine 3D v1.2."
+        }
+    ]
+}

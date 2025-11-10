@@ -1,0 +1,180 @@
+{
+    "title": "Current state of voice cloning and how you can implement it yourself",
+    "author": "Samuel Matthew Koesnadi",
+    "readTime": "4 min read",
+    "publishDate": "Mar 10, 2022",
+    "blocks": [
+        {
+            "type": "FIGURE",
+            "filename": "23a34567f03cb3e2c3b3dd6fd565dafd.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:612/1*DtbqUi9hVP8WA9sxH69o7g.jpeg",
+            "caption": null
+        },
+        {
+            "type": "P",
+            "content": "Voice cloning is a sensitive topic, but can also have several positive use cases such as providing personalized voice assistant, anonimizing speech, or even for singing pop songs (going beyond simple Text-to-Speech). The question we’ll try to answer in this blog post is if voices produced by current SotA AI algorithms are (almost) indistinguishable from real ones."
+        },
+        {
+            "type": "BLOCKQUOTE",
+            "content": "tl;dr. AI voice cloning is getting realistic. However there are a lot of edge cases where it will produce a distinct metallic effect and more complex tasks such as singing still have a lot of room for improvement."
+        },
+        {
+            "type": "P",
+            "content": "We will first guide you through the technical architecture of TalkNet (current state-of-the-art) to provide you with a basic technical understanding. Subsequently, we will show you how you can train this yourself based on your own data. Finally, we will share some audio results."
+        },
+        {
+            "type": "H1",
+            "content": "TalkNet Architecture"
+        },
+        {
+            "type": "FIGURE",
+            "filename": "b251c189db2d99c79713f47591d97b9b.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*1-4i-p-DXHWa9fZOXuge8A.png",
+            "caption": "The diagram is taken from the original paper [1]"
+        },
+        {
+            "type": "P",
+            "content": "TalkNet [1] was originally created for the Text-to-Speech task. Its robustness comes from the three components it has, namely:"
+        },
+        {
+            "type": "UL",
+            "items": [
+                "Duration predictor, which predicts the duration of each phoneme, *aka* the smallest unit of speech distinguishing one word (or word element) from another.",
+                "Pitch predictor, which predicts the pitch or frequency of each phoneme.",
+                "Mel generator, which generates the spectogram."
+            ]
+        },
+        {
+            "type": "P",
+            "content": "In a following step, the spectogram that the Mel generator produced is converted to audio via HiFi-GAN [2]."
+        },
+        {
+            "type": "P",
+            "content": "The duration and pitch can be extracted from a target audio sample. For this we can use an automatic Speech Recognition system and match it with the phonemes of the given text. For the pitch we use Fourier transformations.style"
+        },
+        {
+            "type": "P",
+            "content": "Replacing the TalkNet model’s duration and pitch predictors with the pitch and duration from a target audio will create Text-to-Speech output with the style of the target audio."
+        },
+        {
+            "type": "BLOCKQUOTE",
+            "content": "For voice cloning, the most important component of this architecture is the Mel generator."
+        },
+        {
+            "type": "P",
+            "content": "An additional benefit of using TalkNet is that it is designed to be fast because the model architecture is CNN-based."
+        },
+        {
+            "type": "H1",
+            "content": "Training on your own data"
+        },
+        {
+            "type": "P",
+            "content": "Without further ado, let’s explore how to do this yourself. Everything that is needed is in this Jupyter Notebook."
+        },
+        {
+            "type": "P",
+            "content": "Credits to this discord group where you can find the full thread & people who worked on this notebook & deserve the credit!"
+        },
+        {
+            "type": "H2",
+            "content": "(1) Building the dataset properly"
+        },
+        {
+            "type": "P",
+            "content": "Understanding the required dataset format that is needed as input in the training process of the linked Jupyter Notebook above is essential. The format can be easily understood by looking at the example I provided here."
+        },
+        {
+            "type": "P",
+            "content": "The fun part of the process is to create a dataset. Our dataset consisted of voice samples from the author of this blogpost, and since the end-result was intended to be used for singing, we also included singing samples. As with most ML models, the quality of the dataset matters a lot. There are some categories of texts that we include here:"
+        },
+        {
+            "type": "UL",
+            "items": [
+                "Pangram text",
+                "Text from wikipedia, online children story, news, cooking instructions",
+                "Songs to sing"
+            ]
+        },
+        {
+            "type": "P",
+            "content": "The noises from the dataset are removed and the sound samples are normalized. Normalization means that the volume of the audio samples are kept similar to each other. Additionally, we try to have audio that is reverb free and keep the styling of the voices as consistent as possible among the samples."
+        },
+        {
+            "type": "H2",
+            "content": "(2) Training and hyperparameter tuning"
+        },
+        {
+            "type": "P",
+            "content": "Training takes about 5 hours with some manual hyperparameter tuning. A higher number of epochs and a smaller minimum learning rate when training the Mel generator will lead to better sound quality."
+        },
+        {
+            "type": "P",
+            "content": "The minimum learning rate stabilizes the learning and helps to avoid generating a mettalic voice. I believe that there will always be some inconsistencies in the dataset regardless how perfect we make the dataset. This behavior is more significant in the audio related task."
+        },
+        {
+            "type": "P",
+            "content": "Since we are dealing with voice cloning, the most important component is the spectogram. So, we focus more on optimizing this component’s training loop."
+        },
+        {
+            "type": "H2",
+            "content": "(3) Make it more real with post-processing"
+        },
+        {
+            "type": "P",
+            "content": "If we want to use the model for Text-to-Speech without target audio prompt, we can use VoiceFixer [3] to refine the generated audio. VoiceFixer is not trained on singing voices so the result is not good on those."
+        },
+        {
+            "type": "P",
+            "content": "Additionally, if audio text-to-speech is not live, postprocessing via Audacity can also help."
+        },
+        {
+            "type": "H1",
+            "content": "Results"
+        },
+        {
+            "type": "P",
+            "content": "The snippet below showcases my generated voice from a given prompt text. We’re actually quite satisfied with the quality it gives on a normal conversation / article text:"
+        },
+        {
+            "type": "P",
+            "content": "Next up, is trying to let my voice clone actually sing, given a voice-only musical audio reference. This output sounds much more metallic:"
+        },
+        {
+            "type": "P",
+            "content": "Generating speech without an audio reference (i.e. not singing) works already very well. The more complex challenges, like singing or more uncommon pronounciation, still need more work to be directly applicable."
+        },
+        {
+            "type": "H2",
+            "content": "Important Note:"
+        },
+        {
+            "type": "P",
+            "content": "At ML6, we believe in the ethical use of our technologies, and therefore also anticipating potential harmful applications and identifying risks is crucial for us. Related to the voice cloning technologies, if this technology were to be used in a real life use case, it is fundamental to adhere to the principles of consent and disclosure (non-deceptiveness), and always aiming to create trustworthy and beneficial AI solutions."
+        },
+        {
+            "type": "H1",
+            "content": "Special thanks"
+        },
+        {
+            "type": "P",
+            "content": "Lucas Desard (initiator, reviewer), Jan van Looy (supervisor), Samuel M Koesnadi (author), Caroline Adam (reviewer), Matthias Feys (reviewer)"
+        },
+        {
+            "type": "H2",
+            "content": "References"
+        },
+        {
+            "type": "P",
+            "content": "[1]Stanislav Beliaev and Boris Ginsburg. 2021. TalkNet 2: Non-Autoregressive Depth-Wise Separable Convolutional Model for Speech Synthesis with Explicit Pitch and Duration Prediction"
+        },
+        {
+            "type": "P",
+            "content": "[2] Jungil Kong, et al. 2020. HiFi-GAN: Generative Adversarial Networks for Efficient and High Fidelity Speech Synthesis"
+        },
+        {
+            "type": "P",
+            "content": "[3] Haohe Liu, et al. 2021. VoiceFixer: Toward General Speech Restoration with Neural Vocoder"
+        }
+    ]
+}

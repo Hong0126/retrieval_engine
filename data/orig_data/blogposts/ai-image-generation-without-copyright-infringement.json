@@ -1,0 +1,237 @@
+{
+    "title": "AI image generation without copyright infringement",
+    "author": "Robin Van Craenenbroek",
+    "readTime": "8 min read",
+    "publishDate": "Jun 29, 2023",
+    "blocks": [
+        {
+            "type": "FIGURE",
+            "filename": "205b61b092ae646d79be3b345ebfb71f.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/0*lmlxfGUfetOBcucW",
+            "caption": "Image created by Stable Diffusion showing a recreation of Getty Images’ watermark. Image: The Verge / Stable Diffusion (Image by James Vincent)"
+        },
+        {
+            "type": "P",
+            "content": "AI image generation has taken the world by storm with services like Midjourney, DALL-E and Dream Studio (Stable Diffusion). Their underlying generative AI models have been trained on hundreds of millions of images from the public internet. Many of these images are not free from copyright and this creates legal uncertainties for the users of image generation systems as it is unclear if copyright laws apply, especially internationally. Additionally, legal action has been announced by copyright holders against providers like Midjourney and Stability AI."
+        },
+        {
+            "type": "P",
+            "content": "These issues have made businesses cautious when it comes to incorporating generative AI models in their workflow. This is unfortunate as AI Image generation can lead to significant gains in productivity, for example by assisting designers in conceptualising and prototyping to speed up design cycles and improve quality."
+        },
+        {
+            "type": "P",
+            "content": "One possible solution is to train a model on just proprietary data like Shutterstock’s image generator. However, only a few players possess hundreds of millions of images with meaningful descriptions. Another option is to start from permissively licensed, publicly available images."
+        },
+        {
+            "type": "P",
+            "content": "The largest repository of free-to-use images is Openverse. It holds approximately 600 million Creative Commons (CC) licensed works but it has several limitations in that it relies on a small selection of websites and restricts users to only 10.000 downloads per day."
+        },
+        {
+            "type": "P",
+            "content": "The solution we present in this post aims to overcome the above limitations by collecting a large, permissively licensed dataset from the public internet."
+        },
+        {
+            "type": "H1",
+            "content": "Creative Commons 💡"
+        },
+        {
+            "type": "P",
+            "content": "When it comes to permissive licences, various options are available based on your specific use case. One widely recognized and utilised category is the Creative Commons (CC) licences. These licences are generally considered to hold international legal validity and are commonly used for images. They were established by the Creative Commons organisation, an esteemed international nonprofit entity. It is reported that over 2 Billion creative works have already been licensed under Creative Commons licences."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "329af4cb76bef20574e10fbc2428385f.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/0*hmotsZjYPA4mubn1",
+            "caption": "Screenshot of a 2 Billion creative works info panel on the website of Creative Commons."
+        },
+        {
+            "type": "P",
+            "content": "With its widespread adoption by platforms such as Wikimedia and Flickr, Creative Commons licences enable us to potentially amass a substantial collection of copyright-free images, making them suitable for various image generation tools."
+        },
+        {
+            "type": "P",
+            "content": "The primary licence categories we focus on are as follows:"
+        },
+        {
+            "type": "FIGURE",
+            "filename": "3b27e7f0e07b69786cf045efee797180.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*s0mh3tUpA1osgs1oD95Z8w.png",
+            "caption": "Common Creative Common licence categories and their restrictions."
+        },
+        {
+            "type": "P",
+            "content": "If you are interested in all licence categories or a more detailed description of each licence, you can look at the official CC licence page: About CC Licences. The CC licences could have any combination of previously mentioned categories. Example: BY-SA-NC-ND."
+        },
+        {
+            "type": "P",
+            "content": "For our purposes, we are primarily looking to use the Public Domain, BY and BY-SA licences. These licences grant us the ability to modify the images and use them for commercial purposes, aligning with our use case."
+        },
+        {
+            "type": "H1",
+            "content": "Our Approach 📊"
+        },
+        {
+            "type": "P",
+            "content": "Many large open source datasets have been created by scanning Common Crawl files for images. Those files are archived web pages of websites that contain the HTML code of each web page. By scanning a large number of archived web pages, it is possible to extract image URLs and pair them with their corresponding textual content, thus generating a comprehensive dataset of image URL-to-text pairs."
+        },
+        {
+            "type": "P",
+            "content": "Once the list of image URLs is obtained, the dataset can be made available to the public and anyone could download the images and train their own AI models. However, these datasets contain little to no image licence information. As a result, if we want a significantly large dataset of images with their licence information included, we would have to take additional steps."
+        },
+        {
+            "type": "P",
+            "content": "Our approach consists of selectively retrieving images that are accompanied by Creative Commons (CC) licences on the respective web pages. By filtering the dataset based on this criterion, we should end up with images that can be used for training an AI image generation model similar to Stable Diffusion without infringing upon anyone’s intellectual property."
+        },
+        {
+            "type": "P",
+            "content": "To achieve this, we examine specific sections of the web page, namely footers, aside tags, or sidebar tags. The licences located within the aside and sidebar sections are only collected if the licence is nested within an HTML tag no more than five times. This allows us to capture pertinent details related to the licence. Gathering all the image URLs present on the web page enables us to create a comprehensive dataset of image-licence pairs."
+        },
+        {
+            "type": "H2",
+            "content": "What is a footer, aside or sidebar? 🤔"
+        },
+        {
+            "type": "P",
+            "content": "For those less familiar with HTML code, here’s a brief explanation:"
+        },
+        {
+            "type": "UL",
+            "items": [
+                "Footer tags: These are HTML blocks used to encapsulate information placed at the bottom of a web page. Typically, footers contain contact information, hyperlinks to other pages within the website, or even licences.",
+                "Aside or sidebar tags: Similar to footers, these HTML tags serve a similar purpose. They often contain hyperlinks to other web pages or serve as side notes. As the name suggests, sidebars and asides are usually located on the left or right side of a website’s layout."
+            ]
+        },
+        {
+            "type": "P",
+            "content": "In the images below, you can see a general structure of a web page and an example of how those sections can appear."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "8058dc769416338db41c49dd93838084.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:580/0*6WiwdzAhfwAGmNsH",
+            "caption": "A structural representation of a web page in html code, Image source: burlingtoncodeacademy"
+        },
+        {
+            "type": "FIGURE",
+            "filename": "4e210b241341246fb22beb1485495468.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/0*ojqcl9TmrtAuj8sk",
+            "caption": "Example of an Asian pacific report website who has a Creative Commons licence for all the content of its website. Asia Pacific Report"
+        },
+        {
+            "type": "P",
+            "content": "We noticed that websites which place their CC licence in these locations have it apply to their whole web page. We tested this hypothesis by creating a small test dataset of 1032 web pages. The dataset was created by randomly selecting 5 different Common Crawl files from the past 3 years and extracting the web pages which have a CC licence. The total number of Common Crawl files we could select from was approximately 1.920.000 and each file contained about 36.300–49.500 useful web pages."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "02852de06e320a347e5baa06b2dc3da8.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/0*OfUrC7bTuXjSeaQp",
+            "caption": "Flowchart of how the data was chosen for the test dataset."
+        },
+        {
+            "type": "P",
+            "content": "We manually labelled the dataset based on the licence location on the web page and whether the licence could be interpreted to represent the entire web page or not."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "02a1d6614953f6a60a86facb9794fa86.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:392/0*3SE-9yVFei4buwkd",
+            "caption": "Distribution of the location of CC licences within the HTML code of a webpage."
+        },
+        {
+            "type": "P",
+            "content": "We notice that most of the CC licences are located in the footer of the webpage. The local licence refers to an image which is within the body (main content/middle) of a web page. This licence usually only refers to 1 specific image on the web page. There can also be different licences on the same web page each referring to a different image."
+        },
+        {
+            "type": "P",
+            "content": "Our initial approach was to establish a direct link between CC licences and individual images. However, this proved to be exceedingly challenging due to the diverse range of methods used for image referencing. Furthermore, the licences did not always refer to images."
+        },
+        {
+            "type": "P",
+            "content": "A problematic example we discovered were “poem” blogs. People often used a copyrighted image at the top of their poem but referenced a CC licence below it that was actually referring to the poem, not the image. This is only one of the few examples which caused our algorithm to be only 80% accurate at detecting local licences."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "0e7d1caa143e5e41782a90161433083a.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:397/1*QlvzBqeg7CzHcOdYUPBssw.png",
+            "caption": "An example of a CC-licence referring to a poem instead of an image within the body of a web page."
+        },
+        {
+            "type": "P",
+            "content": "Because of those limitations, we decided to focus on identifying web pages where the entire content falls under a single licence. We examined the percentage of correctly interpreted CC licences and achieved a 96.32% accuracy with our first draft of our algorithm if we only take footers, asides, and sidebars into account."
+        },
+        {
+            "type": "P",
+            "content": "It is important to note, however, that caution should be exercised when interpreting the accuracy of this solution. Our dataset consisted of only 1,032 web pages, which may limit the extent to which our findings can be generalised."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "1a7774f7be53e860a8c1362945b19214.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/0*qUEKFChoSk1SIAz5",
+            "caption": "Barchart representing if a Creative Commons licence was correctly interpreted to represent the whole web page or only 1 local image."
+        },
+        {
+            "type": "P",
+            "content": "Now that we have an algorithm that can detect CC licensed web pages with relatively high accuracy, the next step is gathering the image URLs of those web pages. Once we have gathered all the image URLs from CC licenced web pages, we store it in a parquet file:"
+        },
+        {
+            "type": "FIGURE",
+            "filename": "f94183b1056cc1c51db623664dee8b4e.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/0*5CPyKmw28AQ0DhrO",
+            "caption": "Parquet file schema of return dataset"
+        },
+        {
+            "type": "H1",
+            "content": "Scaling up our solution ⚖️"
+        },
+        {
+            "type": "P",
+            "content": "As our solution is intended to scan over billions of web pages, we need scalability. We chose Fondant as framework to allow for easy scaling and local development. We will contribute our components and pipeline on the Fondant repository in the near future (ping us on the Fondant Discord in case you are interested in preview access to this pipeline and components)."
+        },
+        {
+            "type": "P",
+            "content": "Here is a high level overview of the architecture of the Fondant pipeline and (custom) components."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "cc77c4be5074538042154102be731345.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*A9PsTX1drbSuvuNIu50Ibw.png",
+            "caption": "High level overview of the Fondant Pipeline"
+        },
+        {
+            "type": "H1",
+            "content": "Downloading the images 📂"
+        },
+        {
+            "type": "P",
+            "content": "Once you’ve run our tool, you’ll end up with a dataset containing a list of image URLs and metadata associated with it (image size, licence type, licence location …). You can then filter on the metadata to easily choose a specific subset of data that aligns with your specific use case."
+        },
+        {
+            "type": "P",
+            "content": "To download the list of image URLs, Fondant offers the download_images component. This component can be used to download, resize, and package 100+ million image URLs within 20 hours on one machine or scale it on multiple machines."
+        },
+        {
+            "type": "H1",
+            "content": "Next Steps 🚶"
+        },
+        {
+            "type": "P",
+            "content": "We are currently in the process of polishing the free-to-use dataset tool as different components and as a standard pipeline in Fondant, a framework that facilitates collecting and preprocessing data for fine tuning foundation models. It enables building pipelines with different reusable components for data extraction, transformation, filtering, captioning and more."
+        },
+        {
+            "type": "P",
+            "content": "The aim is to create our own Creative Commons licenced dataset which will be made publicly available. For this, we will also be looking to further increase accuracy, for example through watermark detection, as well as options for opt-out mechanisms. Furthermore, we are planning to add extra features to the dataset, including not safe for work (NSFW) image detection and aesthetics assessment."
+        },
+        {
+            "type": "H1",
+            "content": "Conclusion 📒"
+        },
+        {
+            "type": "P",
+            "content": "The need for a large free-to-use dataset for AI image generation tools is pertinent. Our solution addresses this need by collecting a large-scale Creative Commons permissively licensed dataset while at the same time being scalable, cloud agnostic and accurate."
+        },
+        {
+            "type": "P",
+            "content": "We hope this will significantly enhance the legal security of image-to-text datasets compared to existing solutions. By prioritising adherence to licensing regulations, we strive to create a more reliable and trustworthy environment for data utilisation."
+        }
+    ]
+}

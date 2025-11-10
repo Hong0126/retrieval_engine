@@ -1,0 +1,264 @@
+{
+    "title": "Multilingual Domain-Specific Sentence Transformers",
+    "author": "Mathias Leys",
+    "readTime": "7 min read",
+    "publishDate": "Oct 4, 2022",
+    "blocks": [
+        {
+            "type": "FIGURE",
+            "filename": "79b25f13974e2f6ec29bd3b8eed256cc.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*42l8C2zG2vrvxeFuMsvqLQ.png",
+            "caption": null
+        },
+        {
+            "type": "H1",
+            "content": "Introduction"
+        },
+        {
+            "type": "P",
+            "content": "So you heard about sentence transformers and that you should definitely consider them for semantic similarity tasks? Then, you probably also found that — like many things in NLP — it is biased towards the English language and away from domain-specific jargon."
+        },
+        {
+            "type": "P",
+            "content": "Makes sense right? English has become the world’s lingua franca and most (publicly available) textual big data is “everyday” text (think social media posts, news articles, etc.)."
+        },
+        {
+            "type": "P",
+            "content": "👉 But what happens when you have non-English texts? 👉 Or very domain-specific texts (e.g., legal documents, biomedical files, etc.)?👉 Perhaps you have both: domain-specific non-English text. Prepare for trouble and make it double."
+        },
+        {
+            "type": "P",
+            "content": "Do not fear though: all is not lost! You will just have to opt for more niche sentence encoders rather than the “classic ones”."
+        },
+        {
+            "type": "P",
+            "content": "Interested in learning how? Boy, do we have a blogpost for you."
+        },
+        {
+            "type": "H1",
+            "content": "Trouble 1: Domain-specific texts"
+        },
+        {
+            "type": "P",
+            "content": "Let’s say you aim to perform some semantic similarity task such as semantic search on data from a niche domain. You will likely find that out-of-the-box sentence transformers trained on general text don’t suit your situation well."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "22c840851d8bd3a424d69a26caca372b.jpg",
+            "src": "https://miro.medium.com/v2/1*NHRE0ZkU-TaCjKah827-JQ.png",
+            "caption": "Sentence transformers don’t tend to perform well on out-of-domain data"
+        },
+        {
+            "type": "P",
+            "content": "Makes sense right? You can hardly expect a language model trained on Reddit discussions to be able to determine which two law texts share the same legal nuances. Or that a language model trained on texts from 2014 is able to figure out that COVID-19, Corona and SARS-CoV-2 are the same thing."
+        },
+        {
+            "type": "P",
+            "content": "In general, if you have some labeled data for a specific task, you can “paint over the cracks” by training a classification head on top of your sentence embeddings."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "cf88999bc16170125751e82c784dca69.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:333/1*efUcDMV1tQ3A3J9GG4Yahw.jpeg",
+            "caption": null
+        },
+        {
+            "type": "P",
+            "content": "If your domain data is not too dissimilar from the data that the language model was trained on, this will probably do okay."
+        },
+        {
+            "type": "P",
+            "content": "However, if your underlying language model produces representations that are really not suited to your domain (e.g., biomedical domain), training a classifier on them is a bit like putting flame stickers on your car to make it go faster. Spoiler alert: it won’t, it will only make your Honda Civic look like it came out of a Hot Wheels set."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "2f9be20e6d2ee4b4d3f9e2893137bc67.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:640/0*VYw0FtVkGCNyKQlu.jpg",
+            "caption": null
+        },
+        {
+            "type": "P",
+            "content": "Even if the underlying language model is somewhat suited to your domain (e.g., legal domain), it still makes sense to leverage your unlabeled data to make up for a lack of labeled data."
+        },
+        {
+            "type": "P",
+            "content": "In the context of semantic search — for instance — more often than not, you will also not have the luxury of labeled data and all your domain text will be unlabeled."
+        },
+        {
+            "type": "P",
+            "content": "Whatever the case may be, if you are using sentence transformers and want to do (unsupervised) domain transfer, you essentially have two options (at the time of writing)."
+        },
+        {
+            "type": "H2",
+            "content": "Adaptive pre-training"
+        },
+        {
+            "type": "P",
+            "content": "The first option is adaptive pre-training. Here, you will first pre-train your sentence transformer on your unlabeled domain corpus and later fine-tune it on labeled data."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "09eba02a39fa088ec36fbced34bd3b9f.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/0*462zO4ClrYCTVFBX.png",
+            "caption": "Source: sbert.net"
+        },
+        {
+            "type": "P",
+            "content": "There are a few options when it comes to the pre-training algorithm with the main ones being Masked-Language Modeling (MLM) and TSDAE."
+        },
+        {
+            "type": "P",
+            "content": "☝️ MLM is the main training algorithm behind BERT and especially RoBERTa. You can see it as essentially masking out a word and training the model to fill in the blank based on the context that it is in."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "8eadd61a033d47887162deeb33a2d692.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:487/1*jRAkA9Fis0Lsa2GmGjNn7w.jpeg",
+            "caption": "MLM predicts the value of a masked token based on its context"
+        },
+        {
+            "type": "P",
+            "content": "Note that this task is a good way to teach BERT what your domain data looks like but it will not help you achieve good sentence embeddings as this is not the goal of the task."
+        },
+        {
+            "type": "P",
+            "content": "✌️ TSDAE, on the other hand, follows a similar idea to MLM but goes a step further. It will not just mask tokens, it will remove them altogether (and optionally shuffle the remaining tokens). BERT is then tasked to produce meaningful enough sentence embeddings so that a decoder can reproduce the original sequence."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "9bc7803f0e488039b2d82732e69b4502.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:480/1*v83rt1bLjAJfmx1Ts_oH8A.jpeg",
+            "caption": "TSDAE generates a sequence based on limited information"
+        },
+        {
+            "type": "P",
+            "content": "There is not a universally superior algorithm although TSDAE seems to be the better option more often."
+        },
+        {
+            "type": "P",
+            "content": "Once you have finished pre-training on unlabeled domain data, you can start fine-tuning on labeled data. There are many large-scale labeled data sources available so pick whichever one seems most relevant to your use case."
+        },
+        {
+            "type": "P",
+            "content": "A good go-to is the MS Marco dataset which are data triplets from everyone’s favorite search engine. You guessed it: Microsoft Bing."
+        },
+        {
+            "type": "H2",
+            "content": "Generative Pseudo-Labeling"
+        },
+        {
+            "type": "P",
+            "content": "The flow presented above may look a bit odd to the seasoned ML veterans amongst you as you would have expected to train on the large-scale general data first and fine-tune on your domain data afterwards."
+        },
+        {
+            "type": "P",
+            "content": "Unfortunately, applying the techniques above in this reversed order leads to significantly inferior results. It just makes more sense to fine-tune in a supervised rather than unsupervised manner."
+        },
+        {
+            "type": "P",
+            "content": "However, we can find an alternative method in Generative Pseudo-Labeling (GPL) that sticks to this more intuitive order."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "8de3671c7ed6a540cf7bd39c28342592.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/0*nsPzaia6RJqqWU7R.png",
+            "caption": "Source: sbert.net"
+        },
+        {
+            "type": "P",
+            "content": "The fine-tuning on labeled data part is exactly the same as in adaptive pre-training. It just happens as the first step here. It is what comes after that deviates from the methods discussed above."
+        },
+        {
+            "type": "P",
+            "content": "GPL is really a topic in and of itself so I won’t cover it in-depth here but the idea is:👉 You generate queries associated with your documents with a T5 model tuned for query generation such as docT5query.👉 Use a pre-trained bi-encoder to mine documents that are similar to the query but should not be deemed relevant. For instance a document about Java should not be deemed relevant to the query “What is Python?” but is not entirely unrelated either.👉 Finally use a cross-encoder to score the semantic similarity of all mined query-document pairs in order to eliminate any false negatives retrieved from the previous negative mining step."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "fc84f332c05aaea068479432aa85fb1f.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/0*Emv36DxlPuxVnslJ.png",
+            "caption": "Source: sbert.net"
+        },
+        {
+            "type": "P",
+            "content": "If this brief explanation of GPL leaves you wanting more info, definitely check out our more detailed blogpost on the topics here."
+        },
+        {
+            "type": "P",
+            "content": "You can find domain-specific sentence transformers here that are trained (via GPL) on a wide variety of public domain-specific datasets: e.g., bioASQ for the biological domain, FIQA for the financial domain, etc."
+        },
+        {
+            "type": "H1",
+            "content": "Trouble 2: Non-English texts"
+        },
+        {
+            "type": "P",
+            "content": "If you want to use a sentence transformer (bi-encoder) for general non-english texts, you are actually surprisingly in luck. If you take a look at the pre-trained models over on sbert.net, you will find multiple multilingual options. These (currently) support over 50 languages so you should probably be covered."
+        },
+        {
+            "type": "P",
+            "content": "However, if you find yourself in a situation where you need to effectively search through Esperanto or Ancient Babylonian documents, I’m afraid you will have to train your own sentence transformer. A bit disappointing, I know, we have all been there."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "15b458fa6cd44fb9313f7cdad30336e9.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:339/0*0MHjVBCj2T9znfmb.jpeg",
+            "caption": null
+        },
+        {
+            "type": "P",
+            "content": "I won’t go very deep into it here but if your language really falls outside these 50+ languages, you can use a technique called “knowledge distillation” to transfer knowledge from a pre-trained sentence transformer in another language to your niche language sentence transformer."
+        },
+        {
+            "type": "H1",
+            "content": "Double trouble: Non-English domain-specific texts"
+        },
+        {
+            "type": "P",
+            "content": "If you have double-trouble — non-English domain-specific data — you may already have noticed a few domain transfer topics that are not compatible with your situation."
+        },
+        {
+            "type": "P",
+            "content": "Don’t worry though, we got you covered with some alternatives:"
+        },
+        {
+            "type": "P",
+            "content": "👉 MS Marco & other available labeled datasets are in English: This is a very correct observation. However, there exists an (imperfect) workaround in the form of machine-translated versions of this dataset. You can find machine-translated versions of MS Marco (so-called mMarco) here."
+        },
+        {
+            "type": "P",
+            "content": "If your language is still not supported, I’m afraid that currently the only options are creating your own machine-translated version of MS Marco or finding your own labeled dataset."
+        },
+        {
+            "type": "P",
+            "content": "👉 Pre-trained cross-encoders are in English: Until very recently, there were no pre-trained non-English cross-encoders and this formed a limitation that made GPL infeasible for non-English use cases. However, now there is a multilingual cross-encoder, pre-trained on the machine-translated mMarco dataset."
+        },
+        {
+            "type": "P",
+            "content": "👉 T5 tuned for query generation is in English: This also formed a limitation until very recently. But again the lovely peeps over at SBERT have you covered with a multilingual T5 model pre-trained on the same mMarco dataset."
+        },
+        {
+            "type": "P",
+            "content": "If you want to train your own cross-encoder and/or T5 model for query generation, we also have you covered with this GitHub repo!"
+        },
+        {
+            "type": "H1",
+            "content": "Conclusion"
+        },
+        {
+            "type": "P",
+            "content": "In this blogpost, we covered the applications and limitations of sentence transformers in niche situations."
+        },
+        {
+            "type": "P",
+            "content": "👉 We saw that sentence transformers struggle with very domain-specific texts. Fortunately, some techniques exist (adaptive pre-training and GPL) to accommodate for this."
+        },
+        {
+            "type": "P",
+            "content": "👉 Then, we noticed that there is support for many non-English languages in the form of multilingual sentence transformers."
+        },
+        {
+            "type": "P",
+            "content": "👉 Finally, we found that non-English domain-specific texts bring along some challenges. Although the lovely peeps at SBERT have made sure to add some workarounds for these situations."
+        }
+    ]
+}

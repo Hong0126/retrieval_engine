@@ -1,0 +1,196 @@
+{
+    "title": "Deploy ML models on Vertex AI using custom containers",
+    "author": "Jason Li",
+    "readTime": "8 min read",
+    "publishDate": "Nov 17, 2021",
+    "blocks": [
+        {
+            "type": "P",
+            "content": "Google Cloud Platform (GCP) Vertex AI enables us to serve machine learning models with ease. Typically, you can deploy a TensorFlow SavedModel on an endpoint, then make prediction requests to the endpoint. However, sometimes you might want to deploy ML models that are exported by other frameworks such as PyTorch, Darknet, Sklearn, xgboost, etc., or add more complex workflows around the served model such as pre-processing and post-processing. In these cases, a single SavedModel may not be sufficient, some custom codes are needed in the backend. Fortunately, Vertex AI supports custom containers to tackle these situations. In this blogpost, we are going to show you how we create a custom container and deploy it on Vertex AI."
+        },
+        {
+            "type": "H1",
+            "content": "Model and Endpoint"
+        },
+        {
+            "type": "P",
+            "content": "When you deploy a model on Vertex AI, there are two main concepts you need to know: Model and Endpoint. A Model is a static collection of all the components that are relevant to model serving, e.g. run environment, ML framework, saved model and backend microservice. You can consider it as a docker image that contains everything you need for running the model. On the other hand, an Endpoint is the compute resources where your model is actually running on, and you can make prediction requests to it. Depending on the setting, it could be one or more compute nodes, with or without GPU. You have to deploy a Model to an Endpoint in order to accept the prediction requests."
+        },
+        {
+            "type": "P",
+            "content": "By default, Vertex AI provides many pre-built containers in which your model can run. For example, if you want to deploy an end-to-end TensorFlow SavedModel, you can create a Vertex AI Model by choosing one of the default containers and specify the path of your SavedModel. Then, you can deploy this Model to an Endpoint. After these two steps your model is already up and running, and you can make prediction requests in your preferred way, e.g. Python, Node.js, curl, etc. If you’re interested in this approach, you may check this blogpost in which we illustrate how we serve an end-to-end Darknet trained Yolov4 model on Vertex AI using pre-built containers."
+        },
+        {
+            "type": "P",
+            "content": "Pre-built containers are convenient but they don’t offer you a chance to customize your workflow beyond the SavedModel. For more complex scenarios, custom containers are the solution."
+        },
+        {
+            "type": "H1",
+            "content": "Custom container"
+        },
+        {
+            "type": "P",
+            "content": "A custom container is basically a custom docker container that serves your model. You can build this container in your preferred way but it has to comply with several rules required by Vertex AI. There are mainly three requirements: (1) HTTP server (2) health check and (3) request/response format."
+        },
+        {
+            "type": "H2",
+            "content": "HTTP server"
+        },
+        {
+            "type": "P",
+            "content": "Your custom container must run a HTTP server that listens for requests on 0.0.0.0. You can choose any port and specify it as an environment variable when you create a Vertex AI Model. The HTTP server can be implemented in any programming language and network framework. In this tutorial, we create the HTTP server using the Flask & Connexion web framework in Python. Here is how your main.py should look like:"
+        },
+        {
+            "type": "P",
+            "content": "In the following sections we will explain how to add necessary elements to make it an ad-hoc Flask server for handling Vertex AI predictions."
+        },
+        {
+            "type": "H2",
+            "content": "Health check"
+        },
+        {
+            "type": "P",
+            "content": "As described by Google: Vertex AI intermittently performs health checks on your HTTP server while it is running to ensure that it is ready to handle prediction requests. The service uses a health probe to send HTTP GET requests to a configurable health check path on your server. The HTTP server should respond with status code 200 OK when it is ready to handle prediction requests. Otherwise it should respond with any other status code."
+        },
+        {
+            "type": "P",
+            "content": "In our case, we add a new path “/health” in swagger.yaml for the health check GET request. We can simply respond an empty message with status code 200 OK, so it’s not necessary to define a schema for request and response:"
+        },
+        {
+            "type": "P",
+            "content": "We can specify the path “/health” when we create the Vertex AI Model in a later step."
+        },
+        {
+            "type": "H2",
+            "content": "Request format"
+        },
+        {
+            "type": "P",
+            "content": "The HTTP server accepts prediction requests in JSON format. Every request must contain an instances field, which is an array of one or more JSON values of any type. Each value represents an instance that you are providing a prediction for. Optionally, you can also add a parameters field in the request to provide additional information."
+        },
+        {
+            "type": "P",
+            "content": "Let’s take an example: assume that you want to send 2 images and their names to the deployed model. These images come from a small dataset called “test_images”. You also want to send the dataset name to the backend so that it can keep a track. In this case, you should put 2 base64-encoded images and their names under the instances field as an array. Since each prediction request must be 1.5 MB or smaller and it has to be written in JSON, we use base64 encoding to encode the image array. As for the dataset name, you should put it under the parameters field. Eventually your request JSON would look like this:"
+        },
+        {
+            "type": "P",
+            "content": "In the backend Flask server, we add a new path “/inference” in swagger.yaml for the inference POST request. It accepts request type “application/json” and the request parameters correspond to the JSON format that we defined above:"
+        },
+        {
+            "type": "H2",
+            "content": "Response format"
+        },
+        {
+            "type": "P",
+            "content": "The response from the HTTP server is a JSON dictionary with one field predictions. It is an array of JSON values representing the predictions that your container has generated for the instances in the corresponding request. Just like with the prediction requests, each prediction response must also be 1.5 MB or smaller."
+        },
+        {
+            "type": "P",
+            "content": "Assume that our backend Flask server is serving an object detection model. This would mean that the response would be an array where each item represents one or more detected objects in one image. Each detected object consists of a score, class and bounding box."
+        },
+        {
+            "type": "P",
+            "content": "For example, the response for the 2 images prediction request could be like this:"
+        },
+        {
+            "type": "P",
+            "content": "In swagger.yaml, we define a response schema to produce responses that comply with the above format:"
+        },
+        {
+            "type": "H1",
+            "content": "Build image"
+        },
+        {
+            "type": "P",
+            "content": "In the above sections we have explained how to implement a HTTP server using the Flask web framework. We also implemented a health check path and an inference path that processes the requests and responses using the correct format required by Vertex AI. Notice that we only illustrated the interface definitions whilst we skipped the code of model inference itself. In order to serve a model, you still need to implement the main workflows yourself such as pre-processing, model inference and post-processing, then incorporate them with the Flask server. We will not dive into that part because the focus of this tutorial is deployment on Vertex AI."
+        },
+        {
+            "type": "P",
+            "content": "Once you complete the Flask server, you need to wrap everything into a container image, which means you have to provide a Dockerfile first. You can do anything you like for this container image as long as it launches an HTTP server that supports health checks and inference. Here we give an example Dockerfile that enables GPU:"
+        },
+        {
+            "type": "P",
+            "content": "Since we will deploy the model on Vertex AI, we can simply build the container image using gcloud builds command, which will build on cloud and automatically push the image to the container registry on GCP:"
+        },
+        {
+            "type": "CODE",
+            "content": "gcloud builds submit — tag eu.gcr.io/your-gcp-project-name/object_detection_inference — timeout “30m”"
+        },
+        {
+            "type": "P",
+            "content": "Sometimes the building process can take quite long, so we explicitly set a high timeout to ensure that the building process won’t be accidentally terminated."
+        },
+        {
+            "type": "H1",
+            "content": "Deployment on Vertex AI"
+        },
+        {
+            "type": "P",
+            "content": "Now that we’ve created a backend microservice that serves your model, by compiling it to a container image and storing it in the container registry, it’s time to deploy it on Vertex AI. Normally the deployment can be done via the Vertex AI dashboard or Python API. In this tutorial we will create a Python script to deploy the custom container. Because currently the Vertex AI dashboard is not working stably yet, some operations can only be performed by Python API. In order to use Vertex AI’s Python API, you need to install the google-cloud-aiplatform package."
+        },
+        {
+            "type": "P",
+            "content": "First of all, we import necessary modules, define some common names and initialize the Vertex AI module:"
+        },
+        {
+            "type": "P",
+            "content": "Then we create a new endpoint if it doesn’t exist yet. Otherwise, we can get the endpoint with the defined name. We said before that an endpoint is the compute resource where the model will be running. However, when we create a new endpoint here, it will not allocate the resources right away. An endpoint is effective only when you deploy a model on it."
+        },
+        {
+            "type": "P",
+            "content": "The model is similar to the endpoint, we can either get an existing model or upload a new model. When we upload a model, we need to specify the container image URI, health check path, inference path and container port. The container image URI is the tag you created when you run gcloud builds. The health check and inference path is defined in swagger.yaml. The container port can be set to any port, just make sure that the Flask server listens on the corresponding port when you initialize it in main.py."
+        },
+        {
+            "type": "P",
+            "content": "Finally, we have created the endpoint and uploaded the model. Now we can deploy the model to the endpoint. Here we must specify the compute resources that we’ll need, e.g. machine type, number of replicas, GPU type, number of GPUs, etc."
+        },
+        {
+            "type": "P",
+            "content": "Usually the deployment process can take 20–40 mins. You can check the status and logs in the Vertex AI dashboard. If it succeeds, you should see the green ticks on both the Models and Endpoints pages, which means your custom container is up and running."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "62de6b7303ef5d28e450772d8c1ca9f8.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/0*e72bZXPRJzTprzo5",
+            "caption": "Model created"
+        },
+        {
+            "type": "FIGURE",
+            "filename": "f016ead4fdc33234c1d6321a0b8149bb.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/0*74OXn_JP0DkAzR9Q",
+            "caption": "Endpoint created"
+        },
+        {
+            "type": "H1",
+            "content": "Delete resources"
+        },
+        {
+            "type": "P",
+            "content": "When the customer container is up and running, it starts to cost money. If you no longer need it, you can delete the endpoint and model using Python API. To do so, first use the code above to get a reference to the existing endpoint or model, then simply call the delete method."
+        },
+        {
+            "type": "H1",
+            "content": "Making predictions"
+        },
+        {
+            "type": "P",
+            "content": "After deploying the model to an endpoint, you can make predictions by calling the endpoint using Python API. In order to make the call, you need not only the image file and extra parameters, but also the GCP project name, endpoint region and endpoint ID. You can find the endpoint ID in the Vertex AI dashboard."
+        },
+        {
+            "type": "P",
+            "content": "Here an example of sending an image to Vertex AI to get predictions:"
+        },
+        {
+            "type": "H1",
+            "content": "Conclusion"
+        },
+        {
+            "type": "P",
+            "content": "The biggest advantage of using a custom container is that you can add extra workflows outside of the ML model itself, or deploy something completely different with a TensorFlow model. Compared to the optimized pre-built containers, custom containers are more difficult to implement and more complex to set up, but it does provide more flexibility. Besides this, the benefit of deploying models on Vertex AI is that the deployed models will become managed services that support auto-scaling. Everything except for the core logics of model inference is taken care of by Vertex AI. At the moment we write this blogpost, Vertex AI still has some issues and there aren’t many documents available explaining every step of the deployment. Our main goal is to clear the barriers on the way of deploying custom containers on Vertex AI and provide you with a working solution. Hope everything is clear and enjoy the customizable workflows!"
+        },
+        {
+            "type": "H1",
+            "content": "Reference"
+        }
+    ]
+}

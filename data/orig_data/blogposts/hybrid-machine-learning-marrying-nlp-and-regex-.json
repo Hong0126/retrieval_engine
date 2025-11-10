@@ -1,0 +1,258 @@
+{
+    "title": "Hybrid Machine Learning: Marrying NLP and RegEx 👰",
+    "author": "Mathias Leys",
+    "readTime": "6 min read",
+    "publishDate": "Oct 5, 2022",
+    "blocks": [
+        {
+            "type": "FIGURE",
+            "filename": "16bf4a297b7f58beedc2e0689db8f6d0.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:526/1*oYIW6044HWjcmETd5qZFpw.jpeg",
+            "caption": null
+        },
+        {
+            "type": "H2",
+            "content": "Introduction"
+        },
+        {
+            "type": "P",
+            "content": "When designing real-world NLP applications, you are often confronted with limited (labeled) data, latency requirements, cost restrictions, etc. that hinder unlocking the full potential of your solution."
+        },
+        {
+            "type": "P",
+            "content": "A hybrid setup where you leverage domain knowledge to improve accuracy, efficiency, reliability and/or interpretability would be perfect. But figuring out how to design such a hybrid solution is far from evident."
+        },
+        {
+            "type": "P",
+            "content": "In fact, it is so far from evident that we decided to organize a webinar on the subject on 17th October 2022. If you are reading this before that date, feel free to register here!"
+        },
+        {
+            "type": "P",
+            "content": "Let’s browse through some common hybrid NLP design patterns and look at example situations of when you should opt for which pattern."
+        },
+        {
+            "type": "H2",
+            "content": "(1) RULES VS ML"
+        },
+        {
+            "type": "FIGURE",
+            "filename": "cfbb83bd6cc7e070aed52d8234f51d3d.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*wfZJG5u83ELKLLdEri8nLA.png",
+            "caption": "Pure ML-based design pattern"
+        },
+        {
+            "type": "FIGURE",
+            "filename": "54de633d244cbf5748ca7238f1f851cc.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*CQynShhpu2SQv0n5G25JQA.png",
+            "caption": "Pure rule-based design pattern"
+        },
+        {
+            "type": "P",
+            "content": "The first pattern we’ll consider is the adversarial case: you either choose a pure rule-based or a pure ML-based solution."
+        },
+        {
+            "type": "P",
+            "content": "Let’s consider some examples where these design patterns make a lot of sense:"
+        },
+        {
+            "type": "P",
+            "content": "👉 Named Entity Recognition (NER): the choice for or against an ML-based approach essentially boils down to how contextual the entities are."
+        },
+        {
+            "type": "P",
+            "content": "For example, dates can be structured in a specific way (e.g, “DD/MM/YYYY”). If an entity follows this format, it is a date and otherwise it isn’t. Thus, it is a very “non-contextual entity”: i.e., a concrete fixed pattern determines whether or not it is a date, independent of the context. It is straightforward to extract these kinds of entities purely via simple rules."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "094dbfbda557dca4517dbfedccbfc6b4.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*A7i2AEuy_jmrZPEhaS_teg.png",
+            "caption": "A simple RegEx rule can easily recognize both dates"
+        },
+        {
+            "type": "P",
+            "content": "However, say you only want to extract dates of birth and not other kinds of dates. Now, we are dealing with a very “contextual entity”: dates of birth and other kinds of dates look exactly the same; without any context, you wouldn’t be able to distinguish between the two.It is very difficult to extract these entities in a rule-based way so a pure ML-based approach is the most appropriate."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "999c171dbb665b26740b6cbe2a90b73c.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*Hhr4uISgNYWCdfeYHVgEsQ.png",
+            "caption": "A contextual language model predicts that only the first date is a date of birth"
+        },
+        {
+            "type": "P",
+            "content": "👉 Text classification: in text classification use cases, the underlying features that determine which class a text belongs to are often very latent. As rule-based systems don’t tend to perform well in these scenarios, a pure ML-based design pattern is usually the way to go. The same goes for complex tasks such as keyword extraction, text summarization, etc."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "b5c5ef4187290820f3f0a4033df56900.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*5ur3gHWPTucpXdYKKoyjwQ.png",
+            "caption": "Some tasks are just too complex for rule-based approaches to have a meaningful impact"
+        },
+        {
+            "type": "H2",
+            "content": "(2) RULES AFTER/BEFORE ML"
+        },
+        {
+            "type": "FIGURE",
+            "filename": "a9b837c4e23ef17668b725ff5c71604a.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*6voBRy6C13CHXo8NzHHvQg.png",
+            "caption": "Rule-based pre-processing design pattern"
+        },
+        {
+            "type": "FIGURE",
+            "filename": "43bd173877d3ae65071fdd5bb0c31484.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*DV4gI14BCPPYKf0ZP71FSw.png",
+            "caption": "Rule-based post-processing design pattern"
+        },
+        {
+            "type": "P",
+            "content": "The next pattern we’ll look into has a sequential nature: the business rules either act as a first filter or as a post-processing step for the ML model."
+        },
+        {
+            "type": "P",
+            "content": "Let’s take another look at some examples:"
+        },
+        {
+            "type": "P",
+            "content": "👉 High-pass filter: say you want to extract dates of birth and no other dates, so you might opt for a pure ML approach (see above). However, only a fraction of your data actually contains dates, so running inference on every single instance seems like a bit of a waste."
+        },
+        {
+            "type": "P",
+            "content": "We know that every date of birth is also a date and that dates follow a fixed pattern. Thus, we can first check whether a text contains a date via a simple business rule and then only run inference in the cases that it does."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "05ea0fd089ac46dd8cdf6f26ca9abed8.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*XK-6lBVS7GAkBHO5vFeprg.png",
+            "caption": "With one simple rule, we only do inference on 2 passages instead of 7 with no impact on performance"
+        },
+        {
+            "type": "BLOCKQUOTE",
+            "content": "With a few simple rules, you can often drastically reduce the amount of processing power you use with a minimal to non-existent impact on performance."
+        },
+        {
+            "type": "P",
+            "content": "👉 (Semantic) search: in a very similar fashion 👠 to what’s outlined above, you can reduce the amount of data you process to perform a semantic search by first filtering out those results for which you are (almost) certain that they are not going to be relevant (e.g., have a (near) zero TF-IDF score). This kind of setup is referred to as a “retrieve and re-rank” architecture."
+        },
+        {
+            "type": "P",
+            "content": "Depending on the data, a double-digit percentage decrease in latency is often attainable with a negligible impact on search performance."
+        },
+        {
+            "type": "P",
+            "content": "👉 Entity linking: let’s say we want to extract product names along with sales prices and link the two entities together (i.e., figure out which sales price belongs to which product name). We know our data and we make the simple assumption that a sales price belongs to the closest product name."
+        },
+        {
+            "type": "P",
+            "content": "This is a rule-based post-processing (“linking”) step that happens after the ML-based extraction of sales prices and product names."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "824fc1d74182b2e5e1bfd0a5524e10e8.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*XhXwP2Ae4FFaKgwuzrI3sA.png",
+            "caption": "A simple rule will link the ML-extracted entities together"
+        },
+        {
+            "type": "H2",
+            "content": "(3) RULES AND ML"
+        },
+        {
+            "type": "FIGURE",
+            "filename": "66c4caae8546cf6f8b0cbb6c0cb5198e.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*CKlEiUJob6zMqxSfAhEBMA.png",
+            "caption": "Ensemble design pattern"
+        },
+        {
+            "type": "P",
+            "content": "This pattern looks to combine the outputs of rules and ML as an ensemble."
+        },
+        {
+            "type": "P",
+            "content": "Again, let’s see some examples:"
+        },
+        {
+            "type": "P",
+            "content": "👉 More determinism: not all mistakes are equal. Perhaps there are some patterns that you know to be correct and want your solution to get correct every single time."
+        },
+        {
+            "type": "P",
+            "content": "In this scenario, you can have a restrictive rule-based system that ensures that these critical situations are covered and in parallel a more generalizable ML-based system that aims to capture the other (complex) cases."
+        },
+        {
+            "type": "P",
+            "content": "For example, you can have a curated gazetteer of names that you know to be clean and correct. These names will always be recognized. The (uncommon) names that fall outside this list will be captured by the ML model."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "d00fb4d6aba73f81556f330686b16949.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*Rli7p2Zg9LCnSiyDfAd-UA.png",
+            "caption": "A gazetteer can capture common names and an NER model picks up the more niche ones"
+        },
+        {
+            "type": "P",
+            "content": "👉 Optimization for recall/precision: since you are essentially combining multiple predictions, you can optimize for recall or precision by choice of the “voting scheme” (i.e., how you go from multiple individual predictions to one final prediction)."
+        },
+        {
+            "type": "H2",
+            "content": "(4) ML-INFORMED RULES"
+        },
+        {
+            "type": "FIGURE",
+            "filename": "91a975c0754fbd253b56681c0a336f51.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/0*-K-sf_JfIGjZfQ17",
+            "caption": "ML-informed rules design pattern"
+        },
+        {
+            "type": "P",
+            "content": "A more niche situation could be that your use case really requires a rule-based system — be it for regulatory reasons (e.g., GDPR’s “Right to explanation”) or for other reasons — but that these rules are very difficult to determine."
+        },
+        {
+            "type": "P",
+            "content": "In this scenario, you could use machine learning to generate optimal (RegEx) rules."
+        },
+        {
+            "type": "P",
+            "content": "There are actually multiple ways to achieve this — ranging from natural language-to-RegEx Seq2Seq models like SemRegex to models that are trained on labeled data like the evolutionary RegexGenerator algorithm and models like TransRegex that use both natural language and labeled examples."
+        },
+        {
+            "type": "H2",
+            "content": "(5) RULE-INFORMED ML"
+        },
+        {
+            "type": "FIGURE",
+            "filename": "f2aaebe1229fbe85344c47227c0f69b4.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*LKHMiSJNJhJKjNJw9wH5aA.png",
+            "caption": "Rule-informed ML design pattern"
+        },
+        {
+            "type": "P",
+            "content": "This pattern also looks to combine rules and ML but it does so by finding an appropriate representation of RegEx results and truly integrating the domain knowledge into the model architecture."
+        },
+        {
+            "type": "P",
+            "content": "Theoretically, this is a very clean solution but in practice, we don’t see (widespread) adoption of such architectures. Or at least not yet."
+        },
+        {
+            "type": "P",
+            "content": "If you want to get some intuition as to what this would look like, check out this paper. But at the time of writing, we wouldn’t recommend such a design pattern."
+        },
+        {
+            "type": "H1",
+            "content": "Conclusion"
+        },
+        {
+            "type": "P",
+            "content": "In conclusion, hybrid NLP has the potential to drastically improve the accuracy, efficiency, reliability and/or interpretability of your solution, especially in low labeled data settings. That is, if you do it right."
+        },
+        {
+            "type": "P",
+            "content": "Choosing the right setup is inherently very data- and problem-specific but hopefully the examples above have given you some intuition into which approach to take."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "625a88f85198215583fefb2b4dcafb56.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*aikY1-ry4ysaWpiErhZ_eg.png",
+            "caption": null
+        }
+    ]
+}

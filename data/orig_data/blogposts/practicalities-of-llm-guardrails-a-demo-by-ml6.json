@@ -1,0 +1,154 @@
+{
+    "title": "Practicalities of LLM guardrails — a demo by ML6",
+    "author": "Miro Goettler",
+    "readTime": "10 min read",
+    "publishDate": "Oct 17, 2024",
+    "blocks": [
+        {
+            "type": "P",
+            "content": "In the previous blog post, we explored why LLM guardrails are necessary, looked into technical details and discussed available mitigation techniques. Now, we want to build on this knowledge by introducing more practical examples and a demo where you can try to break those guardrails yourself."
+        },
+        {
+            "type": "H1",
+            "content": "🕵 ️Demo"
+        },
+        {
+            "type": "P",
+            "content": "Only reading about LLM guardrails in this blogpost can be a bit boring. That’s why we built our very own LLM guardrails challenge/playground. Here you can try to break different kinds of guardrails to get the LLM to reveal its secret and you can also have a look at what is going on behind the scenes. Read the actual prompts and outputs of the models, to gain a better understanding of the guardrails."
+        },
+        {
+            "type": "H2",
+            "content": "Guardrail category 2: Input"
+        },
+        {
+            "type": "P",
+            "content": "Instead of sending the user input directly to the LLM, the idea of the second guardrail category is to first screen it for malicious content or intent. This means when the screening module catches the malicious user input, the actual prompt will never be triggered (and therefore cannot be hacked)."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "7d39c4046e3e2a76fe98ccc96a50e662.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:875/1*ftTQSlx8EjWUmV5wV1ifIQ.png",
+            "caption": null
+        },
+        {
+            "type": "P",
+            "content": "It has the drawback that it can add additional costs and especially latency to the LLM application, depending on how the screening module is implemented. Now let’s have a look at some examples of Input screening:"
+        },
+        {
+            "type": "P",
+            "content": "LLM judges input: The first approach is to use a second LLM call to screen the user input and classify it as harmless or not. The judge prompt itself is not immune to prompt injections, but by having two separate LLM calls the chances of an attack working on both is smaller."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "a30b97dbc05fd81492132b60cfcdb9ce.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:875/1*8xVRsVBaM7gl5Eg3s8fQDg.png",
+            "caption": null
+        },
+        {
+            "type": "P",
+            "content": "Pre-flight prompt: The idea behind this guardrail is to test the user input on another prompt template and check if the prompt still gives the expected output that has been preconfigured. If not, it can be assumed that the behaviour was changed by the user input with additional instructions and therefore should be rejected. As long as the expected behaviour of the pre-flight call is not known by the attacker, this guardrail offers decent protection."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "3564225775512062d25723ba50b73ac6.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:875/1*8Ip3PLkif9av9uK5ADejPw.png",
+            "caption": null
+        },
+        {
+            "type": "P",
+            "content": "Guard framework: Instead of developing your own solution you can also use pre-built python frameworks for detecting prompt injections. For this example here, we used the LLM-Guard framework and more specifically the Prompt injection scanner function. The user input is classified by a fine-tuned language model to detect prompt injections."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "8831b53a4d0def8c323ddcdb2e7de7b1.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:875/1*Rgkic0gTwBdJd5m4kO8LQg.png",
+            "caption": null
+        },
+        {
+            "type": "H2",
+            "content": "Guardrail category 3: Output"
+        },
+        {
+            "type": "P",
+            "content": "Instead of screening the user input for malicious intent, another idea is to screen the LLM output for content that should not be revealed. This addresses attacks like obfuscation, where the user tries to hide the information in the output."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "4e66c636e0876c35315c8108b93b4cab.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:875/1*vcb2qVZreq-s1jQTApmriA.png",
+            "caption": null
+        },
+        {
+            "type": "P",
+            "content": "This is a very niche guardrail and does not have as many use cases as the other guardrails, because it needs to be known which specific information should not be revealed. In real-life applications, this is often not the case. But for our challenge, where it is known what the information/secret is, it can be a good guardrail that is hard to bypass."
+        },
+        {
+            "type": "P",
+            "content": "One drawback of this guardrail is, that the LLM output cannot be streamed directly to the user, as it first has to be screened by the module. This, as well as the actual screening process will add additional latency to the calls."
+        },
+        {
+            "type": "P",
+            "content": "Another drawback is the fact that the request to the LLM needs to be executed before the output is screened and possibly blocked. This means not only that the user has to wait longer, but also that costs will already be arisen."
+        },
+        {
+            "type": "P",
+            "content": "Now let’s have a look at some examples for output screening:"
+        },
+        {
+            "type": "P",
+            "content": "Programmatically screen output: If we know the information that is not supposed to be revealed, we can simply search for it with different python functionality like regex pattern matching. If the secret is found, the output will not be shown to the user. But keep in mind this guardrail can be broken very easily by formatting or encoding the information, which makes it impossible to recognise for the simple python logic."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "e81a9c85329a142bec993dc500a64bb0.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:875/1*TPiIxOu_5VJHy6aHtayTiA.png",
+            "caption": null
+        },
+        {
+            "type": "P",
+            "content": "LLM judges output: Instead of a python function, which can only catch a certain amount of information leaks, we can use another LLM. It is way better at catching a multitude of different cases, especially if it is known what the secret is."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "ca4bc2f82f21402f7cd08274a8263f0b.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:875/1*x0R_tGveyOWkOv4xQZuGLw.png",
+            "caption": null
+        },
+        {
+            "type": "H1",
+            "content": "Conclusion"
+        },
+        {
+            "type": "P",
+            "content": "In this blogpost we discussed a practical approach to LLM guardrails. Because of the rapid integration of Large Language Models (LLMs) into various applications, attacks like prompt injections pose a serious threat to the security and reliability of these powerful tools. In this article, we have explored the essential guardrails necessary to protect LLMs from such attacks. We presented multiple options for each guardrail type and discussed their benefits and drawbacks."
+        },
+        {
+            "type": "P",
+            "content": "One common drawback of guardrails is the added latency. Some guardrails have a more severe impact on latencies than others, but overall we have to accept that a in exchange for more security, the latency will generally increase."
+        },
+        {
+            "type": "P",
+            "content": "For a good user experience the implemented guardrails also cannot be too strict and block user requests which are inline with appropriate usage of the application."
+        },
+        {
+            "type": "P",
+            "content": "We have provided a practical demonstration, in form of a HuggingFace space, where you can experiment with breaking different types of guardrails to gain a deeper understanding of their effectiveness and limitations. Checkout the demo here:"
+        },
+        {
+            "type": "P",
+            "content": "By understanding common hacking techniques and the various guardrail strategies, you can now make informed decisions about how to best protect your LLM applications."
+        },
+        {
+            "type": "P",
+            "content": "It is important to note that the field of LLM security is constantly evolving. New techniques and attacks may emerge, making it challenging to develop guardrails that are 100% foolproof. Therefore, we encourage ongoing research, development, and collaboration to ensure the continued security and reliability of LLMs. By staying informed and proactive, you can mitigate the risks associated with these powerful technologies and harness their full potential."
+        },
+        {
+            "type": "P",
+            "content": "Additionally this vulnerability of LLM’s shows that we have to be careful what information and data is supplied in the prompt templates in the first place. Sensitive or confidential information should be handled with caution to prevent unauthorised access or disclosure."
+        },
+        {
+            "type": "BLOCKQUOTE",
+            "content": "Final remark: In the demo, we only have a single input interaction with the LLM to demonstrate the guardrailing techniques. However in reality a lot of LLM applications are chat-based and therefore give the user the opportunity to break the application by guiding the LLM step-by-step to a desired outcome, instead of having to use a single prompt. This makes protecting against attacks even more difficult and needs to be kept in mind when building a chat application."
+        }
+    ]
+}

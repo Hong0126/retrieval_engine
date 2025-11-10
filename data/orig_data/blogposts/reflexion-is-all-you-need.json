@@ -1,0 +1,102 @@
+{
+    "title": "Reflexion is all you need?",
+    "author": "Jens Bontinck",
+    "readTime": "4 min read",
+    "publishDate": "Apr 13, 2023",
+    "blocks": [
+        {
+            "type": "P",
+            "content": "Things are moving fast in LLM and generative AI space. A lot of things moved forward with the speed of light. Is this a temporary momentum we experience or are we at day 1 of an ever expanding universe of possibilities?"
+        },
+        {
+            "type": "P",
+            "content": "For this blogpost, I would love to take you back to November 2022. Back than, ChatGPT got released by OpenAI. Probably considered as a BIG BANG by the vast AI community across the world. Before, multiple initiatives (e.g. BERT, GPT2,…) were rather seen as bright stars in the sky that made our eyes twinkle, but business value was still to be proven at a larger scale."
+        },
+        {
+            "type": "P",
+            "content": "Recently I was learning more about hallucination and how to mitigate it. The goal of this blogpost is to share my view on a recent technique called Reflexion (link to paper). Is this all we need to prevent hallucination?"
+        },
+        {
+            "type": "BLOCKQUOTE",
+            "content": "The goal of this blogpost is to share my view on a recent technique called Reflexion. Is this all we need to prevent hallucination?"
+        },
+        {
+            "type": "P",
+            "content": "Hello Hallucination"
+        },
+        {
+            "type": "P",
+            "content": "Hallucination can be understood as “generating nonsense”. Sometimes it puts words, names, and ideas together that appear to make sense but actually don’t belong together. It can occur when you’re asking a question or having a conversation with a LLM (Large Language Model) , like GPT3.5."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "8a3dee4e283cea8cb68d500482e89b0b.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:639/1*IwJWcsbmJ-XAiP64W2KuNw.png",
+            "caption": "Example of hallucination"
+        },
+        {
+            "type": "P",
+            "content": "Zooming out, hallucination originates in the initial purpose to which these language models are trained (they are trained to predict the best next word in a sentence). This is exactly where the LLM is tempted to make mistakes, and thus generating faulty information.While this can create funny or remarkable outputs, it doesn’t contribute to our information industry and thus puts the trustworthiness of the LLMs at risk."
+        },
+        {
+            "type": "P",
+            "content": "Introducing Reflexion"
+        },
+        {
+            "type": "P",
+            "content": "Reflexion is a recent advancement in the LLM space, and it’s a technique to mitigate hallucination of the current generative models. The architecture includes a feedback loop, which aims to correct common mistakes and could be seen as a “LLM-in-the-loop” instead of an “human-in-the-loop” approach. A powerful technique to allow self-reflection on the downstream output, if you ask me!"
+        },
+        {
+            "type": "BLOCKQUOTE",
+            "content": "“LLM-in-the-loop” instead of “human-in-the-loop” approach."
+        },
+        {
+            "type": "P",
+            "content": "What does this mean exactly?"
+        },
+        {
+            "type": "P",
+            "content": "Let’s take writing an essay as real-life example, assuming you have been at the point you needed to write down your learnings and insights of the research you did. Within this writing process, at some point, you need to start writing, obviously. Whether you write chapter by chapter, or you take quick notes first, the one thing you should do, even more than once, is re-reading your output. You examine and ask yourself if the current sentence is representing the message you intended to bring. If so, you are happy and you skip to the next. If not, you iterate on that specific content piece and you reflect which wording would convey the message even better."
+        },
+        {
+            "type": "P",
+            "content": "This is how the concept of Reflexion works as well. If we would ask a LLM (e.g. ChatGPT ) any prompt, we receive an output. This technique triggers another LLM to review the output of the former model. Quite interesting and food for thought on how this would work if we stack multiple models… — I’ll keep that for a follow up blogpost."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "1021c150bf054b1df98f566d9a6d7151.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*M1hk25dkhz0tU-3dSUiQLw.jpeg",
+            "caption": "Photo by Super Snapper on Unsplash"
+        },
+        {
+            "type": "P",
+            "content": "Impact to business applications?"
+        },
+        {
+            "type": "P",
+            "content": "This technique could improve the trustworthiness of the overall output and would result in safer and more reliable AI systems (but probably more expensive, given more prompts are given to a LLM?). An AI system that is able to reflect on its output will become a more sustainable liaison to knowledge workers and will prevent that those knowledge workers will loose trust early on."
+        },
+        {
+            "type": "P",
+            "content": "I expect additional and similar techniques will hit the surface rather sooner than late, and these will have a significant impact on a diverse set of use cases like Customer support (aiming to answer your end user’s questions correct) and Journalism (e.g. Article generation), where fake news is a topic already."
+        },
+        {
+            "type": "P",
+            "content": "Conclusion — Is reflexion all you need?"
+        },
+        {
+            "type": "P",
+            "content": "Reflexion is an interesting technique aiming to mitigate the hallucination of LLMs. This can be seen as one of the main struggles of LLM to become even more useful. Imagine that we can believe everything it generates as an answer? It would disrupt our way of handling information in our information industry."
+        },
+        {
+            "type": "P",
+            "content": "Is Reflexion all you need?… If you ask me, it is a promising technique but I do expect other techniques will hit the surface as well. I anticipate a hybrid setup with e.g. Reflexion and advanced prompt engineering that will provide better results over time."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "0da9ab63c9d10693e5763f4cb415179b.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*GEmKcQYzfuGe3d5Eg7sHAg.png",
+            "caption": null
+        }
+    ]
+}

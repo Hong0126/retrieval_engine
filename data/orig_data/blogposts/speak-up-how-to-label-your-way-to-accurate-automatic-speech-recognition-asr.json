@@ -1,0 +1,263 @@
+{
+    "title": "Speak Up! How to label your way to accurate Automatic Speech Recognition (ASR)",
+    "author": "Lisa Becker",
+    "readTime": "9 min read",
+    "publishDate": "Jul 4, 2023",
+    "blocks": [
+        {
+            "type": "FIGURE",
+            "filename": "24b60445f668862c72f30b83e2e646ae.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/0*-c8vhv8fb5X5ZcwT",
+            "caption": "Labelled audio. Photo by Nik on Unsplash"
+        },
+        {
+            "type": "P",
+            "content": "Hey there, speech enthusiasts! Are you interested in the magical world of automatic speech recognition (ASR)? Have you ever wondered how to finetune an ASR model to get the best transcriptions for your use case? Well, the secret sauce behind all that lies in the art of labelling speech data."
+        },
+        {
+            "type": "H2",
+            "content": "❔What is automatic speech recognition (ASR) and why do we need labelled data?"
+        },
+        {
+            "type": "P",
+            "content": "In a nutshell, ASR is the process by which a machine can understand and transcribe spoken language into text. Today, ASR models like wav2vec 2.0 and Whisper are trained on large amounts of unlabelled or weakly labelled speech data to learn patterns and features of spoken language. Pre-training ASR models on this kind of data can reduce the amount of labelled data needed for good performance, but it can also lead to errors and biases in the model."
+        },
+        {
+            "type": "P",
+            "content": "That’s why labelling speech data is crucial in building the perfect model for your use case. Labelled speech data enables pre-trained models to learn a more accurate and robust representation of the spoken language is will encounter with and decrease errors: Word Error Rate (WER) and Character Error Rate (CER)."
+        },
+        {
+            "type": "P",
+            "content": "This blog post will look at the different types of speech data, labelling methods, quality control techniques, and annotation formats used to train ASR models. So, let’s get funky and dive into speech data labelling!"
+        },
+        {
+            "type": "H2",
+            "content": "🗣️Types of speech data"
+        },
+        {
+            "type": "P",
+            "content": "Speech data can come in different forms, and each type presents unique challenges in labelling. Here are some of the common types of speech data:"
+        },
+        {
+            "type": "UL",
+            "items": [
+                "Read speech: This type of speech data is scripted, and the speaker reads from a written text. Read speech can include books, articles, or prepared speeches and is typically the easiest to label.",
+                "Spontaneous speech: This type of speech data is natural, unscripted, and challenging to transcribe. Spontaneous speech can include interviews and public speeches.",
+                "Conversational speech: This type of speech data involves two or more speakers interacting with each other. It can include interviews, debates, and phone conversations."
+            ]
+        },
+        {
+            "type": "P",
+            "content": "Each type of speech data presents unique challenges when it comes to labelling. For example, spontaneous speech may require more contextual information to be transcribed accurately, while read speech may require more attention to detail to capture specific words or phrases. Conversational speech may require speaker identification and turn-taking annotation to differentiate between speakers."
+        },
+        {
+            "type": "P",
+            "content": "Understanding the type of speech data used to develop the appropriate labelling methodology is essential. Additionally, having a diverse set of speech data types can improve the robustness and accuracy of ASR models."
+        },
+        {
+            "type": "H1",
+            "content": "Data"
+        },
+        {
+            "type": "P",
+            "content": "In order to label data, you first need to make sure it’s in an appropriate format. We won’t go into data collection in this blog post but will start with what to do when the data is available and you’re eager to finetune your model. There are various steps which need to be taken into account."
+        },
+        {
+            "type": "P",
+            "content": "*If we take “format” by its most common meaning for engineers:"
+        },
+        {
+            "type": "BLOCKQUOTE",
+            "content": "Samples: .wav and .mp3 are the most common formats for audio samples which are compatible with most Python audio libraries and annotation software.Transcriptions: JSON schema is your friend. The exact format varies depending on the annotation software used"
+        },
+        {
+            "type": "H2",
+            "content": "🔪Speaker Diarization"
+        },
+        {
+            "type": "P",
+            "content": "Preprocessing through speaker diarization is still necessary for inference on models like wav2vec 2.0. Otherwise, you’ll end up with the transcript with both speakers in one block of text."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "f39ffeb7ff631b0f4f8d1b5255ca85b4.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*i3cBZWDPEHEKwsU_zKXuGg.png",
+            "caption": "No diarization (left), speaker diarization w/o attribution (middle), speaker diarization & attribution (right)."
+        },
+        {
+            "type": "P",
+            "content": "Whisper does speaker diarization but not speaker attribution, meaning that you’ll get separate blocks of speech in the output but you don’t know whom they belong to."
+        },
+        {
+            "type": "P",
+            "content": "Therefore it’s advised to use speaker diarization for both finetuning and inference for wav2vec 2.0 and Whisper. If data is not collected yet, you can ask for the different speakers to be recorded on different channels (for example if the input source is a phone call) to outsource the diarization step and ensure better results. If this is not possible, simple diarizer is typically your tool of choice, but you can read our blog on speaker diarization to help you find the optimal tool for your data."
+        },
+        {
+            "type": "H2",
+            "content": "📏File duration"
+        },
+        {
+            "type": "P",
+            "content": "Labellers will thank you if they have to annotate snippets of audio files instead of an entire 5 minute phone call in one go. Whisper is finetuned on chunks of 30s of data, wav2vec 2.0 on 10s. You can use labelled data cut into shorter (or longer) snippets, but it will be padded (or truncated) by the finetuning script accordingly. The optimal length for annotation is between 5s and 8s based on our experience."
+        },
+        {
+            "type": "P",
+            "content": "It’s advised to not clean your audio from silences or background noise (like music or coughing), as your model also needs to learn how to deal with noise and the absence of speech. You don’t want the model to be finetuned on artificially clean data. What it sees now should be what it gets later."
+        },
+        {
+            "type": "H2",
+            "content": "🪄Data augmentation"
+        },
+        {
+            "type": "P",
+            "content": "To make your model more robust, you can consider augmenting your samples to increase the diversity and quantity of your data set by artificially generating new data from existing data. This can be particularly useful for underrepresented accents or dialects. Techniques that can be used for speech data augmentation are:"
+        },
+        {
+            "type": "UL",
+            "items": [
+                "Pitch shifting: for simulating different accents or emotional states.",
+                "Tempo shifting / volume shifting / silence insertion: altering the duration of the speech recording to simulate variations in speech or to add pauses in speech).",
+                "Noise reduction / injection: adding or removing music, white noise, background chatter, … from the recording.",
+                "Channel distortion: adding reverberation or echo for simulating different recording environments."
+            ]
+        },
+        {
+            "type": "P",
+            "content": "These techniques can be used in isolation or combination but can decrease the quality of your data set or teach the model unexpected behaviour."
+        },
+        {
+            "type": "H1",
+            "content": "Labelling"
+        },
+        {
+            "type": "H2",
+            "content": "🏷️Methods"
+        },
+        {
+            "type": "P",
+            "content": "Labelling speech data can be time-consuming and labour-intensive, and several methods are available for this task. Each method has pros and cons, and the appropriate method depends on the dataset’s size, the speech’s complexity, and the available resources. Here are the two most common labelling methods used for speech data that include manual labelling:"
+        },
+        {
+            "type": "UL",
+            "items": [
+                "Human transcription: This method involves human annotators listening to speech data and transcribing it manually. Manual labelling is considered the gold standard for labelling speech data as it provides high-quality annotations with high accuracy. However, it is time-consuming and expensive, particularly for large datasets.",
+                "Computer-assisted transcription (also called model-assisted or hybrid): This method uses automatic speech recognition (ASR) tools to transcribe speech data and manually correct errors. Semi-automatic labelling can significantly reduce the time and cost of manual labelling while still ensuring high-quality annotations, which can be even more accurate than without computer assistance (see Figure below). The biggest drawback of this method is that the provided transcriptions may lead to confirmation bias for, e.g., spelling mistakes, the inclusion/exclusion of stopwords or punctuation, etc."
+            ]
+        },
+        {
+            "type": "FIGURE",
+            "filename": "e1208c58624299d9beeb00536e788be2.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*_ROUeMYWqld6vZfHw_wtYA.png",
+            "caption": "Figure from the Whisper paper, showing the WER distributions of 25 recordings from the Kincaid46 dataset transcribed by Whisper, 4 commercial ASR systems(A-D), one computer-assisted human transcription service (E) and 4 human transcription services (F-I)). It shows that computer-assisted annotations can’t only reduce time and cost but also improve accuracy."
+        },
+        {
+            "type": "H2",
+            "content": "📚Metadata"
+        },
+        {
+            "type": "P",
+            "content": "Depending on your needs, you might want to annotate metadata such as:"
+        },
+        {
+            "type": "UL",
+            "items": [
+                "Topic or domain (medical, legal, …)",
+                "Speaker identification, language/dialect, or emotion",
+                "Level or type of background noise",
+                "Channel or recording device"
+            ]
+        },
+        {
+            "type": "P",
+            "content": "This information can provide ASR models with more contextual information to help them better understand and transcribe speech data and help evaluate the model’s performance on different features."
+        },
+        {
+            "type": "H2",
+            "content": "💻Annotation software"
+        },
+        {
+            "type": "P",
+            "content": "Many tools and software are available for labelling speech data, ranging from simple text editors to dedicated annotation software. At ML6, we love Label Studio, which offers the most customizability and elaborate features for many domains. Among its features are the following:"
+        },
+        {
+            "type": "UL",
+            "items": [
+                "Pre-transcriptions (for computer-assisted labelling)",
+                "Audio events (e.g. for speaker diarization)",
+                "Customised tick boxes (e.g. for metadata)"
+            ]
+        },
+        {
+            "type": "FIGURE",
+            "filename": "bf062a8cf1c5ec965c9812a6b0a3af5b.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*dFeNg3thXpd1srozAPgQPQ.jpeg",
+            "caption": "Screenshot of an example of a labelling environment. Borrowed from the Label Studio blog post on labelling audio data."
+        },
+        {
+            "type": "P",
+            "content": "Annotation software like Label Studio makes labelling additional information, like metadata, easier. It can also connect to your database to fetch the audio snippets (and pre-transcriptions) and save the transcriptions with metadata (as a JSON). Label Studio also allows for an iterative training loop which uses the data annotated by humans to improve the pre-transcriptions for the samples which still need to be labelled. A blog on labelling audio data with Label Studio can be found here."
+        },
+        {
+            "type": "H2",
+            "content": "🦮Labelling guidelines"
+        },
+        {
+            "type": "P",
+            "content": "Whatever tool and method are chosen, having a labelling guide, providing hands-on training, and analysing errors are crucial for ensuring consistency and accuracy of the data (- no matter the domain of your data):"
+        },
+        {
+            "type": "P",
+            "content": "A labelling guide needs to explain how to use the software chosen. It provides clear instructions on annotating different aspects of speech, such as speaker identification, transcription, and metadata. This helps to ensure that all annotators understand what is expected of them and that the annotations are consistent across different annotators."
+        },
+        {
+            "type": "P",
+            "content": "Labelling speech data requires a lot of alignment between labellers. You need to make sure those labellers stay consistent with labelling numbers (“1” versus “one”), capitalisation (“i drink coffee” versus “I drink coffee”), special characters (“größer” versus “groesser”), abbreviations (“fe” versus “f.e.” versus “for example”, or “ML6” versus “Em El Six”), punctuation, interrupted words at the beginning or end of a sample (“” versus “good-” versus “goodbye”), filler words (“euhm”), and many others. Including a list of domain-specific words (= jargon) in the labelling guide is also advisable. Furthermore, it is crucial to establish inter-rater agreement among annotators to ensure they all apply the labelling guide consistently. Inter-rater agreement is the agreement among annotators when labelling the same speech data, which can be calculated with Cohen’s kappa on word- and character level of annotations. Establishing inter-rater agreements can help identify and address discrepancies or disagreements among annotators, improving the overall accuracy and reliability of the labelled speech data."
+        },
+        {
+            "type": "P",
+            "content": "It is further recommended to give a hands-on workshop where the labelling software is introduced. Some samples are labelled by all annotators to ensure that everyone gets the same results. Questions can be addressed directly, and a consensus for edge cases can be found and, if necessary, added or further explained in the labelling manual."
+        },
+        {
+            "type": "P",
+            "content": "During the labelling process, an error analysis should be conducted regularly: collect a representative sample of the labelled speech data, identify the types of errors or inconsistencies, categorise them, determine their frequency and analyse the underlying causes. Your labelling guide should be revised accordingly, and annotators should be provided additional training. In some cases, it is necessary to switch to another labelling tool or method."
+        },
+        {
+            "type": "P",
+            "content": "You can check out the “Data labelling” section of another blog post we wrote here for more details."
+        },
+        {
+            "type": "H1",
+            "content": "Conclusion"
+        },
+        {
+            "type": "P",
+            "content": "In conclusion, labelling speech data is critical in developing accurate and robust ASR models. Labelled speech data enables pre-trained models to learn a more accurate and robust representation of spoken language, which can reduce spelling errors and improve the model’s overall performance. However, labelling speech data can be time-consuming and labour-intensive, and several methods and tools are available."
+        },
+        {
+            "type": "P",
+            "content": "Choosing the appropriate labelling methodology and quality control measures is essential based on the type of speech data used and the available resources. Additionally, having a diverse set of speech data types and including metadata information can improve the robustness and accuracy of ASR models."
+        },
+        {
+            "type": "P",
+            "content": "Finally, regular error analysis and revising the labelling guide can ensure the consistency and accuracy of the labelled speech data. With the right tools, methodologies, and quality control measures, you can label your way to accurate and robust ASR models."
+        },
+        {
+            "type": "P",
+            "content": "Stay tuned for more blog posts on ASR, such as optimising the hosting of Whisper or the nitty gritty of finetuning it!"
+        },
+        {
+            "type": "H2",
+            "content": "Related blog posts:"
+        },
+        {
+            "type": "UL",
+            "items": [
+                "Speaker diarization by ML6",
+                "How to label data for computer vision projects by ML6",
+                "Labeling audio data with Label Studio",
+                "Finetuning wav2vec 2.0 with Hugging Face",
+                "Finetuning Whisper with Hugging Face"
+            ]
+        }
+    ]
+}

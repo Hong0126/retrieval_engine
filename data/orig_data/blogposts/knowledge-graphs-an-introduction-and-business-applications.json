@@ -1,0 +1,171 @@
+{
+    "title": "Knowledge Graphs: an introduction and business applications",
+    "author": "Jakob Cassiman",
+    "readTime": "4 min read",
+    "publishDate": "Nov 17, 2021",
+    "blocks": [
+        {
+            "type": "P",
+            "content": "At the end of this 3 minute blog post, you will know:"
+        },
+        {
+            "type": "OL",
+            "items": [
+                "What a knowledge graph is",
+                "Why knowledge graphs are useful through 3 example use cases"
+            ]
+        },
+        {
+            "type": "P",
+            "content": "Let’s start with a definition of knowledge graphs:"
+        },
+        {
+            "type": "BLOCKQUOTE",
+            "content": "A knowledge graph describes entities and the relations between them."
+        },
+        {
+            "type": "P",
+            "content": "For example, we created a knowledge graph of all American movies linked to their actors and producers based on wikipedia. This is a small part of that graph zoomed in on the movie “The Domino Principle”:"
+        },
+        {
+            "type": "FIGURE",
+            "filename": "e776e95549e9735e7bf4a4f8db991b6d.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/0*DJbZoWh4g6aCtJhp",
+            "caption": null
+        },
+        {
+            "type": "P",
+            "content": "Such a graph is a natural way of representing linked information. Especially compared to a classical relational database with tables that refer to tables that refer to tables that refer to tables that — okay you get the point."
+        },
+        {
+            "type": "P",
+            "content": "A knowledge graph is not only a natural way to store linked information. Another fundamental difference with relational databases is that a knowledge graph considers the link between data points as important as the data point itself. Let that sink in for a second, because it’s a very powerful idea."
+        },
+        {
+            "type": "P",
+            "content": "So, you now know that a knowledge graph is actually just a way to structure information."
+        },
+        {
+            "type": "P",
+            "content": "The critical reader now asks: “So what? Why would we even care to structure our information?” Allow me to humbly convince the critics of the power of knowledge graphs with three example use cases."
+        },
+        {
+            "type": "P",
+            "content": "If you want to go more in-depth into the “how” behind the use cases, definitely stay tuned for our upcoming blog post about knowledge graphs and machine learning."
+        },
+        {
+            "type": "H1",
+            "content": "1. Financial fraud detection"
+        },
+        {
+            "type": "P",
+            "content": "Let’s say we have billions of financial transaction data. Most transactions are legitimate transactions between legitimate users, but some of those transactions are between the fraudulent users who put PFOS in our drinking water. We also know about some of the people if they are fraudulent or legitimate."
+        },
+        {
+            "type": "P",
+            "content": "A knowledge graph focuses on the links between data points. And as it happens, our transaction data is exactly that: links between data points. So, we put the transaction data in a knowledge graph where every person has links to the people they transacted with."
+        },
+        {
+            "type": "P",
+            "content": "Next, we can train a machine learning model that learns to classify everyone in our data as being a fraudulent or a legitimate user:"
+        },
+        {
+            "type": "FIGURE",
+            "filename": "3a391912c10d99b11347b3dffebdb7a8.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*HpoRcARKPBflB9LlT8eitw.png",
+            "caption": "We can train a machine learning model that classifies users as legitimate or fraudulent."
+        },
+        {
+            "type": "H1",
+            "content": "2. Recommender systems"
+        },
+        {
+            "type": "P",
+            "content": "If you shop on the internet, you’ll encounter sentences like “You might also be interested in” or “Customers who bought shampoo X also bought baby Y” or simply “Recommended for you”. Those are recommender systems."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "be6bfe67363e23dc644f06994e94a574.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/0*0AoHkXHMyG7KAWlf",
+            "caption": "A screenshot of recommendations on bol.com."
+        },
+        {
+            "type": "P",
+            "content": "A recommender system doesn’t list the things you searched for, but other items you might also like. In other words, the system has to know what you want before you know it yourself. Creating an artificial mom is a hard problem. And that’s where the knowledge graph enters the stage."
+        },
+        {
+            "type": "P",
+            "content": "Continuing on the e-commerce example, we can put all customers in a knowledge graph and link them to the items they bought in the past. Now, we try to predict missing links in the knowledge graph. In this setting, every missing link is a recommendation you can make to someone!"
+        },
+        {
+            "type": "FIGURE",
+            "filename": "73b53f3dee04800729cc740476bdc695.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:498/1*aD8mpLEq-Ksl9haNxmq_hA.gif",
+            "caption": "We can predict missing links in a knowledge graph to build a recommender system. (source: wikimedia)"
+        },
+        {
+            "type": "P",
+            "content": "It’s also important to realise that recommender systems can recommend anything and not just shampoos. It can recommend job listings, Netflix series, or even your next house. The sky is not even the limit."
+        },
+        {
+            "type": "H1",
+            "content": "3. Semantic search"
+        },
+        {
+            "type": "P",
+            "content": "Semantic search is when search engines try to really understand your query instead of just fetching results that literally match your query."
+        },
+        {
+            "type": "P",
+            "content": "There are two parallel approaches to building a semantic search engine. The first one uses machine learning to understand the language itself. E.g. If you search for “cute little pig” the machine learning model will understand that you’re also interested in results for “piglet” because they mean the same."
+        },
+        {
+            "type": "P",
+            "content": "The second approach to semantic search is leveraging a — you guessed it — knowledge graph to understand a query."
+        },
+        {
+            "type": "P",
+            "content": "In the screenshot below, when I search for “piglet”, Google suggests related concepts like “winnie the pooh”, “cute” and “disney”."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "a9b31275ccdad1c14e49b4d0ee4713f3.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/0*NUoOO0NUwRPXc4Db",
+            "caption": null
+        },
+        {
+            "type": "P",
+            "content": "Google’s knowledge graph makes those suggestions because it knows that Piglet is also one of Winnie’s best friends. (Admittedly, I don’t have access to the source code of Google Search, so if someone does, feel free to correct me here.)"
+        },
+        {
+            "type": "P",
+            "content": "Another great example is how Uber Eats engineers also use knowledge graphs for semantic search. You can read their blog post here."
+        },
+        {
+            "type": "H1",
+            "content": "Summarized"
+        },
+        {
+            "type": "UL",
+            "items": [
+                "A knowledge graph is a way to structure your data that focuses on the links between data points."
+            ]
+        },
+        {
+            "type": "P",
+            "content": "You can use knowledge graphs to:"
+        },
+        {
+            "type": "UL",
+            "items": [
+                "Detect fraud like the CIA",
+                "Make recommendations like Amazon",
+                "Provide a search experience like Google"
+            ]
+        },
+        {
+            "type": "P",
+            "content": "And much much more things that didn’t fit in this 3 minute blog post."
+        }
+    ]
+}

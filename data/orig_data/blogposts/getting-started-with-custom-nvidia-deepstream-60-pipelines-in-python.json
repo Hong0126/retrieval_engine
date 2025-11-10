@@ -1,0 +1,178 @@
+{
+    "title": "Getting started with custom NVIDIA Deepstream 6.0 pipelines in Python",
+    "author": "Jules Talloen",
+    "readTime": "5 min read",
+    "publishDate": "Jan 17, 2022",
+    "blocks": [
+        {
+            "type": "FIGURE",
+            "filename": "fb0fa53d976d91a6daea9244ecab7047.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:436/1*CKTChPukDRwiGrRjvsdpUw.png",
+            "caption": null
+        },
+        {
+            "type": "P",
+            "content": "NVIDIA recently released version 6.0 of Deepstream, their streaming analytics toolkit for AI-based multi-sensor processing, video, audio and image understanding. Among the new features are improved Python bindings (you can find the release notes here). Why does this matter I hear you ask?"
+        },
+        {
+            "type": "P",
+            "content": "If you’re looking to create a standard, object detection and tracking pipeline, the Deepstream reference application can get you started. My colleague Victor wrote a NVIDIA Deepstream Quickstart explaining how to set it up. As he mentions at the end of his blogpost, you’ll hit a wall as soon as you want to do something custom. You might think “No problem! I’ll dive into the code and use my coding skills to add some custom logic”. Unfortunately, Deepstream applications are originally written in C++. Python is still the number one programming language in the ML field and also the language of my choice. Luckily, NVIDIA offers Python bindings. With the release of Deepstream 6.0, NVIDIA made the Python bindings available on their Python apps repository. Included in this repository are some sample Python applications."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "821f1793352756f02d2e5f3b245c6234.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*jr7vZqy5E9NoQxxGK4ZyPg.png",
+            "caption": null
+        },
+        {
+            "type": "P",
+            "content": "If you’re like me, you probably got a bit flustered looking at the Deepstream Python samples. It is difficult to follow along and understand the logic components of the app. Every app is basically a monolith script with various pieces of code all mixed together. In addition, all of these sample apps share a lot of functionality, and thus contain a lot of redundant code."
+        },
+        {
+            "type": "P",
+            "content": "As a big fan of OOP (Object Oriented Programming) and DRY (Don’t Repeat Yourself), I took it upon myself to rewrite, improve and combine some of the Deepstream sample apps. The result is a Deepstream 6.0 Python boilerplate."
+        },
+        {
+            "type": "H1",
+            "content": "Python boilerplate"
+        },
+        {
+            "type": "P",
+            "content": "The boilerplate repository is structured as follows:"
+        },
+        {
+            "type": "CODE",
+            "content": ".├── README.md└── deepstream    ├── Dockerfile    ├── app    │   ├── config.py    │   ├── core.py    │   ├── pipeline.py    │   ├── pipelines    │       ├── anonymization.py    │       ├── re_identification.py    │       └── segmentation.py    │   └── utils    ├── configs    │   ├── pgies    │   ├── sgies    │   └── trackers    ├── data    │   ├── pgies    │   ├── sgies    │   └── videos    └── run.py"
+        },
+        {
+            "type": "P",
+            "content": "The app/ directory contains the Deepstream pipeline implementations. Deepstream configuration files are stored in the configs/ directory. Model weights, libs and sample videos can be found in the data/ directory."
+        },
+        {
+            "type": "P",
+            "content": "Inside the app/ directory, you’ll find a pipeline.py script and a pipelines directory. The first contains a base Pipeline class, the common object detection and tracking pipeline (e.g. YOLOv4 with DeepSORT). As input, it accepts any Gstreamer supported format (e.g. RTSP stream, mp4 file…) using a URI decode bin. The resulting bounding boxes and tracker IDs are drawn on the video and returned as a mp4 file or new RTSP stream. Even though this allows a wide variety of applications, you typically want to add some custom logic. The next section explains one way to do this."
+        },
+        {
+            "type": "H2",
+            "content": "Inserting custom code with Gstreamer probes"
+        },
+        {
+            "type": "P",
+            "content": "Next to the base pipeline there are some example custom pipelines:"
+        },
+        {
+            "type": "UL",
+            "items": [
+                "Anonymization: redacting certain detected objects",
+                "Re-identification: people tracking and re-identification feature extraction with OSNet",
+                "Segmentation: semantic segmentation"
+            ]
+        },
+        {
+            "type": "P",
+            "content": "The pipelines overwrite some logic of the base pipeline and insert custom logic using Gstreamer probes. You can probe both metadata (e.g. bounding boxes) and data (e.g. video frames)."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "ab333957510c195dcdac53241729bd9b.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*SBW2jAaRXsgl-6Dk1lS5nQ.png",
+            "caption": null
+        },
+        {
+            "type": "P",
+            "content": "The AnonymizationPipeline is an example of a custom pipeline using both the underlying metadata and image data. The code snippet below is all you need to write to create your pipeline. The Deepstream magic happens in the _add_probes function. You first select a component of your pipeline, in this case the tiler. You then get the static pad and add a probe. The _wrap_probe function acts as an intermediate to abstract away the underlying C memory management. As a result, you can simply write a function (e.g. _anonymize ) that takes numpy frames and lists of metadata dictionaries as input."
+        },
+        {
+            "type": "H1",
+            "content": "Getting started"
+        },
+        {
+            "type": "P",
+            "content": "Because the whole Deepstream and Python bindings setup can be very cumbersome, I’ve packaged most of the requirements in a Dockerfile. You only need to install Docker, the NVIDIA container toolkit and NVIDIA driver. The compiled Python bindings and all remaining dependencies are part of the Docker image."
+        },
+        {
+            "type": "H2",
+            "content": "Prerequisites"
+        },
+        {
+            "type": "P",
+            "content": "On a NVIDIA capable machine, install NVIDIA driver version 470.63.01:"
+        },
+        {
+            "type": "CODE",
+            "content": "sudo apt updatesudo apt install gcc makecurl -O https://us.download.nvidia.com/XFree86/Linux-x86_64/470.63.01/NVIDIA-Linux-x86_64-470.63.01.runchmod 755 NVIDIA-Linux-x86_64-470.63.01.runsudo ./NVIDIA-Linux-x86_64-470.63.01.run"
+        },
+        {
+            "type": "P",
+            "content": "Verify the installation with:"
+        },
+        {
+            "type": "CODE",
+            "content": "nvidia-smi"
+        },
+        {
+            "type": "P",
+            "content": "Setup Docker and the NVIDIA Container Toolkit following the NVIDIA container toolkit install guide."
+        },
+        {
+            "type": "H2",
+            "content": "Build and run the pipeline"
+        },
+        {
+            "type": "P",
+            "content": "Clone the repository to a local directory, e.g. ~/deepstream-python:"
+        },
+        {
+            "type": "CODE",
+            "content": "git clone https://github.com/ml6team/deepstream-python.git"
+        },
+        {
+            "type": "P",
+            "content": "Be sure to run git lfs pull afterwards to download the files from LFS storage:"
+        },
+        {
+            "type": "CODE",
+            "content": "sudo apt install git-lfscd deepstream-pythongit lfs installgit lfs pull"
+        },
+        {
+            "type": "P",
+            "content": "Build the container image by running the following command inside the deepstream/ directory (where the Dockerfile is located):"
+        },
+        {
+            "type": "CODE",
+            "content": "docker build -t deepstream ."
+        },
+        {
+            "type": "P",
+            "content": "Next, run the container with:"
+        },
+        {
+            "type": "CODE",
+            "content": "docker run -it --gpus all -v ~/deepstream-python/output:/app/output deepstream python3 run.py <URI>"
+        },
+        {
+            "type": "P",
+            "content": "Where URI is a file path (file://...) or RTSP URL (rtsp://...) to a video stream."
+        },
+        {
+            "type": "P",
+            "content": "For example:"
+        },
+        {
+            "type": "CODE",
+            "content": "docker run -it --gpus all -v ~/deepstream-python/output:/app/output deepstream python3 run.py 'file:///app/data/videos/sample_720p.h264'"
+        },
+        {
+            "type": "P",
+            "content": "The -v option mounts the output directory to the container. After the pipeline is run, deepstream-python/output will contain the results. For the base pipeline, this is a video (out.mp4) with bounding boxes drawn."
+        },
+        {
+            "type": "P",
+            "content": "All these instructions, and more, can be found in the README of the repository. Happy coding!"
+        },
+        {
+            "type": "P",
+            "content": "This blogpost was made possible by the support of Flanders Innovation & Entrepreneurship — VLAIO"
+        }
+    ]
+}

@@ -1,0 +1,111 @@
+{
+    "title": "Harnessing the Power of Foundation Models for your Business with LoRA",
+    "author": "Nikhil Nagaraj",
+    "readTime": "5 min read",
+    "publishDate": "Jul 10, 2023",
+    "blocks": [
+        {
+            "type": "FIGURE",
+            "filename": "f3831562723511cb682c9e7c4c3a6f5d.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/0*IIiWmkKDZf0AUn4d",
+            "caption": "Photo by Taylor Vick on Unsplash"
+        },
+        {
+            "type": "P",
+            "content": "The latest AI trends are foundation models. Think of Large Language Models (LLMs) such as GPT or image generators such as Stable Diffusion.These foundation models are trained at scale on vast quantities of data, resulting in a model that can be adapted to a wide range of downstream tasks. They can be directly used for various applications but perform better when finetuned for the specific task. However, these large foundation models are costly to fine-tune, requiring vast computational resources and memory."
+        },
+        {
+            "type": "P",
+            "content": "In this blog, we look at how your business can use a technique called LoRA to harness large foundation models without splurging a lot of money. For a technical deep-dive of LoRA, read our technical blog here."
+        },
+        {
+            "type": "H1",
+            "content": "What is fine-tuning?"
+        },
+        {
+            "type": "P",
+            "content": "Fine-tuning is updating the parameters of a pre-trained model with new data. This allows the model to adapt to the characteristics and nuances of the target domain or task while preserving the general knowledge learned from the large-scale pre-training. However, it comes with a few drawbacks (especially in the case of large foundational models) :"
+        },
+        {
+            "type": "UL",
+            "items": [
+                "It requires retraining all the model parameters, which can be billions in the case of LLMs, which means more time, energy and money spent on training.",
+                "It increases the risk of overfitting, especially when the new data is small or noisy, which can degrade the model's performance on other tasks or domains."
+            ]
+        },
+        {
+            "type": "P",
+            "content": "To address these challenges, researchers from Microsoft proposed a novel technique called LoRA: Low-Rank Adaptation of Large Language Models."
+        },
+        {
+            "type": "H1",
+            "content": "LoRA: Low-Rank Adaptation"
+        },
+        {
+            "type": "P",
+            "content": "LoRA is based on low-rank approximation, a mathematical method to reduce the complexity and dimensionality of large matrices by finding smaller matrices that approximate them well."
+        },
+        {
+            "type": "P",
+            "content": "LoRA works by freezing the original weights of the pre-trained model and training a much smaller number of parameters. These tuned parameters are then added to the pretrained model. The figure below illustrates this process:"
+        },
+        {
+            "type": "FIGURE",
+            "filename": "b3da44fd42c9b3a03afaee3fb8e01b99.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/0*sry71sERhHy58Ueb.png",
+            "caption": "Schematic depicting the approach propsed by LoRA (Source)."
+        },
+        {
+            "type": "H1",
+            "content": "Advantages of LoRA"
+        },
+        {
+            "type": "UL",
+            "items": [
+                "Reduce the number of trainable parameters by several orders of magnitude, depending on the rank chosen for the update matrices. For example, using LoRA on GPT-3 175B reduces the number of trainable parameters from 175 billion to 17 million, a 10,000 times reduction¹.",
+                "Due to the lower number of parameters, lower GPU memory is required, drastically reducing the cost incurred in finetuning a large model.",
+                "Avoid overfitting by keeping the original weights fixed and only updating a small fraction, preserving the generalization ability of the model while adapting it to new data.",
+                "Perform efficient task-switching by storing only one copy of the original weights and multiple sets of update matrices for different tasks or domains. This reduces the storage space and memory needed for deployment and allows you to switch between tasks without reloading the model."
+            ]
+        },
+        {
+            "type": "H1",
+            "content": "Some business applications of LoRA"
+        },
+        {
+            "type": "P",
+            "content": "The ability to finetune foundation models (like LLMs) with low compute requirements, at low cost and in a low-data regime opens up many opportunities for businesses looking to capitalize on AI and improve their processes. Some examples include:"
+        },
+        {
+            "type": "OL",
+            "items": [
+                "Tune LLMs to perform specific natural language tasks like summarization/classification: With LoRA, businesses can modify large language models, such as GPT-3 or LLaMA, to achieve specific natural language processing tasks. These tasks could include text summarization or text classification. For instance, a news organization might use this to categorize news articles into predefined topics automatically or to generate short summaries of lengthy articles. The advantage of LoRA in this context is that businesses can adapt the models to their unique needs without the need for extensive resources.",
+                "Domain Adaptation of Open Source LLMs: With LoRA, companies can finetune large language models to follow specific instructions, understand domain-specific jargon and adapt to a specific domain like law, finance, medicine or manufacturing, making them more capable of answering questions/performing tasks in the specific domain.",
+                "Adapt large open-source ASR (Automatic Speech Recognition) models like Whisper to specific languages or accents: ASR technology is crucial in applications like voice assistants, transcription services, and more. However, these models often need help with different accents or languages less represented in the training data. Using LoRA, businesses can adapt large ASR models better to understand a broader range of languages or accents. This could significantly improve the usability of voice-enabled services for customers worldwide.",
+                "Tune image generation models like Stable Diffusion to follow a particular style or structure: Image generation models have found use in digital art creation, design, and even in generating realistic images for training other machine learning models. However, getting these models to generate images following a specific style or structure can be challenging and resource-intensive. Using LoRA, businesses can finetune these models with less computational resources to create images following a particular manner, such as a specific art style for a digital game or distinctive product designs for a manufacturing company."
+            ]
+        },
+        {
+            "type": "FIGURE",
+            "filename": "03bad5289d991bf4b2a69799ddcf9c99.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/0*QIevncbz3d5_N7CK.png",
+            "caption": "Some images generated by finetuning a stable diffusion model with LoRA (Source)."
+        },
+        {
+            "type": "P",
+            "content": "These are just a few examples of how LoRA can be utilized in a business setting. It’s a versatile tool that can significantly reduce the computational resources required to adapt powerful models to specific tasks, enabling businesses of all sizes to take advantage of the benefits of AI."
+        },
+        {
+            "type": "H1",
+            "content": "Conclusion"
+        },
+        {
+            "type": "BLOCKQUOTE",
+            "content": "AI is the new electricity. Just as electricity transformed almost everything 100 years ago, today I actually have a hard time thinking of an industry that I don’t think AI will transform in the next several years. — Andrew Ng"
+        },
+        {
+            "type": "P",
+            "content": "As we stand on the brink of the AI revolution, businesses must recognize the power of AI and how it can transform their operations. With techniques like LoRA, even the largest models become accessible and affordable for adaptation. It allows businesses to harness the power of AI, just like electricity was harnessed a century ago, to light up their path to innovation and progress. This is not just an era of change, but a change of era."
+        }
+    ]
+}

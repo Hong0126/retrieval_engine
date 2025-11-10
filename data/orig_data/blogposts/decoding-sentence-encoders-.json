@@ -1,0 +1,260 @@
+{
+    "title": "Decoding Sentence Encoders 🔐",
+    "author": "Mathias Leys",
+    "readTime": "8 min read",
+    "publishDate": "Jun 13, 2022",
+    "blocks": [
+        {
+            "type": "FIGURE",
+            "filename": "501f6be4328f9b4172df3299552e0ee1.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:512/0*hNCaaq7CLxqsnaxG.png",
+            "caption": null
+        },
+        {
+            "type": "H1",
+            "content": "Introduction"
+        },
+        {
+            "type": "P",
+            "content": "The current sentence encoders landscape is quite diverse and can be a bit daunting at first. It is easy to get confused if you don’t properly grasp the idea behind sentence encoders and the nuances involved."
+        },
+        {
+            "type": "P",
+            "content": "For example, you may be aware that sentence transformers (bi-encoders) exist and they aim to produce qualitative embeddings for sentence-level tasks. But then again, regular encoders also produce high-quality embeddings and are perfectly suited for sentence-level tasks. The architectures behind transformers and their sentence transformer counterparts also seem identical. Then there are also cross-encoders which are used for, you guessed it, performing sentence-level tasks."
+        },
+        {
+            "type": "P",
+            "content": "Call it Lionel because things are getting messy."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "2c8f6791271c1899b6705545551a2edc.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/0*NmOegpazMkZJTKhI.jpg",
+            "caption": null
+        },
+        {
+            "type": "P",
+            "content": "These doubts are exactly what we aim to crystallize in this blogpost. At the end, you should have a very clear view on what sentence transformers, bi-encoders and cross-encoders are, when to use them and how they relate to regular transformers."
+        },
+        {
+            "type": "H1",
+            "content": "Why sentence transformers?"
+        },
+        {
+            "type": "P",
+            "content": "As things were getting messi, it seems only suited that we immediately kick things off (pun intended). We will do so by addressing a common myth:"
+        },
+        {
+            "type": "BLOCKQUOTE",
+            "content": "“sentence transformers produce better sentence embeddings than regular transformers”."
+        },
+        {
+            "type": "P",
+            "content": "If only it were this simple. The thing about (sentence) embeddings is that their quality depends on the use case. Embeddings may be very suited to a particular use case and not at all suited to another. I will demonstrate this via—as any mathematician would agree — the most rigorous of proof methods: proof by anecdotal evidence."
+        },
+        {
+            "type": "P",
+            "content": "Consider the following statements: “Nuclear power is dangerous!” and “Nuclear power is the future of energy!”. Politics aside, should these statements be considered similar, i.e. should the sentence embeddings be close together? Well it depends on your perspective. If you are talking about the topic, then definitely yes: both statements are opinions on nuclear power. So in that sense, they are very similar. However, if you are talking about sentiment, then the answer is a resounding no. They are about as dissimilar in terms of sentiment as you can get."
+        },
+        {
+            "type": "BLOCKQUOTE",
+            "content": "Q.E.D."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "2156445a36ba214a51175380614a1211.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*e0Ca1UnatUs0w9Qax23mqw.png",
+            "caption": "All embeddings are equal but some are more equal than others"
+        },
+        {
+            "type": "BLOCKQUOTE",
+            "content": "Intermezzo: This is why large pre-trained language models are trained on very general tasks (such as masked language modeling). The idea is that the embeddings reflect a very broad understanding of language that can later be tuned to a specific use case."
+        },
+        {
+            "type": "P",
+            "content": "Back to the question at hand though: “do sentence transformers produce better sentence embeddings?”. The answer is a resounding, undisputed “it depends”!"
+        },
+        {
+            "type": "P",
+            "content": "Regular transformers produce sentence embeddings by performing some pooling operation such as the element-wise arithmetic mean on its token-level embeddings. A good pooling choice for BERT is CLS pooling. BERT has a special <CLS> token that is supposed to capture all the sequence information. It gets tuned on next-sentence prediction (NSP) during pre-training."
+        },
+        {
+            "type": "BLOCKQUOTE",
+            "content": "🔔. Gotcha alert 🔔 : RoBERTa does not perform NSP and does not have a <CLS> token. It has a start-of-sentence <s> token but the embedding is not trained to portray meaningful sentence representations out-of-the-box"
+        },
+        {
+            "type": "P",
+            "content": "The resulting sentence embeddings are well-suited for some classification or regression task. If this is want you want to do, by all means fire up ye ole BertForSequenceClassification or similar and you are all set."
+        },
+        {
+            "type": "P",
+            "content": "However, for semantic similarity tasks, the sentence embeddings aren’t great. This is where sentence transformers come into play. The training process of sentence transformers is especially designed with semantic similarity in mind. More on the training process later though."
+        },
+        {
+            "type": "P",
+            "content": "So in conclusion: if you want to perform some sentence classification task, a regular transformer will more than do the trick. However, if you want to do a task such as semantic search or clustering that relies on semantic similarity, you should look towards sentence transformers."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "607e569c003401ad9b2f206e130456d6.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*UA-Tg_EVya7xZjlKvzZNLQ.png",
+            "caption": "The right tool for the right job, my friends"
+        },
+        {
+            "type": "H1",
+            "content": "Cross-encoders"
+        },
+        {
+            "type": "P",
+            "content": "Now, being the inquisitive person that you are, you are probably asking yourself:"
+        },
+        {
+            "type": "BLOCKQUOTE",
+            "content": "“Couldn’t you see semantic similarity as a classification problem where you try to classify two sentences as either “relevant” or “not relevant” instead of all this sentence encoder stuff?”"
+        },
+        {
+            "type": "P",
+            "content": "You would be very correct in thinking this. In fact, this is exactly what a cross-encoder does. There’s no slipping anything past you today."
+        },
+        {
+            "type": "P",
+            "content": "Essentially what cross-encoders do is concatenate two sentences with a separator <SEP> token and feed it into a language model. There is a classification head on top of the language model that is then trained to predict a target “similarity” value."
+        },
+        {
+            "type": "P",
+            "content": "So for example, a cross-encoder would concatenate the sentences “my dog is fast” and “he has a V8 diesel engine” and predict a low similarity score, even though they both contain words related to speed. This is correct of course. Everyone knows that Snuffles is rocking a V12 TDI under the bonnet. He’s very fuel-efficient."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "bdb7095bfe27ca554a65b9f6946020df.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*FQ4xopeC4IrsvWbSDJYamg.png",
+            "caption": "Cross-encoder architecture"
+        },
+        {
+            "type": "P",
+            "content": "A cross-encoder is thus trained by sentence-pairs along with a ground-truth label of how semantically similar they are."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "463c908959c7126e899c54bb7709a8ef.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:554/1*G3eaHucKs3C9CpqGOXcBcw.png",
+            "caption": "Cross-encoder sample training data"
+        },
+        {
+            "type": "P",
+            "content": "Whereas cross-encoders tend to perform very well on sentence-level tasks, they do suffer from a major drawback: cross-encoders do not produce sentence embeddings."
+        },
+        {
+            "type": "P",
+            "content": "In the context of information retrieval, this implies that we cannot pre-compute document embeddings and efficiently compare these to a query embedding. We are also not able to index document embeddings for efficient search."
+        },
+        {
+            "type": "P",
+            "content": "In the context of sentence clustering, this means that we have to pass every possible pair of documents into the cross-encoder and compute the predicted similarity."
+        },
+        {
+            "type": "P",
+            "content": "I think you can imagine that this slows down practical applications to the point of being almost unusable."
+        },
+        {
+            "type": "H1",
+            "content": "Bi-encoders"
+        },
+        {
+            "type": "P",
+            "content": "You may have noticed that I have used the terms “sentence transformer” and “bi-encoder” pretty much interchangeably. There is a good reason for this: they are pretty much interchangeable. Sentence transformer just rather refers to the Python package sentence-transformers and the original paper SBERT, whereas bi-encoder refers more to the actual architecture."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "89a26e164e52e1a6916f8abc742d199c.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*Vx51ESNCpOGkl9iPp_jfhg.png",
+            "caption": "Bi-encoder, sentence transformer. What’s in the name?"
+        },
+        {
+            "type": "P",
+            "content": "The inefficiency of cross-encoders is exactly were bi-encoders come into play. Although cross-encoders tend to be more accurate, bi-encoders have the advantage that they actually produce sentence embeddings which make them much faster and more practical in real-world settings as they allow for indexing, pre-computing embeddings, etc."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "d2dc6b4da4e40f8c7743cfc1e05deac2.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*SB1R0D9YLjJOLlUIBhRj2w.png",
+            "caption": "Bi-encoder architecture"
+        },
+        {
+            "type": "P",
+            "content": "As an illustration, clustering just 10.000 sentences with a cross-encoder would require computing similarity scores for about 50 million sentence pairs which would take around 65 hours with a BERT architecture. In that time, you could watch all 8 Harry Potter movies twice, listen to every Beatles song ever made and you would still have a few hours to spare."
+        },
+        {
+            "type": "P",
+            "content": "In comparison, the same task with a bi-encoder would take around 5 seconds. That is about the length of the “You’re a wizard Harry” scene alone."
+        },
+        {
+            "type": "P",
+            "content": "It should be noted, however, that knowledge distillation training procedures where a bi-encoder student model tries to imitate a cross-encoder teacher model seem to be very promising. However, this is really a topic in and of itself so I won’t go into it here."
+        },
+        {
+            "type": "H1",
+            "content": "Sentence transformer training"
+        },
+        {
+            "type": "P",
+            "content": "The real power of sentence transformers lies in their training procedure, which is specifically designed for semantic similarity. Sentence transformers are trained as so-called Siamese networks."
+        },
+        {
+            "type": "P",
+            "content": "In Siamese networks, your data are triplets of an “anchor data point”, a “positive data point” and a “negative data point”. The training objective here — “triplet loss function” — is to simultaneously minimize the distance between the anchor data point embedding to the positive data point embedding and maximize the distance between the anchor data point embedding to the negative data point embedding."
+        },
+        {
+            "type": "P",
+            "content": "Siamese training is an idea borrowed from computer vision. Say you want to design a facial similarity system. You would structure your data as triplets of an “anchor” image, a “positive” image (i.e., a different image of the same person) and a “negative” image (i.e., an image of a different person). The network is then trained so that the embeddings of the anchor and the positive image are very close and the embeddings of the anchor and the negative image are not."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "66d82024e16da9de2f1b3110594b4c73.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/0*rXCVkh4PtUnBBXBc.png",
+            "caption": "Siamese networks are also used for facial similarity"
+        },
+        {
+            "type": "P",
+            "content": "Fully analogously, in the context of sentence transformers, the data is structured as triplets of an anchor sentence along with a positive sentence which is semantically similar to the anchor and a negative sentence which is semantically dissimilar to the anchor."
+        },
+        {
+            "type": "P",
+            "content": "Again analogously, the training process tunes the sentence embeddings such that the embeddings of the anchor sentences are close to the embeddings of the positive sentences and far from the embeddings of the negative sentences."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "27d5f2e1230b2a0fde05c635505ca3f8.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:613/1*BBxXZdErSj145LfcMUkr5g.png",
+            "caption": "Bi-encoder sample triplet training data"
+        },
+        {
+            "type": "BLOCKQUOTE",
+            "content": "This training process forces sentence transformers to produce semantically meaningful embeddings in the sense that sentence embeddings of semantically similar sentences are close together and sentence embeddings of semantically dissimilar sentences are not."
+        },
+        {
+            "type": "H1",
+            "content": "Conclusion"
+        },
+        {
+            "type": "P",
+            "content": "In the above paragraphs, we went over sentence transformers in great technical detail. However, let’s not lose sight of the bigger picture and recap what we discussed."
+        },
+        {
+            "type": "P",
+            "content": "👉 We compared sentence transformers to regular transformers and discovered that one is not universally better than the other. Sentence transformers are just tuned for semantic similarity. It is a matter of the right tool for the right job."
+        },
+        {
+            "type": "P",
+            "content": "👉 We discussed cross-encoders which approach semantic similarity as a classification problem. We concluded that while cross-encoders are often very accurate, they are also often not very practical in a real-life setting."
+        },
+        {
+            "type": "P",
+            "content": "👉 We saw how bi-encoders are designed to offer a solution to the inefficiency of cross-encoders."
+        },
+        {
+            "type": "P",
+            "content": "👉 We rounded off by discussing the bi-encoder training process which is what really makes it stand out as their underlying architecture is identical to that of a regular transformer."
+        }
+    ]
+}

@@ -1,0 +1,232 @@
+{
+    "title": "What can you expect from Automated Machine Learning?",
+    "author": "Julien Schuermans",
+    "readTime": "6 min read",
+    "publishDate": "Mar 1, 2023",
+    "blocks": [
+        {
+            "type": "FIGURE",
+            "filename": "179c2b2c85f67c15378ece93465a6b1f.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:666/0*tgIkLGb1Aevin_27",
+            "caption": null
+        },
+        {
+            "type": "H1",
+            "content": "First things first"
+        },
+        {
+            "type": "P",
+            "content": "Lots of parties claim they offer the AutoML solution that you are looking for. The recent AutoML Benchmark tries to give an objective view on the performance of some of these tools."
+        },
+        {
+            "type": "P",
+            "content": "But what is AutoML? Most explanations include"
+        },
+        {
+            "type": "P",
+            "content": "something technical, like"
+        },
+        {
+            "type": "BLOCKQUOTE",
+            "content": "… automating the tasks of applying machine learning to real-world problems -wikipedia"
+        },
+        {
+            "type": "P",
+            "content": "as well as a people aspect:"
+        },
+        {
+            "type": "BLOCKQUOTE",
+            "content": "… off-the-shelf machine learning methods that can be used easily and without expert knowledge” — automl.org"
+        },
+        {
+            "type": "P",
+            "content": "Taken at face value, these are huge claims. In this blogpost we will argue that the tools that are available today don’t deliver upon these promises. Focusing on AutoML for structured (tabular) data in particular, we try to answer the question: “What can you expect from Automated Machine Learning?”"
+        },
+        {
+            "type": "P",
+            "content": "A romanticised version of what people expect from AutoML might look somewhat like this:"
+        },
+        {
+            "type": "FIGURE",
+            "filename": "e64e64214d3220a2a8807756e7208408.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/0*U27ofOlRg7D4VQbq",
+            "caption": "Looks easy enough, doesn’t it?"
+        },
+        {
+            "type": "P",
+            "content": "This blogpost takes a good look at the schematic above, using 2 different approaches:"
+        },
+        {
+            "type": "OL",
+            "items": [
+                "by zooming in on the technical aspects of AutoML: it’s not always clear which ML tasks this “blue block” should automate in order to convert a dataset into a model.",
+                "by zooming out to show the bigger picture: people need at least some expert knowledge to work with AutoML."
+            ]
+        },
+        {
+            "type": "H1",
+            "content": "1. Zooming in"
+        },
+        {
+            "type": "BLOCKQUOTE",
+            "content": "“What exactly should AutoML automate?”"
+        },
+        {
+            "type": "P",
+            "content": "There is no straightforward answer to this question that all frameworks / developers / users agree upon. This lack of clarity has allowed different toolmakers to focus on the automation of different subsets of tasks in ML projects. The result is that available tools often have overlapping, but different feature sets. For an end user, who wants to “automate ML tasks”, it can be very hard to compare tools."
+        },
+        {
+            "type": "P",
+            "content": "Below are 4 examples that illustrate this. (This is not an exhaustive list — feel free to do this exercise for other tools yourself.)"
+        },
+        {
+            "type": "P",
+            "content": "Auto-sklearn automates the bare minimum. Note the need for manual cleaning of the dataset and feature preprocessing. (In these sketches, the coloured components are the ones covered by the tool in question):"
+        },
+        {
+            "type": "FIGURE",
+            "filename": "03e37699a5ed75ede195678795198e5f.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/0*BPXVlWDEtd8d6ZzI",
+            "caption": "auto-sklearn"
+        },
+        {
+            "type": "P",
+            "content": "TPOT (another classic) in addition includes feature preprocessing, feature construction and -selection:"
+        },
+        {
+            "type": "FIGURE",
+            "filename": "990903f7d40939e31a989b62052e45fd.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/0*Sah7QsQI4sABE7q7",
+            "caption": "TPOT"
+        },
+        {
+            "type": "P",
+            "content": "The creators of MLJAR (and similar tools) aim somewhat bigger. These open source packages include features for e.g. explainability, ensembling, documentation generation, experiment tracking and model validation. This means that users are not only creating a ML model — they’re also capturing lots of useful metadata."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "6b8938f7821cf18f4b5a91ed60878ffd.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/0*9_BBKJ9jM9WifvPg",
+            "caption": "MLJAR"
+        },
+        {
+            "type": "P",
+            "content": "In 2022, Google Cloud really pushed the development and adoption of “Vertex AI AutoML Tabular”. It does some data cleaning (in contrast to the previous tools) — meaning you could give it your raw dataset if you wanted to. Statistics generation & data drift detection is implemented via TFX. Trained models can be deployed as an endpoint: all these steps integrate nicely using Vertex AI pipelines. GCP also offers post-deployment explainability rather than explainability during model development / selection. No real documentation generation to be seen though…"
+        },
+        {
+            "type": "FIGURE",
+            "filename": "0e4278983b9da793b850277d1efe9310.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/0*sFuXmY-fFsqwrR-_",
+            "caption": "AutoML Tables on Google Cloud"
+        },
+        {
+            "type": "P",
+            "content": "Having zoomed in on the internals of a couple of popular AutoML tools, it’s becoming pretty clear:"
+        },
+        {
+            "type": "H2",
+            "content": "There is no consensus on the exact components that should be automated. Different AutoML tools offer a wide variety of features."
+        },
+        {
+            "type": "H1",
+            "content": "2. Zooming out"
+        },
+        {
+            "type": "P",
+            "content": "(Auto)ML is just a single step in a bigger problem-solving story. Without expertise, the humans in this story risk making mistakes at the interfaces:"
+        },
+        {
+            "type": "P",
+            "content": "AT THE INPUT: Getting data into any ML system requires some decision making."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "e08ef104a6996d7381a204363c0e941d.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/0*E_qribbyXv2w7BA8",
+            "caption": "How do you decide which data to feed into your autoML system?"
+        },
+        {
+            "type": "P",
+            "content": "Some things just can not be automated. Before a dataset can be handed to an AutoML system (or a bunch of ML engineers for that matter), someone with knowledge of the data needs to think hard & deep:"
+        },
+        {
+            "type": "UL",
+            "items": [
+                "What other datasets can I leverage to solve this problem?",
+                "How do I aggregate the data to guarantee that the resulting model produces actionable outputs?",
+                "What assumptions does this ML tool make about the data I feed it in?",
+                "Is this dataset representative of the environment where the model will be deployed?",
+                "How can I avoid data leakage and/or target leakage?",
+                "Where are all these NULL values coming from? Is there anything I can do about that?"
+            ]
+        },
+        {
+            "type": "P",
+            "content": "Pretty sure these aren’t the only issues — but you get the point."
+        },
+        {
+            "type": "P",
+            "content": "AT THE OUTPUT: The interpretation of the results of ML training jobs ain’t easy."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "4d249bf5f1b0604240f8e4c706a81d1f.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/0*XRjMk2cDFizlwt0s",
+            "caption": "When do you decide to deploy a model?"
+        },
+        {
+            "type": "P",
+            "content": "Once you’ve trained a model — Yay! — you’ll probably want to have a look at its specs before you deploy it. How else would you know if it’s good enough? Does it need more training? More data? A different problem formulation? In order to answer these questions, you’ll probably need to dig a bit deeper into the results:"
+        },
+        {
+            "type": "UL",
+            "items": [
+                "What do you know about the inner workings of this “best” model produced by the AutoML suite? Does it have 100 parameters? 100M? Is is a GBDT or an ensemble of MLPs? Is it deterministic?",
+                "Can you explain how it works to the business people?",
+                "Can you export it to ONNX or TFLite? What’s the inference latency like?",
+                "What do you think about the ROC AUC curve? Can you explain why the RMSE score should be preferred over the R2 measure in this case?",
+                "Can you interpret the plots with SHAP values without confusing correlation & causality?"
+            ]
+        },
+        {
+            "type": "P",
+            "content": "We’re not just fans of throwing around abbreviations — these are all examples of questions that pop up during ML projects. Even if you can automate some or all technical parts of the model creation it does not mean your model is ready to be deployed once it is trained."
+        },
+        {
+            "type": "P",
+            "content": "By zooming out we’ve come to realise that:"
+        },
+        {
+            "type": "H2",
+            "content": "It is unrealistic to “let non-experts deliver end-2-end ML projects” because in order for humans to interact with ML systems, expertise concerning the input data and the model’s evaluation is definitely required."
+        },
+        {
+            "type": "H1",
+            "content": "3. Conclusion"
+        },
+        {
+            "type": "P",
+            "content": "AutoML is yet another tool: a component in an iterative framework that allows you to search for the best possible data to make useful predictions, without spending too much time on model development."
+        },
+        {
+            "type": "P",
+            "content": "Tools need to be used in a certain way. If you have the right expectations about what a tool can do, you are more likely to use the right tool for the right job. Don’t expect any single tool to magically solve your problems."
+        },
+        {
+            "type": "P",
+            "content": "If you (dis)liked reading this, feel free to check out our website or send me a message!"
+        },
+        {
+            "type": "H2",
+            "content": "(bonus thought experiment)"
+        },
+        {
+            "type": "UL",
+            "items": [
+                "AutoML can be costly because of all the hyperparams you’re tuning",
+                "ML projects are iterative",
+                "Would you like to spend hundreds of dollars for slow training jobs in an excessive grid search using the wrong data? Or would you rather use a efficient, simple baseline model and iterate fast to figure out which features are valuable? Maybe AutoML is more suited for “squeezing out the last few percentage points” rather than experimenting quickly?"
+            ]
+        }
+    ]
+}

@@ -1,0 +1,64 @@
+{
+    "title": "Building a coral segmentation model using sparse data",
+    "author": "Thibo Steyaert",
+    "readTime": "3 min read",
+    "publishDate": "Jan 3, 2023",
+    "blocks": [
+        {
+            "type": "P",
+            "content": "Monitoring coral reefs is an important aspect of preserving marine life and ocean vegetation. That is why Reef Support, a small start-up, is focused on technology driven conversationship. They support researchers, which allows them to work more efficient on protective measures. Among other things, they use AI for reef monitoring. We, from the student organisation Everest Analytics had to opportunity to work toghether with ML6 on a project regarding this topic."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "c5690d6206a8e0317f66941fcfbc1a50.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/0*yCz6k1GkpPa5Pcn9.jpg",
+            "caption": "Source: Aaron — stock.adobe.com"
+        },
+        {
+            "type": "P",
+            "content": "We continued on the work covered in this blogpost from Joppe. He already worked on a rolling window classifier, a semi-supervised method and a hybrid method in which both methods are used to segment images of corals and their surroundings. 2 of the next steps, improving the classifier and finetuning the methods were further investigated."
+        },
+        {
+            "type": "P",
+            "content": "Improving the classifier"
+        },
+        {
+            "type": "P",
+            "content": "The model we received from Joppe already had some Data augmentation layers. We decided to test some additional data augmentation methods, for example increasing, decreasing and removing layers. Several augmentation methods were attempted, where brightness, contract and saturation are modified, but in the end, mainly randomly flipping the image across its axis resulted in an accuracy increase."
+        },
+        {
+            "type": "P",
+            "content": "When using a rolling window classifier, a certain crop size has to be chosen. This is the size of a cropped image around an annotation. Since the crop size was chosen arbitrarily, we decided to experiment with a different crop size, such as 102 . Changing the crop size from 51 to 102 improved accuracy and IOU. Another theory we wanted to test was that a model trained for each separate ocean would perform better. This proved to be true, but the improvement was too small to be worth the time to train and maintain each separate model."
+        },
+        {
+            "type": "P",
+            "content": "Finetuning the hybrid method."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "8ca7b3a56358cb6abce8b2bdaa5026f9.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/0*UTq_xb1lXuyxRaJF",
+            "caption": null
+        },
+        {
+            "type": "P",
+            "content": "In the hybrid method, the results from the rolling window classifier are used to classify a segment from the semi-supervised method. The figure on the right shows the probability mapping of our classification model. Each square is given a certain probability of it being coral. The colors represent this probability: green having a > 80% probability, red a >60% probability and blue a >40% probability. On the left, the ground-truth can be seen. Now a cut-off can be chosen, this is the minimum probability to assign the square a “True” label. Having a higher cut-off works excellent in combination with a smaller average segment size. Using SLIC with a higher amount of segments and a 80% cut-off yielded much better visual results."
+        },
+        {
+            "type": "P",
+            "content": "Here are some randomly chosen visual results. (on the left the ground truth labeled by ML6 and on the right, our model applied to the same image) We had some numeric performance measures such as accuracy, precision recall and F1-score, but in the end we decided to mainly focus on subjective visual assessment. While tuning different parameter combinations, we looked into the visual outcomes of these. Comparing the results allowed us to better finetune the model parameters. Some of the results of the final model can be found below."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "a8eb987e9a6038e25b1137a4e1361dd2.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*aQCrDtSMyvRyvYPVFGBS3Q.png",
+            "caption": null
+        },
+        {
+            "type": "FIGURE",
+            "filename": "1ee7b0eb2b21f222f6ab359b2fac193f.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*yVlOEg_MjKLB56EWWYB7pg.png",
+            "caption": null
+        }
+    ]
+}

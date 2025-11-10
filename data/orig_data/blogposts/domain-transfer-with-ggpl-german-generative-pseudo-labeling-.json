@@ -1,0 +1,324 @@
+{
+    "title": "Domain transfer with GGPL: German Generative Pseudo Labeling 🥨",
+    "author": "Matthias Richter",
+    "readTime": "8 min read",
+    "publishDate": "Jun 1, 2022",
+    "blocks": [
+        {
+            "type": "FIGURE",
+            "filename": "19489933ca0edc1c722153fb65c1677f.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:600/1*bJkD22DwSXLUi9hJwAFhUA.jpeg",
+            "caption": null
+        },
+        {
+            "type": "P",
+            "content": "Lexical based information retrieval systems are great for quickly fetching relevant information in a large text corpus. However, these methods have some weaknesses. Traditional systems search for exact matches of words and are not able to recognize synonyms or distinguish between ambiguous words. In recent research we can find solutions that overcome these issues. One upcoming star in the area of information retrieval is the dense retriever."
+        },
+        {
+            "type": "P",
+            "content": "In this blogpost we cover:"
+        },
+        {
+            "type": "P",
+            "content": "👉 an introduction of semantic search systems"
+        },
+        {
+            "type": "P",
+            "content": "👉 why we need a domain transfer in dense retrieval search engines"
+        },
+        {
+            "type": "P",
+            "content": "👉 the concept of generative pseudo labeling"
+        },
+        {
+            "type": "P",
+            "content": "👉 how you can use generative pseudo labeling to adapt a dense retrieval model on a new domain for non-English texts"
+        },
+        {
+            "type": "H1",
+            "content": "“Hey Google, what are dense retrievers?”"
+        },
+        {
+            "type": "P",
+            "content": "Dense retrievers are neural networks that were trained to map input queries and documents into a vector space representation. Since we can represent words and sentences in the vector space we can also easily calculate similarities with common vector operations between these embeddings."
+        },
+        {
+            "type": "P",
+            "content": "Sequences with a close distance in the embedded space indicate a semantic similarity."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "bbeba22c8e66a26954ef795b0fd6253c.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*BP7aU3Se45NgIw3tp3cQjQ.png",
+            "caption": null
+        },
+        {
+            "type": "P",
+            "content": "Dense retrieval models rely on this behavior."
+        },
+        {
+            "type": "P",
+            "content": "Imagine, we are going to ask a search engine the following question:"
+        },
+        {
+            "type": "BLOCKQUOTE",
+            "content": "Which wild animals live in Africa?"
+        },
+        {
+            "type": "P",
+            "content": "A lexical based retrieval system will probably not answer that question correctly. It will just retrieve documents that contain the keywords “Africa” and “wild animals”. Whereas a dense retrieval model will embed the query into the vector space and will return related documents at a close distance to the query."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "f17e0dba764b46e9864bbf90cf35afc9.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*gn286MpHG6St_OFeypuTUg.jpeg",
+            "caption": null
+        },
+        {
+            "type": "P",
+            "content": "The dense retrieval approach can achieve a significant performance boost compared to lexical information retrieval systems. For instance Karpukhin et al. proposed a dense retriever that outperforms a strong lexical system up to 19% in terms of accuracy [1]."
+        },
+        {
+            "type": "BLOCKQUOTE",
+            "content": "However, there is no such thing as free lunch. To achieve good results dense retrieval requires a large amount of training data. Furthermore, dense retrieval systems are extremely sensitive to domain shifts."
+        },
+        {
+            "type": "P",
+            "content": "Like in every machine learning problem the final model is only as good as the training data. To train a good dense retriever we need a reliable dataset. However, if we train a dense retrieval model on a common dataset like MS MARCO that was crawled in 2016, the model does not learn things about recent topics, like the COVID-19 pandemic. Due to the lack of information, the model will not be able to present COVID-19 related articles correctly in the vector space and the retrieval system will not find relevant documents."
+        },
+        {
+            "type": "P",
+            "content": "Thus, if we want to build a search engine for domain specific databases, like a collection of COVID-19 articles, we have to adjust a dense retrieval model to understand the new topics as well."
+        },
+        {
+            "type": "BLOCKQUOTE",
+            "content": "Problems are just challenges without an efficient solution."
+        },
+        {
+            "type": "P",
+            "content": "The most straightforward way to train a dense retriever is supervised training with a domain specific dataset. Therefore, the dataset has to be a collection of documents with a related relevance scores for each document. If a new domain comes up, we just have to review thousands of documents and determine relevance score for each one. Again and again …"
+        },
+        {
+            "type": "P",
+            "content": "This method would probably work but is still not the problem’s solution. It is definitely not efficient! Now, we finally reached the point where Generative Pseudo Labeling comes in 🎉."
+        },
+        {
+            "type": "H1",
+            "content": "Generative Pseudo Labeling"
+        },
+        {
+            "type": "P",
+            "content": "Wang et al. [2] proposed an approach for the unsupervised domain adaptation of dense retrievers, called Generative Pseudo Labeling (GPL). The GPL method allows to use an unlabeled dataset to generate a labeled dataset that can be used for the dense retriever fine-tuning. In other words, for the fine-tuning process you do not require a labeled dataset at all."
+        },
+        {
+            "type": "P",
+            "content": "But let’s have a look how the method works."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "d92b436301f40a9aecf0eca1204a52df.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*zW8GKnLKbhkJXrKUH8A9EQ.png",
+            "caption": null
+        },
+        {
+            "type": "P",
+            "content": "The method contains three main steps:"
+        },
+        {
+            "type": "OL",
+            "items": [
+                "For each document in a given target corpus several queries are generated.",
+                "The generated queries are passed to an existing retrieval system to retrieve 50 negative samples. During the negative retrieval we will also receive results that contains phrases of the search query, but not answer the query correctly.",
+                "Each tuple (query and retrieved document) is passed to a cross-encoder, that predicts a similarity score. During the negative retrieval we probably receive some false negative answers. The predicted similarity score of the cross-encoder helps us to identify these false negatives. For more details, check out our upcoming blogpost on sentence encoders."
+            ]
+        },
+        {
+            "type": "FIGURE",
+            "filename": "f1f82e7c94d75d0397f734ae83463aad.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*_EFKuEOL77PEP04-XL5sfg.png",
+            "caption": null
+        },
+        {
+            "type": "P",
+            "content": "For the final dense retriever training we use the query (Q), the positive paragraph (P+) and the negative paragraph (P-). The dense retrieval model, in this case a bi-encoder, will embed the input sequence into vector space. The margin between the similarity of the query and positive paragraph, as well as the similarity between the query and negative paragraph, is used for a mean squared error loss calculation."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "3058b5d9bc3f6e85b0626f55c94ebe07.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*kBhVkXZH_F2LmlY-KeNR1A.png",
+            "caption": null
+        },
+        {
+            "type": "P",
+            "content": "Wang et al. use a pre-trained T5 model for the query generation and a pre-trained cross-encoder. Both models were trained on the MS MARCO dataset, which contains a collection of search queries and relevant documents, crawled from the Bing search engine. Wang et al. show that the approach of GPL can outperform existing methods on different benchmark datasets."
+        },
+        {
+            "type": "P",
+            "content": "However, the biggest benefit of GPL is that the approach requires only an unlabeled collection of passages from the target domain."
+        },
+        {
+            "type": "P",
+            "content": "Now we reached the point where you should think:"
+        },
+        {
+            "type": "BLOCKQUOTE",
+            "content": "Awesome. We can adapt a dense retrieval model to every domain specific dataset without a huge labeled dataset."
+        },
+        {
+            "type": "P",
+            "content": "But wait … could we use that approach really out of the box for any domain specific dataset? To get you down to earth, the short answer is no 😔."
+        },
+        {
+            "type": "P",
+            "content": "We can only use the GPL approach for datasets that rely on English text, for the reason that the query generation model and the cross-encoder are only available for English language."
+        },
+        {
+            "type": "P",
+            "content": "The good news is that all tools to adapt the concept of GPL to a new language are available. We just have to fine-tune the T5 based query generation model and the cross-encoder on a new language."
+        },
+        {
+            "type": "H1",
+            "content": "Let’s put the puzzle pieces together"
+        },
+        {
+            "type": "P",
+            "content": "We have to put some extra effort into adjusting GPL to a new language. The two things we need are basically a query generation model and a cross-encoder that understand the language of your training data. Since all tools for fine-tuning a pre-trained language model are available we can use transfer learning to train both required models."
+        },
+        {
+            "type": "P",
+            "content": "Let’s s have a look at the tools we are going to use:"
+        },
+        {
+            "type": "H2",
+            "content": "Dataset"
+        },
+        {
+            "type": "P",
+            "content": "First things first: if you want to fine-tune a language model to a new language you need a good training dataset containing enough good quality samples."
+        },
+        {
+            "type": "P",
+            "content": "As mentioned before, both models were trained on the MS MARCO dataset. The dataset contains around 500,000 search queries and several related passages. Fortunately for us, there is also multilingual version available, which was created using machine translation. The current translated corpus contains 14 different languages."
+        },
+        {
+            "type": "H2",
+            "content": "Query Generation Model"
+        },
+        {
+            "type": "P",
+            "content": "As the name implies a query generation model is able to generate possible search queries to an input document."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "606a82ff9ab97a9d5e74065db87a8258.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*ANGFXOpyq7MFjOznIqEJTg.png",
+            "caption": "Query generation model"
+        },
+        {
+            "type": "P",
+            "content": "A common model for query generation is docT5query, which is a T5 model was trained on the query generation task. T5 is a common encoder-decoder model that can be easily adapted to several text-to-text use cases. Fortunately, a multilingual T5 model already exists, that was pre-trained on a new common crawl-based dataset covering 101 languages."
+        },
+        {
+            "type": "P",
+            "content": "Now we can go ahead and fine-tune the mT5 model with the translated MMARCO queries and documents to generate queries for a given document."
+        },
+        {
+            "type": "H2",
+            "content": "Cross-Encoder Model"
+        },
+        {
+            "type": "P",
+            "content": "Last but not least, we also need the cross-encoder, that predict semantic similarity on two sentences."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "5a29b09607ee127c099d672a5a6df42b.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*hm5ioet-aFHHqm0ELW-dhA.png",
+            "caption": "Cross-encoder for similarity prediction"
+        },
+        {
+            "type": "P",
+            "content": "Again, it is not a big deal to fine-tune a cross encoder since all parts are also publicly available."
+        },
+        {
+            "type": "P",
+            "content": "The open-source project sentence-transformer, contain training scripts to fine-tune a cross-encoder. We only have to specify the base model that should be used for the fine-tuning and our dataset."
+        },
+        {
+            "type": "P",
+            "content": "Therefore, we can also use the queries and passages of the MMARCO corpus.Since we have to calculate similarities between queries, relevant documents and non-relevant documents we pass tuples of the following format to the cross-encoder during the training: <query, positive> or <query, negative>.If the query matches the document the cross-encoder should output a similarity of 1 and for non-relevant documents, the similarity should be 0."
+        },
+        {
+            "type": "H1",
+            "content": "Let`s train the models"
+        },
+        {
+            "type": "P",
+            "content": "Now, we have discussed all parts we can easily train the models. All code that is needed is located in the following GitHub repository."
+        },
+        {
+            "type": "P",
+            "content": "You can easily run the following line to start the training for the t5 model:"
+        },
+        {
+            "type": "CODE",
+            "content": "python -m task -t train_t5"
+        },
+        {
+            "type": "P",
+            "content": "The following task will start the cross-encoder training:"
+        },
+        {
+            "type": "CODE",
+            "content": "python -m task -t train_cross_encoder"
+        },
+        {
+            "type": "P",
+            "content": "Luckily, you do not have to do this yourself, because we already trained a query generation model and cross encoder for the German language. Both models are available on HuggingFace. Feel free to check them out 😏."
+        },
+        {
+            "type": "H1",
+            "content": "Train a domain specific dense retriever"
+        },
+        {
+            "type": "P",
+            "content": "Alright, now that we have trained the language specific models, we are able to use the fine-tuned T5 model and the cross-encoder to train a domain specific dense retriever. Therefore, we can use the available code from the UKPLab working group that is available on GitHub."
+        },
+        {
+            "type": "H1",
+            "content": "What comes next?"
+        },
+        {
+            "type": "P",
+            "content": "We provide a toolbox to adapt a T5-based query generation model and cross-encoder for any specific language. Feel free to play around with the code and train your own models 💪."
+        },
+        {
+            "type": "P",
+            "content": "Imagine you want to adapt the concept for a new language, like Dutch. You have to fine-tune the query generation model and the cross-encoder to the new language. The question then rises:"
+        },
+        {
+            "type": "BLOCKQUOTE",
+            "content": "“Can we build a more generalized approach”."
+        },
+        {
+            "type": "P",
+            "content": "Recent research has shown that multilingual models profit on sawn patterns of different languages to improve the overall accuracy of the model. For instance: multilingual models are better in named-entity recognition. Furthermore, multilingual models are not limited to one language. If we have a multilingual query generation model and cross-encoder, we could use this models to train a dense retriever in several languages."
+        },
+        {
+            "type": "P",
+            "content": "We definitely consider to train a multilingual query generation model and cross-encoder, as well to evaluate the usage of both."
+        },
+        {
+            "type": "P",
+            "content": "Stay tuned for updates and in the meanwhile feel free to check out our models on HuggingFace 🤗."
+        },
+        {
+            "type": "H1",
+            "content": "References"
+        },
+        {
+            "type": "P",
+            "content": "[1] https://arxiv.org/abs/2004.04906[2] https://arxiv.org/abs/2112.07577"
+        }
+    ]
+}

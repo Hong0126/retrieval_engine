@@ -1,0 +1,189 @@
+{
+    "title": "Welcome to the multi-language-pipeline universe!",
+    "author": "Andres Vervaecke",
+    "readTime": "7 min read",
+    "publishDate": "Dec 15, 2022",
+    "blocks": [
+        {
+            "type": "FIGURE",
+            "filename": "aa517682b0c24d757f18b9cbc3387734.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:566/1*XIWBILOJgBGR03p9azLm3w.png",
+            "caption": null
+        },
+        {
+            "type": "H2",
+            "content": "Introduction"
+        },
+        {
+            "type": "P",
+            "content": "Apache Beam has lots of I/O connectors available, but not all connectors are in your language of choice. With multi-language pipelines you can use I/O connectors and transforms from other languages without needing to reinvent the wheel in your favourite language."
+        },
+        {
+            "type": "P",
+            "content": "The multi-language feature is still in early development and has some pains when deployed. The documentation explains the basic concepts and contains some boilerplate pipelines, which require no coding in a second language. However for custom multi-language pipelines, depending on the use case, the documentation can be rather vague. This is why I decided to write this blog with a start-to-end working demo. In the demo, I build a python pipeline that reads and writes from/to the Java FireStoreIO connector."
+        },
+        {
+            "type": "H2",
+            "content": "How does it work?"
+        },
+        {
+            "type": "P",
+            "content": "To make transforms written in one language available to pipelines written in another language, Beam uses an expansion service. In the next section I will briefly go over the concepts of the expansions service. For a more detailed explanation, visit the Beam documentation and quickstart."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "8431e1b74e25e42fcebcce92bfbdece6.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*TjdzZO8aalinVh5D8QLpbg.png",
+            "caption": "Visualisation of the expansion service."
+        },
+        {
+            "type": "P",
+            "content": "To make the Java FireStore IO connector portable to the Python pipeline, two interfaces must be implemented."
+        },
+        {
+            "type": "UL",
+            "items": [
+                "The ExternalTransformBuilder, in which the actual transforms are specified",
+                "The ExternalTransformRegistrar where the transforms are registered for the expansion service."
+            ]
+        },
+        {
+            "type": "P",
+            "content": "The Builder uses parameters that are specified in the Python pipeline. These parameters are directly mapped to the constructors of the Java transforms."
+        },
+        {
+            "type": "P",
+            "content": "After that, the two implemented interfaces are compiled into a Java Package which is expressed as a JAR-file. I did the compiling with the help of Apache Maven. With the created JAR-file, the expansion service can be locally hosted on a specified port."
+        },
+        {
+            "type": "H2",
+            "content": "DEMO: FireStore IO in Python pipeline"
+        },
+        {
+            "type": "FIGURE",
+            "filename": "fb5d3916940a12f00c4e73f932bb5b2e.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:280/0*2NoBkumsaYp4LN3I.gif",
+            "caption": null
+        },
+        {
+            "type": "P",
+            "content": "In this section I will walk you through a detailed step-by-step guide that explains how to set everything up. For this demo I will read data from FireStore, transform it and write it back to FireStore."
+        },
+        {
+            "type": "P",
+            "content": "The data samples used, are some records from the public dataset stackoverflow.comments hosted on BigQuery. I will create my own local expansion service by implementing the required interfaces in Java. All the used code can be found here."
+        },
+        {
+            "type": "H2",
+            "content": "Java section"
+        },
+        {
+            "type": "P",
+            "content": "Note: I used the Java 8 JDK. Specific version can be found here."
+        },
+        {
+            "type": "P",
+            "content": "I start by creating a FirestoreTransformsConfiguration.java file which is just a simple POJO that contains all the parameters (specified in the Python pipeline) which are needed in the Java Transforms."
+        },
+        {
+            "type": "P",
+            "content": "Next, we move on to implementing the ExternalTransformBuilder interface. For each Transform in Java we must implement the interface. In my case this was two implementations, Reading and Writing to FireStore. The implementations are shown below:"
+        },
+        {
+            "type": "P",
+            "content": "Both classes must override the buildExternal method. In both cases the methods use parameters from the configuration file to construct a new Transform class which does the actual transform."
+        },
+        {
+            "type": "P",
+            "content": "I also opted for PCollections of Strings as input and output for respectively the Write and Read transforms. This is because multi-language pipelines have a constraint (AKA one of the previously mentioned pains). You have to use element types that all the Beam SDKs understand, a list of them can be found here. I will also elaborate on this decision, later in the blogpost. Which element type you use is up to personal preference and may depend on your use case."
+        },
+        {
+            "type": "P",
+            "content": "Next up we define the ReadTransfrom and WriteTransform, this is the most complicated part as it involves the mapping of input and output to a Beam standard encoder (in this case, a String). The FireStore IO connector in Java uses the Document datatype. A document consists of key-value pairs. The keys are strings and the values are of the datatype Value. Document and Value are datatypes that are Java specific and are not recognized by Python. This is why in the ReadTransfrom a mapping is done with the ConvertToStringDoFn class. This class defines the element-wise processing of the documents. In the processing step, the Values are converted to either an Integer, Boolean or String and the Document as a whole is converted to a JSONObject. This can of course be customized, based on the datatypes in your documents, but in my case these three datatypes sufficed. At the end, the JSONObject is cast to a String in order to be readable by the Python pipeline."
+        },
+        {
+            "type": "P",
+            "content": "In the expand method, a request is made to read from FireStore. The reading itself is done with a ListDocuments read method, but other read methods are also possible and can be found here. The parameters from the config file are used to specify what to read from FireStore."
+        },
+        {
+            "type": "P",
+            "content": "As for the WriteTransform, the structure is pretty similar. Here we are doing the opposite of the ReadTransform, constructing a Document from a String JSONObject. In the element-wise processing, I loop through all the key-value pairs and map them to a key-value pair of the datatype <String, Value> with the addField method. This method also does a check to determine the right original datatype before casting it to a Value. Next a document is created with the config parameters. Here I use the ID of the StackOverflow comments as the document name in FireStore. Finally, a Write object is created with a setUpdate method. This either creates a new document or overwrites it if it already exists."
+        },
+        {
+            "type": "P",
+            "content": "With the transforms out of the way, the hardest part is done. The only thing left is to implement the ExternalTransformRegistrar. You must specify a URN for each Java Transform. This URN will be used in the Python pipeline to call the Transform. The AutoService tag is used to register the transforms in the expansion service."
+        },
+        {
+            "type": "H2",
+            "content": "Start Expansion Service"
+        },
+        {
+            "type": "P",
+            "content": "We are done with the Java part, so now you can start up your own local expansion service. Make sure you have installed Maven for creating the Java package (I used Maven 3.8.6). Also have Docker installed, to host the expansion service. Once you are set up, all you need is these 4 lines of code. Run these in the directory with your src folder. Maven will create a target folder with the required JAR-file. With this you can set up the expansion service at the specified port. In my case this is 12345, but it is up to personal preference. Just make sure you use a port that is not used by anything else."
+        },
+        {
+            "type": "P",
+            "content": "Tip: create a script for setting up the expansion service, it will save a lot of time when testing."
+        },
+        {
+            "type": "CODE",
+            "content": "# Note1: make sure maven is added to your PATH (see install steps)export JAVA_HOME=/Library/Java/JavaVirtualMachines/jdk1.8.0_311.jdk/Contents/Home# Note2: make sure your JAVA_HOME variable is set correctly and pointing to a JDKexport PATH={path to maven install location}/bin:$PATH# create java packagemvn cleanmvn package -DskipTests# start the expansion servicecd targetjava -jar firestore-transforms-bundled-0.1.jar 12345"
+        },
+        {
+            "type": "H2",
+            "content": "Final part: Python pipeline"
+        },
+        {
+            "type": "P",
+            "content": "With your expansion service done, you can start building your python pipeline. In this pipeline I will read from FireStore, do a transform in python and write it back to FireStore. The transform is a basic character count and adds the count as a length field. In order to make sure the output of the transform is a standard encoder, I use type hinting. The java transforms are called via the ExternalTransform method. This method requires three parameters:"
+        },
+        {
+            "type": "UL",
+            "items": [
+                "The URN of your transform, specified in the Java Registar.",
+                "A payload with the required parameters of the transform. The body should be written as a dict. The keys must exactly match the parameter names in the Java Configuration file. Important note for the parent parameter, this is the path in FireStore and requires a {database_id}. Just fill in ‘(default)’ here because as of right now, it is not possible to generate your own database_id in FireStore.",
+                "Finally you also must specify the port on which the expansion service is hosted."
+            ]
+        },
+        {
+            "type": "P",
+            "content": "When writing the transformed data back to FireStore I decided to create a new collection called stack-overflow-comments2, this way the changes will be more clear in FireStore."
+        },
+        {
+            "type": "P",
+            "content": "Tip: make sure to configure your gcloud and pipeline options according to your GCP project, before running the pipeline."
+        },
+        {
+            "type": "P",
+            "content": "All that is left to do is to run your pipeline either locally or via dataflow. For the M1 users, you may get the warning “the requested image’s platform (linux/amd64) does not match the detected host platform”. Usually, this does not cause any problems, but it can occasionally cause your pipeline to hang. For any other troubleshooting issues, I refer to this site with tips and common errors."
+        },
+        {
+            "type": "H2",
+            "content": "Conclusion & Results"
+        },
+        {
+            "type": "P",
+            "content": "If we look in FireStore before and after it looks like this. We see a new collection is created which is just a copy of the original with a new length field in the documents."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "d3c8ce8ba0912a21738b46438c2078cf.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*_SeK5VLlC6BsJ5xOM83biQ.png",
+            "caption": "Before"
+        },
+        {
+            "type": "FIGURE",
+            "filename": "36189ced2cafa955acf97e289dbdd11f.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*kEzWN5t-fSznXCoKdjHrvg.png",
+            "caption": "After"
+        },
+        {
+            "type": "P",
+            "content": "On a final note, I must say that multi-language pipelines are in early development and not that optimal to use as of today. FireStore is also not that ideal for manually creating documents. But with the workarounds in this blogpost, you at least have a working multi-language pipeline as a starting point."
+        },
+        {
+            "type": "P",
+            "content": "Special thanks to friends and colleagues Robbe De Clercq & Jonas Boecquaert who also contributed a lot into making this blogpost!"
+        }
+    ]
+}

@@ -1,0 +1,229 @@
+{
+    "title": "Battle of the Clouds: GCP vs Azure",
+    "author": "Michiel De Koninck",
+    "readTime": "5 min read",
+    "publishDate": "Jun 27, 2023",
+    "blocks": [
+        {
+            "type": "P",
+            "content": "Amazon launched AWS in 2006, Google entered the picture in 2008 with GCP and finally, in 2010, Microsoft threw Azure into the mix. None of that matters in 2023. The typical complex choice to be made is:"
+        },
+        {
+            "type": "BLOCKQUOTE",
+            "content": "“Which Cloud Provider should I go with for my company?”"
+        },
+        {
+            "type": "P",
+            "content": "Many factors come into play in the quest for a wise decision. We want to weigh in on merely one aspect of that decision by giving you a developer’s perspective on the differences between the major cloud providers. More specifically, we discuss our findings in comparing GCP and Azure."
+        },
+        {
+            "type": "BLOCKQUOTE",
+            "content": "A good disclaimer is never bad."
+        },
+        {
+            "type": "P",
+            "content": "Wiser words have surely been spoken but nonetheless we must add that this is but our view on the matter. As a team of AI experts, we have our own particular preferences and annoyances. We merely present our view, take it with a grain of salt and feel free to comment on your own experiences."
+        },
+        {
+            "type": "P",
+            "content": "Note that there are many articles already available that compare price related aspects of GCP and Azure, we do not go into that here. The goal is purely to compare functional differences when building solutions."
+        },
+        {
+            "type": "H1",
+            "content": "Overall development differences"
+        },
+        {
+            "type": "P",
+            "content": "The general difference in experience comes down to this: while GCP takes your hand and leads you through its land of managed services that are quite easy-to-use, Azure allows (and even forces) you to make choices on a deeper level of complexity."
+        },
+        {
+            "type": "P",
+            "content": "We provide a visual below to further illustrate that difference. We find the Google Cloud Platform to be quite straightforward in use while during development on Azure you will often need to know exactly what you are doing and make clear choices based on that."
+        },
+        {
+            "type": "P",
+            "content": "From this comparison, you can’t make an absolute statement on which is better. Instead, the choice should fit your development preferences."
+        },
+        {
+            "type": "UL",
+            "items": [
+                "GCP: I don’t want to be obliged to go into too much detail with how everything works under the hood",
+                "Azure: I want fine-grained control on every level of my services"
+            ]
+        },
+        {
+            "type": "FIGURE",
+            "filename": "825f5c13dff976d874e23509907a2396.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*GPevw1lh-xef49vGwl8xmQ.png",
+            "caption": "Illustrative representation of overall difference in developmental experience with GCP vs. Azure"
+        },
+        {
+            "type": "P",
+            "content": "Now, let’s add body to these statements and look at some of the actual services offered by both our Google and Microsoft friends!"
+        },
+        {
+            "type": "H1",
+            "content": "In-depth service comparison"
+        },
+        {
+            "type": "P",
+            "content": "In this section we go through some explicit cloud services and compare how they are offered in Azure and GCP. We challenge you to: spot the general trend."
+        },
+        {
+            "type": "H2",
+            "content": "Compute: App Development & Deployment"
+        },
+        {
+            "type": "BLOCKQUOTE",
+            "content": "Azure App Service vs Google App Engine"
+        },
+        {
+            "type": "P",
+            "content": "To use an Azure App Service, you first need to create an App Service Plan."
+        },
+        {
+            "type": "P",
+            "content": "While on GCP you can create an App Engine straight away, Azure provides an extra layer of abstraction in defining the infrastructure upon which your app runs as a separate resource."
+        },
+        {
+            "type": "P",
+            "content": "The clear benefit of course, is that you have an explicit coupling between your app (defined by the App Service) and the infrastructure upon which it actually runs. Moreover, one plan can support multiple App Services."
+        },
+        {
+            "type": "H2",
+            "content": "Compute: Serverless containers"
+        },
+        {
+            "type": "BLOCKQUOTE",
+            "content": "Azure Container App vs Google Cloud Run"
+        },
+        {
+            "type": "P",
+            "content": "To use an Azure Container App, you first need to create a Container Apps Environment."
+        },
+        {
+            "type": "P",
+            "content": "In line with the idea behind App Service Plans needed for App Services, you need a Container Apps Environment to define a Container App."
+        },
+        {
+            "type": "P",
+            "content": "Note that while Azure lets you know that your containers will be running on a Kubernetes cluster that you don’t have to manage. On GCP you have no actual idea about the underlying infrastructure: “it just works”."
+        },
+        {
+            "type": "H2",
+            "content": "Compute: Serverless microservices"
+        },
+        {
+            "type": "BLOCKQUOTE",
+            "content": "Azure App Function vs Google Cloud Function"
+        },
+        {
+            "type": "P",
+            "content": "To use an Azure App Function, you first need to create a Function App."
+        },
+        {
+            "type": "P",
+            "content": "A third and final time for these compute services, we note the extra layer of grouping forced by Azure. The idea is again that you can group functions that need similar resources + have predictable cloud costs for your functions because their SKU is defined upfront in the Function App."
+        },
+        {
+            "type": "P",
+            "content": "Overall, the same conscious management is also feasible in GCP, but the way Azure obliges you to allocate your compute resources through a decoupled layer, forces you to put thought into this upfront."
+        },
+        {
+            "type": "H2",
+            "content": "Resource Management"
+        },
+        {
+            "type": "BLOCKQUOTE",
+            "content": "Azure Resource Groups vs Google ???"
+        },
+        {
+            "type": "P",
+            "content": "To create any useful resources in Azure, you first need a resource group."
+        },
+        {
+            "type": "P",
+            "content": "Perhaps the clearest example of the extra layer of abstraction that Azure adds to the mix. The difference with GCP is apparent here: Azure presents Resource Groups as an extra layer of abstraction on the Subscription level (i.e. Project level for GCP) to allow for more separation between your cloud components. As always: this abstraction could either be useful or burdensome to you."
+        },
+        {
+            "type": "H2",
+            "content": "Machine Learning"
+        },
+        {
+            "type": "BLOCKQUOTE",
+            "content": "Azure Machine Learning vs Google Vertex AI"
+        },
+        {
+            "type": "P",
+            "content": "To use the Azure Machine Learning Pipelines, you first need to create a compute cluster."
+        },
+        {
+            "type": "P",
+            "content": "Moreover, in Azure, you need to define all the machine types used by your pipelines upfront. In Vertex AI Pipelines, you can run a pipeline using “default settings” (overriding the machines used is just an option), meanwhile in Azure Machine Learning Pipelines, you can’t run a pipeline without explicitly defining which infrastructure you want to use."
+        },
+        {
+            "type": "H2",
+            "content": "Data Warehousing"
+        },
+        {
+            "type": "BLOCKQUOTE",
+            "content": "Azure Synapse vs Google BigQuery"
+        },
+        {
+            "type": "P",
+            "content": "To use Azure Synapse, you first need to create the data as blobs in a Storage Account."
+        },
+        {
+            "type": "P",
+            "content": "It is widely known that Google’s BQ is an absolute powerhouse . If you are used to the convenience of its functionalities (e.g. data goes straight into BQ, no explicit blob creation required, you have the feeling that you’re working with traditional SQL datasets and tables), working with Synapse’s low-level “make sure you manage all of the blob data yourself” may feel like a step back."
+        },
+        {
+            "type": "H2",
+            "content": "Other: Documentation, SDK/CLI, Terraform…"
+        },
+        {
+            "type": "P",
+            "content": "Besides these service-level comparisons, we also want to say a word regarding the current state of the Azure/GCP documentation, SDK/CLI and Terraform (IAAC-tooling)."
+        },
+        {
+            "type": "P",
+            "content": "For all of these, we feel that a lot of the Azure-related resources were either changed/released very recently or are in a preview state (note: time of writing is Q2 2023). We note a clear difference when comparing to the maturity and stability of the GCP equivalents."
+        },
+        {
+            "type": "P",
+            "content": "While the fact that a lot of stuff is moving/has recently moved regarding Azure services may give us a feeling of working with unfinished tooling right now, this difference with GCP may have vanished entirely by 2024. It remains to be seen if the “extra effort currently required to make sense of the state of Azure tooling” is more easily manageable in the future."
+        },
+        {
+            "type": "H1",
+            "content": "Conclusion"
+        },
+        {
+            "type": "P",
+            "content": "From the above comparison of Azure and GCP services, you should have spotted the general concept shining through:"
+        },
+        {
+            "type": "BLOCKQUOTE",
+            "content": "In Azure → to use X you need to first have Y"
+        },
+        {
+            "type": "P",
+            "content": "Because of those extra layers of abstraction added in the Azure Cloud environment; you can exert more explicit, fine-grained control on your cloud environment and infrastructure than you are able to in the Google Cloud Platform."
+        },
+        {
+            "type": "P",
+            "content": "Whether that extra layer of control is a burden or a blessing to you and your team, is up for you to decide."
+        },
+        {
+            "type": "H2",
+            "content": "Looking onwards"
+        },
+        {
+            "type": "BLOCKQUOTE",
+            "content": "I spy with my little eye something beginning with a C.Cloud?Yes. — Monty Python’s “Airline Pilots” sketch"
+        },
+        {
+            "type": "P",
+            "content": "In this article, we only discussed a small part of our multi-cloud learnings. As hinted at the beginning of this article, there is much more to talk about. Next up: stay tuned for a similar analysis of yet another of our favourite cloud providers (hint: starts with ‘ama’, ends with ‘on’)."
+        }
+    ]
+}

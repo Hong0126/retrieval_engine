@@ -1,0 +1,564 @@
+{
+    "title": "Dynamic pricing in practice",
+    "author": "Mathias Leys",
+    "readTime": "11 min read",
+    "publishDate": "Jan 5, 2023",
+    "blocks": [
+        {
+            "type": "FIGURE",
+            "filename": "478bf49d59468f21a46ece20b60c08d3.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/0*M78iEZlKm3vchUf_.jpg",
+            "caption": null
+        },
+        {
+            "type": "H1",
+            "content": "Why care about dynamic pricing? 💭"
+        },
+        {
+            "type": "P",
+            "content": "Dynamic pricing aims to actively adapt product prices based on insights about customer behavior."
+        },
+        {
+            "type": "P",
+            "content": "This pricing strategy has proven exceptionally effective in a wide range of industries: from e-commerce (e.g., TB International) to sports (e.g., Ticketmaster) and from food delivery (e.g., GO-JEK) to automotive (e.g., Carro) as it allows to adjust prices to changes in demand patterns."
+        },
+        {
+            "type": "P",
+            "content": "It is hardly surprising that recent times of extraordinary uncertainty and volatility caused a surge in the adoption of dynamic pricing strategies with an estimated 21% of e-commerce businesses reportedly already using dynamic pricing and an additional 15% planning to adopt the strategy in the upcoming year."
+        },
+        {
+            "type": "P",
+            "content": "To find a big success story, we should look no further than Amazon who (on average) change their products’ prices once every 10 minutes. They attribute roughly 25% of their e-commerce profits to their pricing strategy."
+        },
+        {
+            "type": "P",
+            "content": "In what follows we’ll take a practical look at the working principles & challenges in the field of dynamic pricing, followed by some final considerations."
+        },
+        {
+            "type": "H1",
+            "content": "Back to basics 🏁"
+        },
+        {
+            "type": "P",
+            "content": "The beginning is usually a good place to start so we’ll kick things off there."
+        },
+        {
+            "type": "P",
+            "content": "The one crucial piece of information we need in order to find the optimal price is how demand behaves over different price points.If we can make a decent guess of what we can expect demand to be for a wide range of prices, we can figure out which price optimizes our target (i.e., revenue, profit, …)."
+        },
+        {
+            "type": "P",
+            "content": "For the keen economists amongst you, this is beginning to sound a lot like a demand curve."
+        },
+        {
+            "type": "P",
+            "content": "Estimating a demand curve, sounds easy enough right?Let’s assume we have demand with constant price elasticity; so a certain percent change in price will cause a constant percent change in demand, independent of the price level. In economics, this is often used as a proxy for demand curves in the wild."
+        },
+        {
+            "type": "P",
+            "content": "So our demand data looks something like this:"
+        },
+        {
+            "type": "FIGURE",
+            "filename": "3ab544dcf49897a3cf784079afe3b94d.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:393/0*rUIRw4iEFo2KcLZ6.png",
+            "caption": null
+        },
+        {
+            "type": "P",
+            "content": "Alright now we can get out our trusted regression toolbox and fit a nice curve through the data because we know that our constant-elasticity demand function has this form:"
+        },
+        {
+            "type": "FIGURE",
+            "filename": "5db55862d605c60be5e483e007b21bec.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:112/1*P9uJ0sEo5EyUUyps9xGU5g.png",
+            "caption": null
+        },
+        {
+            "type": "P",
+            "content": "with shape parameter a and price elasticity η"
+        },
+        {
+            "type": "FIGURE",
+            "filename": "f3f77d907c9d31f80cc0d501f3832ece.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:393/0*NhPGoy5f1qlaMRBj.png",
+            "caption": null
+        },
+        {
+            "type": "P",
+            "content": "Now that we have a reasonable estimate of our demand function, we can derive our expected profit at different price points because we know the following holds:"
+        },
+        {
+            "type": "FIGURE",
+            "filename": "713298629017f51198b609882cc628a9.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:427/1*Mqn4ekzhkj0spv07vEjq1Q.png",
+            "caption": null
+        },
+        {
+            "type": "FIGURE",
+            "filename": "2f71a2108396a62741666deb60f7bf20.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:402/0*jv6Fg5BNkdaGWLIV.png",
+            "caption": null
+        },
+        {
+            "type": "P",
+            "content": "Note that fixed costs (e.g., rent, insurance, etc.), per definition, don’t vary when demand or price changes. Therefore, fixed costs have no influence on the behavior of dynamic pricing algorithms."
+        },
+        {
+            "type": "P",
+            "content": "Finally, we can dust off our good old high-school math book and find the price which we expect will optimize profit which was ultimately the goal of all this."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "9a216da3b30b29e5dcbe03fb01fe1e99.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:402/0*qR2qGtFY1QZVbJav.png",
+            "caption": null
+        },
+        {
+            "type": "P",
+            "content": "Voilà there you have it: we should price this product at 4.24 and we can expect a bottom-line profit of 7.34"
+        },
+        {
+            "type": "P",
+            "content": "So can we kick back & relax now?Well, there are a few issues with what we just did."
+        },
+        {
+            "type": "H1",
+            "content": "The demands they are a-changin’ 🎸"
+        },
+        {
+            "type": "P",
+            "content": "We arrive at our first bit of bad news: unfortunately, you can’t just estimate a demand curve once and be done with it."
+        },
+        {
+            "type": "P",
+            "content": "Why? Because demand is influenced by many factors (e.g., market trends, competitor actions, human behavior, etc.) that tend to change a lot over time."
+        },
+        {
+            "type": "P",
+            "content": "Below you can see an (exaggerated) example of what we’re talking about:"
+        },
+        {
+            "type": "FIGURE",
+            "filename": "2bd0eb48a881c6c959190ed278a40f37.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:432/1*kuv1ABylhrNMLNH_jarCKw.gif",
+            "caption": null
+        },
+        {
+            "type": "P",
+            "content": "Now, you may think we can solve this issue by periodically re-estimating the demand curve.And you would be very right! But also very wrong as this leads us nicely to the next issue."
+        },
+        {
+            "type": "H1",
+            "content": "Where are we getting this data anyways? 🖥️"
+        },
+        {
+            "type": "P",
+            "content": "So far, we have assumed that we get (and keep getting) data on demand levels at different price points."
+        },
+        {
+            "type": "P",
+            "content": "Not only is this assumption unrealistic, but it is also very undesirable"
+        },
+        {
+            "type": "P",
+            "content": "Why? Because getting demand data on a wide spectrum of price points implies that we are spending a significant amount of time setting prices that are either too high or too low!"
+        },
+        {
+            "type": "P",
+            "content": "Which is ironically exactly the opposite of what we set out to achieve."
+        },
+        {
+            "type": "P",
+            "content": "In practice, our demand observations will rather look something like this:"
+        },
+        {
+            "type": "FIGURE",
+            "filename": "9e60e57b29a04c30c5788a896ed2b934.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:393/0*-Cmhu8JgjZajyPwh.png",
+            "caption": null
+        },
+        {
+            "type": "P",
+            "content": "As we can see, we have tried three price points in the past (€7.5, €10 and €11) and collected demand data."
+        },
+        {
+            "type": "P",
+            "content": "On a side note: keep in mind that we still assume the same latent demand curve and optimal price point of €4.24"
+        },
+        {
+            "type": "P",
+            "content": "So (for the sake of the example) we have been massively overpricing our product in the past."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "85f6dfc6b496f17116b32a93f2016f84.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:393/0*NO4WxJbvgKa-3O2n.png",
+            "caption": null
+        },
+        {
+            "type": "P",
+            "content": "This limited data brings along a major challenge in estimating the demand curve though."
+        },
+        {
+            "type": "P",
+            "content": "Intuitively, it makes sense that we can make a reasonable estimate of expected demand at €8 or €9, given the observed demand at €7.5 and €10.But can we extrapolate further to €2 or €20 with the same reasonable confidence? Probably not."
+        },
+        {
+            "type": "P",
+            "content": "This is a nice example of a very well-known problem in statistics called the “exploration-exploitation trade-off”"
+        },
+        {
+            "type": "P",
+            "content": "👉 Exploration: We want to explore the demand for a diverse enough range of price points so that we can accurately estimate our demand curve."
+        },
+        {
+            "type": "P",
+            "content": "👉 Exploitation: We want to exploit all the knowledge we have gained through exploring and actually do what we set out to do: set our price at an optimal level."
+        },
+        {
+            "type": "H1",
+            "content": "Enter: Thompson Sampling 📊"
+        },
+        {
+            "type": "P",
+            "content": "As we mentioned, this is a well-known problem in statistics. So luckily for us, there is a pretty neat solution in the form of Thompson sampling!"
+        },
+        {
+            "type": "P",
+            "content": "Basically, instead of estimating one demand function based on the data available to us, we will estimate a probability distribution of demand functions or simply put, for every possible demand function that fits our functional form (i.e. constant elasticity) we will estimate the probability that it is the correct one, given our data."
+        },
+        {
+            "type": "P",
+            "content": "Or mathematically speaking, we will place a prior distribution on the parameters that define our demand function and update these priors to posterior distributions via Bayes’ rule, thus obtaining a posterior distribution for our demand function"
+        },
+        {
+            "type": "P",
+            "content": "Thompson sampling then entails just sampling a demand function out of this distribution, calculating the optimal price given this demand function, observing demand for this new price point and using this information to refine our demand function estimates."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "34f8265da88340480b350dbb013c225d.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/0*CCEYeLG4tN61OoFw.png",
+            "caption": null
+        },
+        {
+            "type": "P",
+            "content": "So:"
+        },
+        {
+            "type": "P",
+            "content": "👉 When we are less certain of our estimates, we will sample more diverse demand functions, which means that we will also explore more diverse price points. Thus, we will explore."
+        },
+        {
+            "type": "P",
+            "content": "👉 When we are more certain of our estimates, we will sample a demand function close to the real one & set a price close to the optimal price more often. Thus, we will exploit."
+        },
+        {
+            "type": "P",
+            "content": "With that said, we’ll take another look at our constrained data and see whether Thompson sampling gets us any closer to the optimal price of €4.24"
+        },
+        {
+            "type": "FIGURE",
+            "filename": "0d2f59e4856d322b102e410a46e71deb.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:393/0*kq2RmXP311MhL8VF.png",
+            "caption": null
+        },
+        {
+            "type": "P",
+            "content": "Let’s start working our mathemagic:"
+        },
+        {
+            "type": "P",
+            "content": "We’ll start off by placing semi-informed priors on the parameters that make up our demand function."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "4ed56531f3eed451d5c64a143c6ce39c.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:309/1*BgO-CreD2to2Xm_-dGBY2A.png",
+            "caption": null
+        },
+        {
+            "type": "P",
+            "content": "These priors are semi-informed because we have the prior knowledge that price elasticity is most likely between 0 and 1. As for the other parameters, we have little knowledge about them so we can place a pretty uninformative prior."
+        },
+        {
+            "type": "P",
+            "content": "If that made sense to you, great. If it didn’t, don’t worry about it"
+        },
+        {
+            "type": "P",
+            "content": "Now that our priors are taken care of, we can update these beliefs by incorporating the data at the €7.5, €10 and €11 price levels we have available to us."
+        },
+        {
+            "type": "P",
+            "content": "The resulting demand & profit curve distributions look a little something like this:"
+        },
+        {
+            "type": "FIGURE",
+            "filename": "d7957ec3d77393a207f0d481528528ac.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:393/0*QVwwHHW6hQ1sYec5.png",
+            "caption": null
+        },
+        {
+            "type": "FIGURE",
+            "filename": "b07c28a45d0b070c0c920aae4785cc18.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:402/0*qq_BJTe50UvrLUMw.png",
+            "caption": null
+        },
+        {
+            "type": "P",
+            "content": "It’s time to sample one demand curve out of this posterior distribution."
+        },
+        {
+            "type": "P",
+            "content": "The lucky curve is:"
+        },
+        {
+            "type": "FIGURE",
+            "filename": "f50496e1dbf2a0823d19f3ea227dff7c.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:393/0*adziL4m1Jh7WtV05.png",
+            "caption": null
+        },
+        {
+            "type": "P",
+            "content": "This results in the following expected profit curve"
+        },
+        {
+            "type": "FIGURE",
+            "filename": "c3ebeeeac1b8bcf056fb8d601900e0be.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:402/0*kQr6rvBJ2e0kUO09.png",
+            "caption": null
+        },
+        {
+            "type": "P",
+            "content": "And eventually, we arrive at a new price: €5.25! Which is indeed considerably closer to the actual optimal price of €4.24"
+        },
+        {
+            "type": "P",
+            "content": "Now that we have our first updated price point, why stop there?"
+        },
+        {
+            "type": "P",
+            "content": "With “pure” Thompson sampling, we would sample a new demand curve (and thus price point) out of the posterior distribution every time. But since we are mainly interested in seeing the convergence behavior of Thompson sampling, let’s simulate 10 demand points at this fixed €5.25 price point."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "e7e0ad47951393d9222517f40564a2e4.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:393/0*rTdjLNZ3pNu6V648.png",
+            "caption": null
+        },
+        {
+            "type": "P",
+            "content": "We know the drill by now."
+        },
+        {
+            "type": "P",
+            "content": "Let’s recalculate our posteriors with this extra information."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "ed09a69f3c63bc2f116054939050fafa.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:393/0*3GKj6FBV4mo_Fom3.png",
+            "caption": null
+        },
+        {
+            "type": "FIGURE",
+            "filename": "84701f83f592c894438b4d0e1947dfd4.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:402/0*zvb-LQzGW6-neQYn.png",
+            "caption": null
+        },
+        {
+            "type": "P",
+            "content": "We immediately notice that the demand (and profit) posteriors are much less spread apart this time around which implies that we are more confident in our predictions."
+        },
+        {
+            "type": "P",
+            "content": "Now, we can sample just one curve from the distribution."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "9c68647b6e0a11d583d997b0333ec575.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:393/0*LEIuon80Ykl8xsiJ.png",
+            "caption": null
+        },
+        {
+            "type": "FIGURE",
+            "filename": "154354a0c8f1a71dee3ad08e986c6a75.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:402/0*siUrExz6BM98U8SJ.png",
+            "caption": null
+        },
+        {
+            "type": "P",
+            "content": "And finally, we arrive at a price point of €4.04 which is eerily close to the actual optimum of €4.24"
+        },
+        {
+            "type": "H1",
+            "content": "Some things to think about 🤔"
+        },
+        {
+            "type": "P",
+            "content": "Because we have purposefully kept the example above quite simple, you may still be wondering what happens when added complexities show up."
+        },
+        {
+            "type": "P",
+            "content": "Let’s discuss some of those concerns FAQ-style:"
+        },
+        {
+            "type": "H2",
+            "content": "👉 Isn’t this constant-elasticity model a bit too simple to work in practice?"
+        },
+        {
+            "type": "P",
+            "content": "Brief answer: usually yes it is."
+        },
+        {
+            "type": "P",
+            "content": "Luckily, more flexible methods exist."
+        },
+        {
+            "type": "P",
+            "content": "We would recommend using Gaussian Processes. We won’t go into how these work here but the main idea is that it doesn’t impose a restrictive functional form onto the demand function but rather lets the data speak for itself."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "4640693e320ac69f1cff81c373fce721.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:640/1*dfHRZ3grhcr9XLJNqCn98Q.gif",
+            "caption": null
+        },
+        {
+            "type": "P",
+            "content": "If you do want to learn more, we recommend these links: 1, 2, 3"
+        },
+        {
+            "type": "H2",
+            "content": "👉 Price optimization is much more complex than just optimizing a simple profit function?"
+        },
+        {
+            "type": "P",
+            "content": "It sure is. In reality, there are many added complexities that come into play, such as inventory/capacity constraints, complex cost structures, …"
+        },
+        {
+            "type": "P",
+            "content": "The nice thing about our setup is that it consists of three components that you can change pretty much independently from each other."
+        },
+        {
+            "type": "P",
+            "content": "This means that you can make the price optimization pillar arbitrarily custom/complex. As long as it takes in a demand function and spits out a price."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "76a72d60cd7f982e99de5c1158c1cd41.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/0*DwzqKhiwTCGW_nU8.png",
+            "caption": null
+        },
+        {
+            "type": "P",
+            "content": "You can tune the other two steps as much as you like too."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "f972d0e1354c3d4ae3b1024bdbfa6dca.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/0*ouKAAjshzN8i2t4d.png",
+            "caption": null
+        },
+        {
+            "type": "H2",
+            "content": "👉 Changing prices has a huge impact. How can I mitigate this during experimentation?"
+        },
+        {
+            "type": "P",
+            "content": "There are a few things we can do to minimize risk:"
+        },
+        {
+            "type": "P",
+            "content": "👉 A/B testing: You can do a gradual roll-out of the new pricing system where a small (but increasing) percentage of your transactions are based on this new system. This allows you to start small & track/grow the impact over time."
+        },
+        {
+            "type": "P",
+            "content": "👉 Limit products: Similarly to A/B testing, you can also segment on the product-level. For instance, you can start gradually rolling out dynamic pricing for one product type and extend this over time."
+        },
+        {
+            "type": "P",
+            "content": "👉 Bound price range: Theoretically, Thompson sampling in its purest form can lead to any arbitrary price point (albeit with an increasingly low probability). In order to limit the risk here, you can simply place an upper/lower bound on the price range you are comfortable experimenting in."
+        },
+        {
+            "type": "P",
+            "content": "On top of all this, Bayesian methods (by design) explicitly quantify uncertainty. This allows you to have a very concrete view of the demand estimates’ variance"
+        },
+        {
+            "type": "H2",
+            "content": "👉 What if I have multiple products that can cannibalize each other?"
+        },
+        {
+            "type": "P",
+            "content": "Here it really depends"
+        },
+        {
+            "type": "P",
+            "content": "👉 If you have a handful of products, we can simply reformulate our objective while keeping our methods analogous."
+        },
+        {
+            "type": "P",
+            "content": "Instead of tuning one price to optimize profit for the demand function of one product, we tune N prices to optimize profit for the joint demand function of N products. This joint demand function can then account for correlations in demand within products."
+        },
+        {
+            "type": "P",
+            "content": "👉 If you have hundreds, thousands or more products, we’re sure you can imagine that the procedure described above becomes increasingly infeasible."
+        },
+        {
+            "type": "P",
+            "content": "A practical alternative is to group substitutable products into “baskets” and define the “price of the basket” as the average price of all products in the basket."
+        },
+        {
+            "type": "P",
+            "content": "If we assume that the products in baskets are substitutable but the products in different baskets are not, we can optimize basket prices independently from one another."
+        },
+        {
+            "type": "P",
+            "content": "Finally, if we also assume that cannibalization remains constant if the ratio of prices remains constant, we can calculate individual product prices as a fixed ratio of its basket price."
+        },
+        {
+            "type": "P",
+            "content": "For example, if a “burger basket” consists of a hamburger (€1) and a cheeseburger (€3), then the “burger price” is ((€1 + €3) / 2 =) €2. So a hamburger costs 50% of the burger price and a cheeseburger costs 150% of the burger price."
+        },
+        {
+            "type": "P",
+            "content": "If we change the burger’s price to €3, a hamburger will cost (50% * €3 =) €1.5 and a cheeseburger will cost (150% * €3 =) €4.5 because we assume that the cannibalization effect between hamburgers & cheeseburgers is the same when hamburgers cost €1 & cheeseburgers cost €3 and when hamburgers cost €1.5 & cheeseburgers cost €4.5"
+        },
+        {
+            "type": "FIGURE",
+            "filename": "67538678aa813600832831510ed8b314.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/0*TVuMFwn0OiTOQeK7.png",
+            "caption": null
+        },
+        {
+            "type": "H2",
+            "content": "👉 Is dynamic pricing even relevant for slow-selling products?"
+        },
+        {
+            "type": "P",
+            "content": "The boring answer is that it depends. It depends on how dynamic the market is, the quality of the prior information, …"
+        },
+        {
+            "type": "P",
+            "content": "But obviously, this isn’t very helpful.In general, we notice that you can already get quite far with limited data, especially if you have an accurate prior belief on how the demand likely behaves."
+        },
+        {
+            "type": "P",
+            "content": "For reference, in our simple example where we showed a Thompson sampling update, we were already able to gain a lot of confidence in our estimates with just 10 extra demand observations."
+        },
+        {
+            "type": "H1",
+            "content": "Demo time 🎮"
+        },
+        {
+            "type": "P",
+            "content": "Now that we have covered the theory, you can go ahead and try it out for yourself!"
+        },
+        {
+            "type": "P",
+            "content": "You can access our interactive demo here: https://huggingface.co/spaces/ml6team/dynamic-pricing"
+        }
+    ]
+}

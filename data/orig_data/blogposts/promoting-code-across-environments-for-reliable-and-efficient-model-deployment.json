@@ -1,0 +1,384 @@
+{
+    "title": "Promoting Code Across Environments for Reliable and Efficient Model Deployment",
+    "author": "Miro Goettler",
+    "readTime": "12 min read",
+    "publishDate": "Feb 7, 2024",
+    "blocks": [
+        {
+            "type": "H2",
+            "content": "MLOps with Amazon SageMaker"
+        },
+        {
+            "type": "FIGURE",
+            "filename": "455a1d624a92be6158991fb613dcfd6c.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*1_Fy2cijyuLbShmQIzkCEQ.png",
+            "caption": null
+        },
+        {
+            "type": "P",
+            "content": "MLOps, or Machine Learning Operations, is the practice of deploying and maintaining machine learning workflows in production, both reliably and efficiently. Amazon Web Services (AWS) offers a wide range of tools and services to support MLOps, with Amazon SageMaker being a prime example. SageMaker is an MLOps platform integrated in the AWS ecosystem, which enables users to easily train, test, troubleshoot, deploy, and govern machine learning (ML) models."
+        },
+        {
+            "type": "P",
+            "content": "During the journey from development to production, ML assets such as data and code are developed alongside the models. These assets are crucial for ensuring consistent model performance across all environments, especially in production, where the model is expected to perform efficiently and reliably. In this blog post, we discuss the implementation of promoting code instead of models across environments using continuous integration and continuous delivery (CI/CD) pipelines."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "7a40617c6ae695091d62cc086bddf160.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:573/0*Yk5Al67iRAJxDw6n.png",
+            "caption": "https://docs.databricks.com/machine-learning/mlops/deployment-patterns.html"
+        },
+        {
+            "type": "P",
+            "content": "ML6’s recommended deployment pattern, which we use in our own projects, is one where code to train a particular model is promoted across environments, rather than the model itself. This has a range of benefits which we’ll discuss later, but it is important to note that it isn’t supported natively by SageMaker."
+        },
+        {
+            "type": "P",
+            "content": "To address this problem, in collaboration with AWS, we built a solution that enables customers to leverage this model deployment pattern in their own accounts. This solution is implemented using the Infrastructure-as-Code framework Terraform and works alongside the MLOps CI/CD tooling provided by SageMaker Pipelines."
+        },
+        {
+            "type": "P",
+            "content": "By following the steps outlined in this post, readers can learn how to deploy this solution and enhance SageMaker with the capability to promote code instead of models between environments. This will help streamline and optimize ML workflows, accelerate time to market for new models and enhance MLOps capabilities. We also share this GitHub repository with code that can serve as a reference and starting point for you next project."
+        },
+        {
+            "type": "H1",
+            "content": "Advantages of Promoting Code Instead of Models"
+        },
+        {
+            "type": "P",
+            "content": "Promoting code instead of models offers several advantages in creating reproducible and reliable outcomes. Some of these benefits include:"
+        },
+        {
+            "type": "OL",
+            "items": [
+                "Support for automatic retraining: Promoting code in a secure production environment reduces the chances of human error and tampering, while ensuring the training code has been reviewed, tested, and approved for production use. Retraining can be automated in a single environment and no longer needs to be performed across environments.",
+                "Reproducible results: Using a unified pattern for both model training and ancillary code, such as preprocessing or inference pipelines, leads to reproducible results. This approach is particularly useful for large projects, as it allows for the launch of more models with smaller teams using modular code and iterative testing, facilitating coordination and development.",
+                "Data access control: This pattern is especially useful for organisations with restricted access to production data, as the model can be trained in the production environment, preventing the need for production data access from other environments.",
+                "Unified staging for various pipeline types: In time series use cases, the model often needs to be fit at inference time, requiring the staging of pipelines instead of models. Applying this approach to regression and classification pipelines as well, streamlines the development process across model types."
+            ]
+        },
+        {
+            "type": "P",
+            "content": "By adopting the practice of promoting code instead of models, organisations can leverage the power of Amazon SageMaker and other AWS services to create efficient, reliable, and reproducible machine learning workflows that deliver consistent results in production environments."
+        },
+        {
+            "type": "H1",
+            "content": "Machine learning use case and dataset"
+        },
+        {
+            "type": "P",
+            "content": "To illustrate the concepts explained in this blog post we show it in practice for fine-tuning a model to classify transcriptions from a medical dataset. Medical data is an especially interesting use case for this deployment strategy because it often contains personal data, requiring stricter access control to production data."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "768a092e6ffe975d1d636234c8912211.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*A1L-jwRMuvTBid3XLndx2Q.png",
+            "caption": "Medical transcriptions dataset"
+        },
+        {
+            "type": "P",
+            "content": "The task is to correctly classify each transcription (input) to one of the 40 medical specialities (target). The pre-trained transformer model distilbert-base-uncased from Hugging Face will be fine tuned to solve this task. For that the dataset is split into a train, validation, and test set and uploaded to a S3 bucket. The development and staging environments will only have a limited set of the data available to simulate a real use case. You can use the upload_dataset.py script to make the data available on S3."
+        },
+        {
+            "type": "H1",
+            "content": "Architecture & tech stack"
+        },
+        {
+            "type": "P",
+            "content": "The architecture will leverage 3 environments and 4 AWS accounts:"
+        },
+        {
+            "type": "UL",
+            "items": [
+                "3 environments each realised in a separate AWS account: development, staging, production",
+                "1 operations account which runs CI/CD and hosts artefacts that need to be promoted across environments"
+            ]
+        },
+        {
+            "type": "P",
+            "content": "The architecture will touch upon the following components and implement them using the indicated tool:"
+        },
+        {
+            "type": "UL",
+            "items": [
+                "A training pipeline with SageMaker",
+                "A real-time SageMaker model endpoint",
+                "A batch inference pipeline on SageMaker",
+                "A SageMaker model registry",
+                "A CI/CD pipeline with GitHub Actions",
+                "Infrastructure-as-Code with Terraform"
+            ]
+        },
+        {
+            "type": "H1",
+            "content": "Execution Environments for ML Workflow Assets"
+        },
+        {
+            "type": "P",
+            "content": "This project comprises three distinct environments (each in their own AWS account) and an Operations account, each serving specific purposes:"
+        },
+        {
+            "type": "OL",
+            "items": [
+                "Development Environment/Account: Focused on experimentation and pipeline development, data scientists develop models and carry out experiments to optimize their performance. This environment is dedicated to the development phase of the project, where code changes and enhancements are implemented and tested.",
+                "Staging Environment/Account: The staging environment serves as an intermediate stage for testing and quality assurance. It allows for thorough validation of code and functionality before deployment to the production environment. Designed for testing the ML pipeline and ancillary code to ensure they are ready to be promoted to production.",
+                "Production Environment/Account: The production environment is the live, operational environment where the application or system is accessible to end-users and delivers its intended functionality. Owned by ML engineers, this environment is used to deploy ML pipelines to train and test new model versions, publish predictions to downstream tables or applications, and monitor the entire process to avoid performance degradation and instability.",
+                "Operations Account: This account is responsible for running continuous integration and deployment (CI/CD) processes. It serves as the central hub for hosting artefacts and resources that need to be promoted across the various environments."
+            ]
+        },
+        {
+            "type": "P",
+            "content": "By employing this account structure, we can ensure proper separation of the mentioned responsibilities and enable efficient promotion of artefacts from the operations account to the desired environments, following the established code promotion approach."
+        },
+        {
+            "type": "P",
+            "content": "The process of deploying code that trains the models means that the training pipeline and ancillary code are both promoted through to production to train a final model. Initially, the ancillary code and training code are developed to carry out various stages of the ML pipeline, including preprocessing, feature engineering, model training, inference, and monitoring. In the staging environment, the same code is used to test both the ancillary and model training code on a small subset of data. If the testing is successful, the ML pipeline code is deployed in production to train the final model. Steps such as hyperparameter tuning and automated validation can be performed as part of the pipeline to optimize the model on the production data."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "08ac6a286072c8c7225c8b8e5133a492.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*PaIA-eGVTUSTaN62ZFgPUw.png",
+            "caption": "Dev and operations environment"
+        },
+        {
+            "type": "H1",
+            "content": "Deploying the Infrastructure"
+        },
+        {
+            "type": "P",
+            "content": "Following the instructions found in the README of the repo will enable a user to deploy the above solution. These setup steps for the different accounts (dev, staging, prod, operations) need to be performed before running the ML pipeline and include"
+        },
+        {
+            "type": "P",
+            "content": "After completion of the initial setup, the steps in the following README will then enable the user to create and run a SageMaker Pipeline that fine-tunes a pre-trained Huggingface BERT-model on the explained text-classification task of Medical Transcriptions in the dev-environment."
+        },
+        {
+            "type": "H1",
+            "content": "The CI/CD flow"
+        },
+        {
+            "type": "H2",
+            "content": "CI/CD Pipeline with Git Actions"
+        },
+        {
+            "type": "P",
+            "content": "Once code changes have been implemented in the dev-environment, our workflow involves deploying these changes into the staging and production environments. For seamless CI/CD processes, we rely on GitHub Actions. These automated workflows are triggered to build and deploy any modifications made to the main branch initially in the staging environment and subsequently in the production environment. This ensures a streamlined and efficient deployment pipeline, enabling rapid and reliable software releases."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "6100a90547f8752c79f756a379fdf597.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/0*coCn1bJN8Jr05tEM",
+            "caption": "Complete CI/CD process"
+        },
+        {
+            "type": "H2",
+            "content": "CI/CD Process"
+        },
+        {
+            "type": "P",
+            "content": "The development of new features in your MLOps project happens on the dev account inside a dedicated feature branch. By opening up a Pull Request (PR) to the main branch the changes in your code get reviewed. After the changes are approved, the feature branch is merged into your main branch. This triggers the Git action to automatically build the artefacts in the staging environment."
+        },
+        {
+            "type": "P",
+            "content": "Next, as shown in the diagram, the staging tag is added to the commit, to trigger the actual deployment of the infrastructure:"
+        },
+        {
+            "type": "CODE",
+            "content": "git tag staging <commit-id>git push origin staging"
+        },
+        {
+            "type": "P",
+            "content": "Remember that after the initial creation of a tag, you need to add the -f flag to update the tag and trigger the deployment at later times:"
+        },
+        {
+            "type": "CODE",
+            "content": "git tag -f staging <commit-hash>git push -f origin staging"
+        },
+        {
+            "type": "P",
+            "content": "At this point, tests can be run in your staging environment. After these tests ran successfully you can add the production tag to finally deploy to production:"
+        },
+        {
+            "type": "CODE",
+            "content": "git tag prod <commit-id>git push origin prod"
+        },
+        {
+            "type": "H2",
+            "content": "Using the CI/CD Solution"
+        },
+        {
+            "type": "P",
+            "content": "Now let’s have a detailed look into the steps of the CI/CD process and what they look like in practice."
+        },
+        {
+            "type": "OL",
+            "items": [
+                "While working on a given feature branch in the dev-environment, we make a change to the source code to trigger the CI/CD pipeline. For example, we modify the scheduled pipeline training parameters by increasing the number of training epochs from three to eight as shown below."
+            ]
+        },
+        {
+            "type": "FIGURE",
+            "filename": "b3a7b39acb8ea4998b54ab1378ffea63.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/0*jRfFviAnVC1hXHX5",
+            "caption": null
+        },
+        {
+            "type": "P",
+            "content": "2. Commit these changes to your feature branch and open a Pull Request. This allows your code to be reviewed and unit tested."
+        },
+        {
+            "type": "P",
+            "content": "3. Once your Pull Request is reviewed and approved, you can merge it to your main branch. This triggers the first Git action in our CI/CD process, which builds the artefacts inside the operations account. To view this, navigate to your repo on the GitHub website and check the Git actions for this step. Select the Build artefacts Pipeline."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "e8835123c49daecdf31912dbaff755a5.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/0*Yd9S0DWLU-xO7-qf",
+            "caption": null
+        },
+        {
+            "type": "P",
+            "content": "4. Taking a closer look at the logs, one can see that Docker images are being built and pushed to the AWS Elastic Container Registry. These images are for running specific steps in the SageMaker pipeline and the Lambda function that automatically deploys the model endpoint. The entire process takes a few minutes to complete."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "7d2f95216413fe108f0ed8ab5959ac07.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/0*GPuxsX4oIRCrRAWw",
+            "caption": null
+        },
+        {
+            "type": "P",
+            "content": "5. The next step is to deploy our changes to the staging environment/account. As shown before we do this by adding the tag to the desired commit and pushing it to remote:"
+        },
+        {
+            "type": "CODE",
+            "content": "git tag -f staging <commit-id>git push -f origin staging"
+        },
+        {
+            "type": "P",
+            "content": "This triggers our next Git action — Deploy to [staging/prod]. Again going into GitHub to view the Git actions, we can see the pipeline in action which was, triggered with the staging tag."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "1bfb3cc0c56a1b2bb5ad5bcc5e519c46.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/0*zsuqWVh8tKXlSuAP",
+            "caption": null
+        },
+        {
+            "type": "P",
+            "content": "6. Clicking on it we can see the different workflows in this pipeline, which in this case is just the deploy workflow …"
+        },
+        {
+            "type": "FIGURE",
+            "filename": "134b6827edba0adfe00b899db752a79b.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/0*y43mFCbQVzb0V3IZ",
+            "caption": null
+        },
+        {
+            "type": "P",
+            "content": "and all the steps within that workflow:"
+        },
+        {
+            "type": "FIGURE",
+            "filename": "09936232cbbc2ed1946ad5a7524151ac.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/0*zdjYauKJ2zqOgmHO",
+            "caption": null
+        },
+        {
+            "type": "P",
+            "content": "7. At this point, one can feasibly run any unit tests or performance tests before promoting to production. After testing in the staging environment, you are ready to promote the code to the production environment. We do this in the same way by tagging (with prod) and then pushing directly to GitHub in the same way as we did with staging."
+        },
+        {
+            "type": "CODE",
+            "content": "git tag -f prod <commit-id>git push -f origin prod"
+        },
+        {
+            "type": "P",
+            "content": "8. Now, going into your production account we can go and observe the changed value of the automatic retraining schedule. Going into Amazon EventBridge → Scheduler → Schedules → ‘training-pipeline’ and scrolling down to the Additional Parameters, you should see the changed schedule in the target SageMakerPipelineParameters."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "846a136c329becdbcd6cecac54a2fd77.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/0*HH51lUf_xnnT8oKC",
+            "caption": null
+        },
+        {
+            "type": "P",
+            "content": "9. Once the deployment to production is finished, navigate to your SageMaker Studio domain in your production environment/account and observe the training pipeline runs that have been automatically triggered by our CI/CD pipeline."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "f26623b206288e17d91e515c5ec35bbb.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/0*7nFrgfAApah59Wce",
+            "caption": null
+        },
+        {
+            "type": "P",
+            "content": "10. Below is an example of a successful execution of this SageMaker pipeline, with all of its different steps."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "9ada462eecfcfaac5d9c942e00dce53d.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/0*Lij-KslPiXXjlXy_",
+            "caption": null
+        },
+        {
+            "type": "P",
+            "content": "The pipeline steps are described in detail:"
+        },
+        {
+            "type": "UL",
+            "items": [
+                "(1) preprocess-data: The training, testing and evaluation data is loaded from the S3 bucket as Pandas DataFrames. The column ‘transcription’ is the text training input and is tokenized with the Huggingface AutoTokenizer. The column ‘medical_specialty’ is the classification target and is encoded numerically. Both training and test data are saved as NumPy Arrays to the S3 bucket and made available to other pipeline steps as input.",
+                "(2) train-model: The pre-trained Huggingface BERT model is fine-tuned on the training data. The Training and Test data are loaded as a PyTorch Dataset. For training, the ‘AdamW’ optimiser with a learning rate of ‘1e-5’ is used, the model is evaluated on the test data every epoch and the metrics are tracked with SageMaker Experiments. After training, the model weights are saved to the S3 bucket.",
+                "(3) register-model: Every trained model is registered to the SageMaker Model Registry in a Model Group.",
+                "(4) eval-model: After training the model is evaluated on the evaluation data and the results are used for the accuracy check. If the prerequisites are met, the ‘approve-model’ step is run.",
+                "(5) approve-model: The model status of the registered model in the Model Group is updated to ‘approved’ and now can be used to deploy a Model endpoint or for a Batch Transformation Job."
+            ]
+        },
+        {
+            "type": "P",
+            "content": "11. After the ‘register-model’ step is completed, one can navigate to the Model registry to see the latest version of the model in the training-pipelineModelGroup."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "bf27ad4ed662473c89c51091bc67f380.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/0*Dc53Oj9th_RxgiP3",
+            "caption": null
+        },
+        {
+            "type": "P",
+            "content": "12. Recalling in the wider AWS architecture diagram above that we implemented SageMaker Experiment tracking, one can now navigate to ‘Experiments’ in their SageMaker Studio to compare the training and testing metrics for different experiments, which are tracked and can be displayed as Graphs."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "8debfaf3ae0c87e5769da04d0a2088fb.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*2GkAgk7CCACZdx_t83olDA.png",
+            "caption": null
+        },
+        {
+            "type": "P",
+            "content": "13. Once the model has been trained and was approved in the pipeline it is automatically deployed to a SageMaker endpoint by the Lambda function. If you would like to test the deployed endpoint, navigate to the test.ipynb file found in the GitHub repo and run through the entirety of the notebook. This notebook makes use of the evaluation data of our dataset, stored in S3"
+        },
+        {
+            "type": "H1",
+            "content": "Conclusion"
+        },
+        {
+            "type": "P",
+            "content": "In this post we have explored the challenges often encountered in MLOps related to deploying and maintaining machine learning workflows. We’ve also discussed a unique deployment pattern — that of promoting code, rather than the model itself, across development environments, which is not offered natively on Amazon SageMaker."
+        },
+        {
+            "type": "P",
+            "content": "To address this need, we’ve presented a robust solution developed by ML6 and AWS which enables users to adopt this preferred deployment pattern. This innovative solution, realised through the use of Terraform and SageMaker Pipelines, exemplifies how adaptability and ingenuity can overcome pre-existing constraints, and cater to customer needs."
+        },
+        {
+            "type": "P",
+            "content": "As machine learning continues to proliferate in various industries, the ability to streamline ML workflows, accelerate time-to-market for new models, and bolster overall MLOps capabilities is invaluable. It not only enhances operational efficiency but also opens up opportunities for more innovative and effective uses of machine learning."
+        },
+        {
+            "type": "P",
+            "content": "Now it’s your turn to take action. We encourage you to experiment with the solution that we’ve shared today. To get started on your own deployment, see the ML6 GitHub repo or the official AWS-samples repo. Follow the step-by-step implementation guide in this post and adapt it to your needs. Don’t hesitate to share your results and experiences, or reach out to us if you want to discuss applying MLOps principles in your organization."
+        }
+    ]
+}

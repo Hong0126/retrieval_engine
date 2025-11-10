@@ -1,0 +1,179 @@
+{
+    "title": "Why we decided to help maintain connexion",
+    "author": "Ruwan Lambrichts",
+    "readTime": "7 min read",
+    "publishDate": "Jan 20, 2022",
+    "blocks": [
+        {
+            "type": "H1",
+            "content": "What is connexion?"
+        },
+        {
+            "type": "P",
+            "content": "First things first, connexion is an API-first framework developed by Zalando. While it was originally built on top of Flask, connexion was later on extended to work with other (async) web frameworks such as aiohttp."
+        },
+        {
+            "type": "P",
+            "content": "With connexion, you first write your API contract, using the Swagger/OpenAPI standard. Then, the endpoints you defined will be mapped to your Python view functions, ensuring that your python code does what your API contract says it does."
+        },
+        {
+            "type": "P",
+            "content": "This makes it rather unique in the landscape of Python web frameworks, as most other tools start from your code instead of the other way around."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "adea576bbe811f7b0eb76ce4f7858b85.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:638/0*YFM_prAm9KkqK_Ur",
+            "caption": "Source: https://www.slideshare.net/try_except_/api-first-with-connexion-pyconweb-2018"
+        },
+        {
+            "type": "H1",
+            "content": "What is API-first?"
+        },
+        {
+            "type": "P",
+            "content": "API-first (or contract-first) means that developing your REST API begins outside of your (Python) code. You first define your API’s behaviour using a standard specification language (Swagger/OpenAPI in this case). You can then consult with stakeholders and your API consumers before you start the actual implementation."
+        },
+        {
+            "type": "P",
+            "content": "This contrasts with the ‘code-first’ approach (also called ‘implementation-first’), where you first think about and write the implementation. Then, you can generate the documentation of your API using the OpenAPI standard."
+        },
+        {
+            "type": "H2",
+            "content": "Why we prefer API-first"
+        },
+        {
+            "type": "P",
+            "content": "At ML6, we like using the API-first approach to work together with our clients. This enables us to focus on the business problem we are trying to solve without mixing in implementation details: there is clear separation of definition (“what”) and implementation (“how”). Moreover, multiple teams (e.g. frontend & backend teams) can work in parallel based on the contract that was agreed upon. With code-first, one party has to wait until the other party has completed the implementation. For example, the frontend team can easily mock the backend using the API specification."
+        },
+        {
+            "type": "P",
+            "content": "In addition, most other frameworks use decorators to map your Python functions to the endpoints, which may clutter your code by mixing REST “logic” with your application logic in the same file. In connexion, you only write your application logic, and connexion will link your function to the corresponding endpoint from your API definition."
+        },
+        {
+            "type": "P",
+            "content": "For more detailed information on the benefits of adopting an API-first approach, you can read the excellent RESTful API guidelines from Zalando or this blogpost by Google."
+        },
+        {
+            "type": "P",
+            "content": "Another benefit of API-first is that this integrates nicely with the workflow to deploy your API to Google Cloud Platform, for tools such as Google Cloud Endpoints and Google Cloud API Gateway, which use the OpenAPI specification. You can then host the documentation of your API with the Endpoints Developer Portal (using different IAM and security than for your API itself)."
+        },
+        {
+            "type": "P",
+            "content": "This also applies to other cloud providers. For example, you can also use it to deploy your API to Amazon API Gateway or to Azure API Management. When using a code-first approach, you have to run your application to extract the API contract, before you are able to deploy it, which can be a hassle and potentially cause issues. For example, the generated specification doesn’t exactly match how you intended it, or your application requiring a database connection, which you then have to mock. By adopting an API-first framework, the API contract becomes the ‘central truth’ which is more robust and secure as it becomes more clear about what the API should do and what it does not do, and how the implemention potentially deviates from that."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "2c7adce9db8427de323c6fdadf4320b3.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:558/0*hxXgBhxA1-UUlq4s.png",
+            "caption": "OpenAPI specification (fka Swagger). Source: https://blog.readme.com/how-to-generate-openapi-descriptions/"
+        },
+        {
+            "type": "H1",
+            "content": "How does it compare to FastAPI?"
+        },
+        {
+            "type": "P",
+            "content": "Let’s take a closer look at how connexion is different by comparing it with a popular, fast-rising web framework: FastAPI. Our goal is not to argue one is necessarily better than the other, rather, we are trying to identify the advantages and disadvantages of each framework’s approach."
+        },
+        {
+            "type": "H2",
+            "content": "Difference in vision: API-first vs code-first"
+        },
+        {
+            "type": "P",
+            "content": "The functional differences between connexion and FastAPI come from the difference in “vision”: connexion is API-first while FastAPI is code-first."
+        },
+        {
+            "type": "P",
+            "content": "Connexion"
+        },
+        {
+            "type": "UL",
+            "items": [
+                "API-first",
+                "Determine API contract (with other parties) and write code that adheres to it",
+                "Use jsonschema for validation (OpenAPI is based upon jsonschema)",
+                "Deploy easily to GCP using OpenAPI contract"
+            ]
+        },
+        {
+            "type": "P",
+            "content": "FastAPI"
+        },
+        {
+            "type": "UL",
+            "items": [
+                "code-first",
+                "Write your own Python code first and share with other parties how they can consume your API using OpenAPI standard",
+                "Use pydantic for validation purposes* (which also focuses on “making it available in your Python code as Python objects”)",
+                "Possible to deploy to GCP with workaround (i.e. extract the OpenAPI document by running & mocking your API itself — which might lead to inconsistencies and troubles)"
+            ]
+        },
+        {
+            "type": "BLOCKQUOTE",
+            "content": "*Note: pydantic’s purpose is parsing data into Python, this is not the same as data validation. For example, the string “1” can be parsed as an integer with value 1, but it is not a valid integer in itself. This could lead to some surprising behaviour in your API. See this issue for more background info."
+        },
+        {
+            "type": "P",
+            "content": "Other differences (unrelated to the API-first/code-first approach) are:"
+        },
+        {
+            "type": "UL",
+            "items": [
+                "Connexion is built on top of Flask and aiohttp, while FastAPI is built on top of Starlette. As a result, FastAPI is async by nature, while connexion is dependent on the underlying web framework (which can be changed).",
+                "FastAPI only generates OpenAPI 3 documentation, while connexion supports both Swagger 2 and OpenAPI 3 documents. This can be a factor in your decision making process as some tools do not support OpenAPI 3 (just yet), which might be used by the other party you are working with."
+            ]
+        },
+        {
+            "type": "H2",
+            "content": "Benchmark"
+        },
+        {
+            "type": "P",
+            "content": "So far, we have discussed the functional differences. Of course, we want to know what this actually means in terms of hard numbers. To do this, we performed a small benchmarking exercise to see the difference in throughput and latency between connexion (with Flask) vs FastAPI for a single endpoint of an application that is running in production."
+        },
+        {
+            "type": "P",
+            "content": "It is important to note that we do not aim to perform a general benchmark between the two frameworks. Rather, we want to check what the concrete differences are for our particular application. You should never rely on external benchmarks using simple, synthetic examples, but instead run your own benchmark on your application when evaluating different options. This blogpost explains why in more detail. In our case, the API will need to run queries against a SQL database, and thus can benefit from async code to avoid blocking when waiting for the database to return the results."
+        },
+        {
+            "type": "P",
+            "content": "In our case, we look at 2 different cases: the synchronous case and the asynchronous case. The setup for our benchmark consists of gunicorn with 10 workers (using the standard worker for flask, and uvicorn.workers.UvicornWorker for async frameworks). In the async case, we also use the gevent library, which enables to write synchronous code with Flask and will monkeypatch the underlying code such that it becomes asynchronous without us having to worry about the event loop explicitly."
+        },
+        {
+            "type": "P",
+            "content": "Note that we use an implementation of connexion with Quart that has not been fully integrated and tested."
+        },
+        {
+            "type": "P",
+            "content": "For FastAPI, by using async def, you force the framework to run the function on the main event loop. So, you need to be cautious of not performing any blocking stuff. If you use regular def, FastAPI will schedule it on a separate ThreadpoolExecutor, so you don’t need to worry about blocking/non-blocking in that case. As a side effect, this also allows us to “force” synchronous behaviour with FastAPI (which is an asynchronous framework)."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "07a73311fad500947a8b8ca0f10cc200.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:494/1*VKXp5MKY8pJuWuvJMTHGzQ.png",
+            "caption": "Benchmark results for sync and async versions"
+        },
+        {
+            "type": "P",
+            "content": "Looking at the numbers, we can see that in the synchronous setting connexion + flask outperform the synchronous FastAPI both in throughput and in latency. For the asynchronous case, we find that FastAPI outperforms connexion + quart (note: it’s possible that there is still some optimization possible in the Quart implementation for connexion). However, using gevent yields even better results and is the clear winner for this exercise."
+        },
+        {
+            "type": "H1",
+            "content": "Moving forward"
+        },
+        {
+            "type": "P",
+            "content": "At ML6, we like “doing rather than talking” so we try to help and contribute to open source when applicable, which is why we want to help maintain connexion. As we believe it is still the right tool for us, if it is well-maintained."
+        },
+        {
+            "type": "P",
+            "content": "One of the big changes we proposed that have already been incorporated into connexion is support for multiple authentication schemes in logical AND fashion, which allows using for example 2 API keys in conjunction."
+        },
+        {
+            "type": "P",
+            "content": "In addition, we have also just got the necessary permissions to release new versions to PyPI, which was a blocker up until now. The next steps include figuring out the future direction and the roadmap of connexion together with the community (https://github.com/zalando/connexion/issues/1395). The big question for connexion’s future is where it creates the most value for its users: as a framework, or more when acting as middleware. We welcome all input here as this is important for all (potential) users of connexion, so don’t hesitate to leave your thoughts on the Github issue."
+        }
+    ]
+}

@@ -1,0 +1,297 @@
+{
+    "title": "OpenVINO vs ONNX for Transformers in production",
+    "author": "Shubham Krishna",
+    "readTime": "7 min read",
+    "publishDate": "Oct 17, 2022",
+    "blocks": [
+        {
+            "type": "FIGURE",
+            "filename": "b0275b0a068ae30149a20cdb28e0f9c4.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:500/0*wFLpQ8cEEzvOOFiE.jpg",
+            "caption": null
+        },
+        {
+            "type": "P",
+            "content": "Transformers has revolutionized NLP, making it the first choice for applications like machine translation, semantic search engines, and more. Considering that transformers contain millions of parameters, efficiently serving them can be challenging. Deploying into production requires a thorough consideration of the three factors listed below:"
+        },
+        {
+            "type": "P",
+            "content": "⏱️ Latency"
+        },
+        {
+            "type": "P",
+            "content": "💰 Deployment cost"
+        },
+        {
+            "type": "P",
+            "content": "💽 Memory"
+        },
+        {
+            "type": "P",
+            "content": "With the help of GPUs (Graphics Processing Unit), which were originally designed to accelerate graphics processing, deep learning computations can be sped up dramatically. But GPUs are quite expensive 💸, so if you have a budget constraint, you will have difficulty finding an efficient deployment that is still fast enough ⏱️ for production."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "3dfa6a0cef21d09ebd60bcf4a6b198d2.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:498/0*vA-n2RlgOwalMdQa.gif",
+            "caption": null
+        },
+        {
+            "type": "BLOCKQUOTE",
+            "content": "Our team at ML6 is always looking for solutions that will facilitate the efficient deployment of large models like transformers."
+        },
+        {
+            "type": "P",
+            "content": "The CPU is ubiquitous and can be a more cost-effective option for running AI-based solutions than a GPU. Therefore, we’ll look at different approaches to optimize transformer models for CPU inference."
+        },
+        {
+            "type": "H2",
+            "content": "What is Quantization ? How does it help?"
+        },
+        {
+            "type": "P",
+            "content": "Quantization refers to techniques for computing and storing tensors with lower bitwidths than floating point precision. To put it simply, quantization refers to the mapping of input values from a large set to output values in a smaller set. A neural network consists of activation nodes, connections between nodes, and weight parameters associated with each connection. It is these weight parameters and activation node computations that can be quantized."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "9ac39ea9c132e55ac3911fa8fc4931ba.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:250/0*IoSTBtnaD6q6j9bt.gif",
+            "caption": null
+        },
+        {
+            "type": "P",
+            "content": "👉 In a neural network, using lower bits parameters, and quantized intermediate calculations produces large performance gains."
+        },
+        {
+            "type": "P",
+            "content": "👉 Another benefit of quantization is that it can lead to lower network latency and better power efficiency. As a result of using lower-bit quantized data, there is less data movement to and from the chip, which reduces memory bandwidth and saves significant energy, thus making it more environmentally friendly."
+        },
+        {
+            "type": "P",
+            "content": "👉 Although quantization brings benefits, it also has a downside that neural networks can lose accuracy since they don’t represent information precisely."
+        },
+        {
+            "type": "BLOCKQUOTE",
+            "content": "TLDR; It has been shown that quantization can often result in a very minimal loss of accuracy, especially when weighed against the improvements in latency, memory usage, and power."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "13fa98e232452f04d475405dd68d6ef1.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:688/0*S9QlOOgQrap9EALH.gif",
+            "caption": "Fig. 1 How Quantization helps [1]"
+        },
+        {
+            "type": "H2",
+            "content": "Different Types of Quantization"
+        },
+        {
+            "type": "P",
+            "content": "There are mainly two types of quantization:"
+        },
+        {
+            "type": "UL",
+            "items": [
+                "Post-training quantization: The term Post-training quantization refers to the process of quantizing a model that’s already trained. The quantized model is what ultimately gets deployed and used to perform inference.",
+                "Quantization-aware training: Quantization-aware training relies on the idea that the errors associated with quantization will accumulate in the total loss of the model during training, and the optimization algorithm will adjust parameters accordingly and reduce the overall error."
+            ]
+        },
+        {
+            "type": "BLOCKQUOTE",
+            "content": "Note: Within this blogpost, we will only look into accelerating transformers using Post-training quantization, with a special focus on using OpenVINO to accomplish this."
+        },
+        {
+            "type": "H2",
+            "content": "Quantization and hardware integration"
+        },
+        {
+            "type": "P",
+            "content": "In practice, quantization is tightly coupled with hardware as different hardware platforms have varying levels of support for quantization. For example, Intel CPUs with x86 architecture prefer the input data types of the quantized conv2d to be UINT8×INT8 due to the Intel Vector Neural Network Instructions (VNNI) requirement [2]."
+        },
+        {
+            "type": "P",
+            "content": "Similarly, CPUs in ARMv8 architecture have special instructions to accelerate the INT16 multiply-accumulate, while ARMv8.2 CPUs introduce DOT instruction to directly speed up INT8 multiply-accumulate [3]."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "7a00c5de5c9f7d1c87e8149b08e76956.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:498/0*A1dQj-UjX7NKhW5a.gif",
+            "caption": null
+        },
+        {
+            "type": "P",
+            "content": "Taking a model from development to production requires a change of software framework to achieve the best results in order deploy on the most suitable target hardware. Popular machine learning frameworks like PyTorch or TensorFlow do support Post-training quantization, but there are more suitable options to deploy on CPUs for real-time applications."
+        },
+        {
+            "type": "P",
+            "content": "We will look into two highly optimized frameworks that provide Post-training quantization that aim to accelerate transformers drastically:"
+        },
+        {
+            "type": "OL",
+            "items": [
+                "ONNX Runtime"
+            ]
+        },
+        {
+            "type": "FIGURE",
+            "filename": "e1dfcef6ecf10f0ebfddcf6b63a08fe0.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:342/0*JrTAMeSCSuGL4yql",
+            "caption": null
+        },
+        {
+            "type": "P",
+            "content": "ONNX Runtime is a cross-platform machine-learning model accelerator, with a flexible interface to integrate hardware-specific libraries. We have covered quantization and acceleration using ONNX Runtime in another blogpost: BERT is eating your cash: quantization and ONNXRuntime to save💰[4]."
+        },
+        {
+            "type": "P",
+            "content": "2. OpenVINO"
+        },
+        {
+            "type": "FIGURE",
+            "filename": "0a52ab1ef572719a3066cd56055bb120.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:486/0*u07OV52f8T7o8q-y.png",
+            "caption": null
+        },
+        {
+            "type": "P",
+            "content": "The OpenVINO toolkit (Open Visual Inference and Neural network Optimization) is an open-source toolkit facilitating the optimization of a deep learning model from a framework and deployment using an inference engine onto Intel hardware like CPUs. It has also been developed with a similar mindset to ONNX and ONNXRuntime — allowing a bridge from development to production and enable representation in a framework agnostically."
+        },
+        {
+            "type": "H2",
+            "content": "Model optimization using OpenVINO"
+        },
+        {
+            "type": "P",
+            "content": "Model optimization involves improving final model performance by applying optimization methods such as quantization, pruning, preprocessing optimization, etc."
+        },
+        {
+            "type": "P",
+            "content": "OpenVINO provides several tools to optimize models at different steps of the model development lifecycle:"
+        },
+        {
+            "type": "UL",
+            "items": [
+                "The Model Optimizer provides a number of optimizations to a model, most of which are added by default, but you can configure mean/scale values, batch size, RGB vs BGR input channels, and others to speed up preprocessing (Embedding Preprocessing Computation).",
+                "Using the Post-training Optimization Tool (POT) one can optimize inference from deep learning models without the need to retrain the models or fine-tune them, for example by applying post-training 8-bit quantization methods.",
+                "Neural Network Compression Framework (NNCF) provides a suite of advanced methods for training-time model optimization within the DL framework, such as PyTorch and TensorFlow. It supports methods, like Quantization-aware Training and Filter Pruning. NNCF-optimized models can be inferred with OpenVINO using all the available workflows."
+            ]
+        },
+        {
+            "type": "FIGURE",
+            "filename": "9ee068accf9f4e5858e72b2357230ffb.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*W8-0o7QmpcHLZVkHlRf3Gw.png",
+            "caption": null
+        },
+        {
+            "type": "P",
+            "content": "The typical process for quantizing and accelerating a model using OpenVINO consists of following steps:"
+        },
+        {
+            "type": "OL",
+            "items": [
+                "Convert TensorFlow/PyTorch* Model to OpenVINO using Model Optimizer.",
+                "Quantize to INT8 using Post-training Optimization tool."
+            ]
+        },
+        {
+            "type": "BLOCKQUOTE",
+            "content": "* For PyTorch Model, you need to first convert to ONNX and then to OpenVINO."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "6995821e8180f018923edbb7a49fb552.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/0*BCK7-bGU2KchmLdL",
+            "caption": null
+        },
+        {
+            "type": "P",
+            "content": "If you want to know more about the runtime inference optimization options provided by OpenVINO, please refer to the documentation."
+        },
+        {
+            "type": "P",
+            "content": "For converting an ONNX model to OpenVINO, execute the following command using command line interface:"
+        },
+        {
+            "type": "P",
+            "content": "We couldn’t find any Python function for converting an ONNX model to OpenVINO."
+        },
+        {
+            "type": "P",
+            "content": "In order to quantize toINT8 using OpenVINO, one first needs to have the model converted into OpenVINO format. Afterwards, we need to define a dataloader which takes in a dataset and a model that you want to quantize. The dataloader code can be found below:"
+        },
+        {
+            "type": "P",
+            "content": "After defining the dataloader, we need to code some extra steps that are required for quantizing the model. The code is attached below:"
+        },
+        {
+            "type": "P",
+            "content": "After executing main.pywe will get our INT8 quantized model."
+        },
+        {
+            "type": "H2",
+            "content": "Benchmarking ONNX and OpenVINO on CPU"
+        },
+        {
+            "type": "FIGURE",
+            "filename": "265a1e9c3adcc96c353ae7ace39f3e94.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:498/0*JJ0n2UjW0csr4xiP.gif",
+            "caption": null
+        },
+        {
+            "type": "P",
+            "content": "To find out which framework is better for deploying models in production on CPU, we used the distilbert-base-uncased-finetuned-sst-2-englishmodel from HuggingFace 🤗. All the benchmarks were done on Intel Ice Lake Architectures with Intel(R) Xeon(R) CPU @ 2.80GHz(4 cores)processors having AVX-512 instruction set. We benchmarked both ONNX and OpenVINO quantized models for different sequence lengths and batch sizes."
+        },
+        {
+            "type": "UL",
+            "items": [
+                "We can clearly see that ONNX and OpenVINO are equally good for different sequence lengths and batch-sizes.",
+                "We couldn’t observe any major difference between OpenVINO and ONNX Runtime benchmarks. Triton Inference Server has support for both OpenVINO and ONNX Runtime, which allows you to easily use and benchmark different backends for your models."
+            ]
+        },
+        {
+            "type": "H2",
+            "content": "Long Story Short"
+        },
+        {
+            "type": "FIGURE",
+            "filename": "70f4f1e9187f7e00f15072867ad46989.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:498/0*TSr7MI_6vmLNVrYH.gif",
+            "caption": null
+        },
+        {
+            "type": "P",
+            "content": "👉 ONNX and OpenVINO are highly optimized frameworks for deploying models on CPUs, making deployment budget friendly 💰."
+        },
+        {
+            "type": "P",
+            "content": "👉 The performance of ONNX and OpenVINO are comparable. So no matter which framework you use, you are in good hands."
+        },
+        {
+            "type": "P",
+            "content": "👉 Quantizing models using ONNX is bit easier compared to OpenVINO. Using HuggingFace 🤗 , one needs to write only few lines of code for quantization."
+        },
+        {
+            "type": "P",
+            "content": "👉 Quantization works like a charm and definitely is one of the best techniques out there to speed up inference ⏱, and reduce model size 💽."
+        },
+        {
+            "type": "H2",
+            "content": "References"
+        },
+        {
+            "type": "P",
+            "content": "[1] https://www.qualcomm.com/news/onq/2019/03/12/heres-why-quantization-matters-ai"
+        },
+        {
+            "type": "P",
+            "content": "[2]https://www.intel.com/content/www/us/en/developer/overview.html#gs.1305tu"
+        },
+        {
+            "type": "P",
+            "content": "[3] https://community.arm.com/arm-community-blogs/b/tools-software-ides-blog/posts/exploring-the-arm-dot-product-instructions"
+        },
+        {
+            "type": "P",
+            "content": "[4] https://blog.ml6.eu/bert-is-eating-your-cash-quantization-and-onnxruntime-to-save-ea6dc84dcd88"
+        }
+    ]
+}

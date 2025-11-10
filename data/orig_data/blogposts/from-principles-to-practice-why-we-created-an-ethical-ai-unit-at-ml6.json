@@ -1,0 +1,75 @@
+{
+    "title": "From principles to practice — Why we created an Ethical AI unit at ML6",
+    "author": "Caroline Adam",
+    "readTime": "4 min read",
+    "publishDate": "May 12, 2022",
+    "blocks": [
+        {
+            "type": "FIGURE",
+            "filename": "301cb482388b87b357c2c83656daa1b5.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*oIWPIsZ9Qa49wYE4FA0J1Q.png",
+            "caption": null
+        },
+        {
+            "type": "P",
+            "content": "At ML6, we are all passionate about technology and motivated by the potential benefits AI can bring to our clients and to society. We are however also aware that AI can carry certain ethical concerns and risks, which need to be addressed."
+        },
+        {
+            "type": "P",
+            "content": "Responsibility & Ethical AI has always been an important topic for ML6. In the past, we have taken many steps already to define what trustworthy AI means for us, what our principles are and which applications we pledge to not develop."
+        },
+        {
+            "type": "P",
+            "content": "With this framework in mind, we took a big step to structurally move our principles into practice. The result was the creation of our Ethical AI Unit at ML6, a group of ML6 agents dedicated to the topic of Ethical AI."
+        },
+        {
+            "type": "H1",
+            "content": "Why did we create the Ethical AI unit?"
+        },
+        {
+            "type": "P",
+            "content": "As mentioned above, considering Ethics within all that we do is important to us. It fosters trust in our solutions and in our mission both with clients as well as with our employees."
+        },
+        {
+            "type": "P",
+            "content": "The Ethical AI unit is our way to stay at the forefront of the rapidly evolving field, and to institutionalise our ethical principles. It enables us to advise our clients on ethical risks and upcoming regulatory requirements, and to integrate best practices in our processes and in the design and development of all our AI solutions. Our goal is to maximise the value of AI while identifying and mitigating potential risks."
+        },
+        {
+            "type": "H1",
+            "content": "What does the unit do and who is part of it?"
+        },
+        {
+            "type": "P",
+            "content": "The Ethical AI unit at ML6 has two main purposes. The first purpose of the Ethics unit is to serve as a “sounding board” to discuss ethically sensitive projects that emerge during the sales process. Given that there is often no “one right answer” to ethical questions, it is important to discuss these cases in a diverse group, taking different perspectives into consideration. This is how the Ethics unit enables ML6 to identify potential ethical risks early on, and define risk mitigation measures to take during design and development of the AI solution."
+        },
+        {
+            "type": "P",
+            "content": "The second purpose of the unit is in keeping up with the evolving field of Ethical AI and implementing ethical and legal considerations and best practices into our processes at ML6. This includes preparing for and giving feedback on the upcoming EU AI Act and other relevant regulation, researching topics such as bias & fairness, implementing best practices, and creating awareness internally and externally on the topic."
+        },
+        {
+            "type": "P",
+            "content": "The Ethical AI unit has specifically been created with diversity in mind — including people from all different units at ML6 — from Engineers to Sales to Management -, different geographical locations, backgrounds and genders. This is strongly aligned with the two purposes of the unit and enables us to take different perspectives and knowledge into account."
+        },
+        {
+            "type": "H1",
+            "content": "What did we learn so far & what tips would we give to other organisations?"
+        },
+        {
+            "type": "P",
+            "content": "Since starting the Ethical AI unit, we have learned a lot. Let us share a few practical tips on what to watch out for if you want to start structurally integrating ethical considerations into your organisation and processes:"
+        },
+        {
+            "type": "UL",
+            "items": [
+                "Get leadership buy-in. Whether it’s creating a unit, or putting a stronger focus on ethics and responsibility — it all starts with buy-in from leadership. Ethical AI needs coordination across different units or departments, with sometimes conflicting incentives. Making sure that your leadership is on board can help overcome potential hurdles.",
+                "Focus on the value Ethical AI can bring to your organisation. Trust in and adoption of AI, higher motivation for employees, mitigation of ethical and legal risks — these are just some examples of positive effects implementing ethics structurally in your company can have. Articulate clearly what value Ethical AI can bring to your organisation.",
+                "Communicate transparently about ethics. There is often no right answer when it comes to ethics. Having clear processes in place, discussing the topic, and raising awareness might sometimes be even more important than a concrete decision taken.",
+                "Define processes together with the people from concerned departments. They know their processes best and need to be committed to the new ways of working. Ask for feedback and actively involve a diverse group of people. Also leverage existing structures as much as possible — modifying existing processes is often easier than inventing new ones."
+            ]
+        },
+        {
+            "type": "P",
+            "content": "This is in a nutshell what our new Ethical AI unit is and what we learned in the process of building it up. Reach out if you have questions or want to talk about Ethical AI!"
+        }
+    ]
+}

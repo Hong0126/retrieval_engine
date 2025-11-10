@@ -1,0 +1,254 @@
+{
+    "title": "Smart energy: how to make your home battery smart and save money?",
+    "author": "Juta Staes",
+    "readTime": "10 min read",
+    "publishDate": "Jul 10, 2023",
+    "blocks": [
+        {
+            "type": "P",
+            "content": "A home battery might be called “smart” because it connects to an app that allows the home owner to track their usage. But wait, what if there’s more? Let’s take a look at how you can make a battery smarter by connecting it to external inputs such as daily energy prices and weather. This can lower the pressure on the grid by reducing the peak usage, and when switching to a dynamic pricing contract this can also save you money. In this blogpost we demonstrate a system that can save up to 35% on electricity costs."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "6a6ff858bd92cb81c281fa2dfa0d9e80.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:600/1*orK4wTxBRuXnNQIbidXDZg.gif",
+            "caption": "Source: https://www.elandcables.com/media/twbauphh/v637599766906530001/battery-storage.gif."
+        },
+        {
+            "type": "H1",
+            "content": "Demo"
+        },
+        {
+            "type": "P",
+            "content": "The simulation tool described in this blogpost can be used by everyone. Go to https://smartenergy.ml6.eu/ to test out our tool by running a simulation on your own data."
+        },
+        {
+            "type": "H1",
+            "content": "Intro"
+        },
+        {
+            "type": "P",
+            "content": "A typical home battery will be charged when a household produces more energy than it consumes, e.g. when solar panels are producing electricity. The battery will then be used when there is enough load available to replace the direct consumption from the grid. We will demonstrate that if you switch to a dynamic pricing contract, you can save money by proactively charging a battery from the grid at a time of low energy cost instead of consuming directly from the grid when energy prices are high."
+        },
+        {
+            "type": "P",
+            "content": "This article will explain what dynamic pricing is, it will show an overview of how you can build a smart controller to communicate with the inverter of a battery and steer its behaviour and it will demonstrate with a simulation how this technology can save money."
+        },
+        {
+            "type": "H1",
+            "content": "Dynamic pricing"
+        },
+        {
+            "type": "P",
+            "content": "In different countries in Europe energy providers are now making available dynamic prices on the private market. For this blogpost we are focussing on the Belgium market. As of October 2022, the largest electricity providers in Belgium are by law obligated to offer a dynamic pricing contract. Dynamic contracts are contracts where the price is determined per hour. Prices are set on the previous day and are determined based on the prediction for the next day for the electricity production and consumption. The reason that this contract exists is because of the green transition and the intermittency of renewable energy sources. This way individuals or companies can adapt their energy usage based on the price, which corresponds to matching their consumption to when there is high production of electricity from the sun and the wind and/or low consumption. This will lower the pressure on the grid by reducing the peak usage."
+        },
+        {
+            "type": "P",
+            "content": "Do you consume electricity during a certain time of the day? Then you pay the price of that hour. A dynamic contract is only possible if you have a digital meter. This type of contract is mostly interesting if you are able to adapt your electricity consumption based on these prices. A classic example is to charge an electric car when prices are low or to charge a home battery (as explained here). In this article a dynamic pricing contract of Engie will be used to run our calculations and simulation."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "93fb55fba292a3db5643f5c53e275114.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*fVkgOPwtcXlpetK_DRNeLg.png",
+            "caption": "Volatility of the dynamic prices in 2022, expressed in EUR / MWh. Source: https://www.vreg.be/nl/energiemarkt-cijfers."
+        },
+        {
+            "type": "P",
+            "content": "Some key observations from analysing the day ahead prices from 2022 are:"
+        },
+        {
+            "type": "UL",
+            "items": [
+                "Approximately 1% of time the price of electricity is negative, meaning you can get paid to consume electricity at these specific time slots.",
+                "The lowest price in a day is typically between 1:00 and 6:00 in the morning and between 12:00 and 16:00 in the afternoon.",
+                "The average day ahead price for 2022 is 25 cents/kWh (excluding net fees and taxes). The average price paid per household with a variable contract was 39 cents/kWh. This is of course higher because a typical household will use more energy when prices are high (during the busiest moments of a day)."
+            ]
+        },
+        {
+            "type": "H1",
+            "content": "Architecture"
+        },
+        {
+            "type": "H2",
+            "content": "High level overview"
+        },
+        {
+            "type": "FIGURE",
+            "filename": "e964ec25aa57b886cca4096b3a816ef2.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*KiJ817eAnBYlgdZ6KC0jNQ.png",
+            "caption": "Overview of the architecture for a smart battery that you can steer in real-time."
+        },
+        {
+            "type": "P",
+            "content": "The most essential parts of the architecture are:"
+        },
+        {
+            "type": "UL",
+            "items": [
+                "Inverter client: this client is responsible for controlling the battery, i.e. telling it to charge from the grid or not. The inverter of a battery is the final responsible for managing the charging and discharging of the battery. You will need an actual connection with the inverter to be able to change the behaviour in real-time. This is the most difficult part as the connection will depend on which brand and battery type you might have, and therefore it can become very custom.",
+                "Home Assistant: this is an open source home automation framework that can be used to bring all the data into one place. This will form the connection between all the different components in this architecture. It works with MQTT to handle the communication between these components. It also comes with existing integrations such as a weather API integration.",
+                "Controller: the controller will decide which action the battery should take. Based on the input (day-ahead energy prices, weather, battery status, current consumption, etc) it can decide whether it is a good moment to charge the battery from the grid or not. This is the place for our smart algorithms to decide on an optimal charging strategy to save costs.",
+                "Entso-e client: this client is responsible to fetch the day-ahead prices each day. Day ahead prices can be found on the Entsoe website."
+            ]
+        },
+        {
+            "type": "P",
+            "content": "The inverter client and the controller will be explained in more detail to understand further how the whole setup works."
+        },
+        {
+            "type": "H2",
+            "content": "Inverter client"
+        },
+        {
+            "type": "P",
+            "content": "Inverters are a part of any modern solar setup. Their main function is to convert the direct current (DC) coming from the solar cells into alternating current (AC) which can be used by most household appliances. When a battery is part of the system the inverter is able to store the energy that is not being consumed in the battery. Inversely it can use the energy stored in the battery to help power the household grid."
+        },
+        {
+            "type": "P",
+            "content": "This system makes decisions based on the current production and consumption of energy but this can be improved by making it smarter. For this we needed to be able to do 2 things:"
+        },
+        {
+            "type": "UL",
+            "items": [
+                "Extract the data: metrics about current solar production, grid consumption, battery level, etc.",
+                "Give commands to the inverter: “charge the battery now to X%”, “Use energy stored in the battery”, etc."
+            ]
+        },
+        {
+            "type": "P",
+            "content": "Our test setup has a Sofar inverter with a battery and solar panels. We needed a way to communicate with this system and came across this guide to build a small piece of hardware."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "2e8f7267e6a6f4a941deabfb9a50802d.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:500/1*sCYMV9oghaTlla8wBO-j1w.jpeg",
+            "caption": "Hardware setup that is connected to the inverter."
+        },
+        {
+            "type": "P",
+            "content": "In essence it is a microcontroller that is wired to the inverter and uses the modbus protocol to communicate with the inverter. The microcontroller is also connected to a message bus (MQTT) where it can publish the metrics and listen for commands. This part of the setup is dependent on what kind of inverter you have and what communication methods it supports (some have wifi for example which makes this easier)."
+        },
+        {
+            "type": "P",
+            "content": "We then wrote a piece of code that was responsible for communicating with the microcontroller (and by extension the inverter). This inverter client was able to read the data published by the microcontroller and make it available to the controller while also listening for instructions coming from the microcontroller and passing those along to the microcontroller/inverter."
+        },
+        {
+            "type": "P",
+            "content": "Important to note is that we don’t disrupt the way the inverter works since this can be very dangerous (like overcharging a battery). We only read data and give higher level commands that override the default decisions the inverter makes like “charge the battery for 15 minutes”."
+        },
+        {
+            "type": "H2",
+            "content": "Controller"
+        },
+        {
+            "type": "P",
+            "content": "The controller is responsible to process all the input and make a charging decision for the battery. Two controllers were implemented: one baseline controller with a simple charging strategy and one smart controller that applies a more dynamic cost saving strategy."
+        },
+        {
+            "type": "P",
+            "content": "The baseline controller only has one rule: to charge the battery between 1:00 and 6:00 in the morning because this is historically the cheapest moment of the day to charge the battery. This is used as a baseline to compare with the smart controller."
+        },
+        {
+            "type": "P",
+            "content": "The smart controller on the other hand will look at two data inputs to decide the charging strategy: the current percentage of the battery and the cheapest moments for charging in the next hours. If the battery level is low, it will charge in the cheapest moment of the next hours. The higher the battery level the more patience it has to pick the most ideal charging moment."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "3fffd88b10fcb94b58f39e2fcb2f819c.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*bBrQIbKoPAtFQdFGm57IHQ.png",
+            "caption": "Smart controller simulation: we can see that the controller works as expected because the battery is charged when the prices are lowest."
+        },
+        {
+            "type": "H2",
+            "content": "Results"
+        },
+        {
+            "type": "P",
+            "content": "In order to calculate the impact of our setup, we built a simulator because the setup didn’t gather enough data yet."
+        },
+        {
+            "type": "H1",
+            "content": "Simulation"
+        },
+        {
+            "type": "H2",
+            "content": "Overview"
+        },
+        {
+            "type": "P",
+            "content": "To test how well the setup works, a simulator was included that can simulate different scenarios based on extracted consumption data per 15min from a smart meter from Fluvius. The following scenarios are supported:"
+        },
+        {
+            "type": "UL",
+            "items": [
+                "An as is scenario that calculates the electricity cost of a household without a battery.",
+                "A baseline scenario that calculates the electricity cost of a household with a battery and a simple charging strategy.",
+                "A smart scenario that calculates the electricity cost of a household with a battery and a smart charging strategy where the smart controller is used to steer the battery based on the day ahead prices."
+            ]
+        },
+        {
+            "type": "P",
+            "content": "The simulator works with the exact same controller and entso-e client used in our real-time architecture. There is a simulated inverter implemented to simulate the energy usage based on the consumption and the actions decided by the controller."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "181e6a56831c510bffa58d719a6cb43e.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/0*DMA3iwTbt9gv4FFh",
+            "caption": "Overview of the simulation architecture."
+        },
+        {
+            "type": "H2",
+            "content": "Simulation results"
+        },
+        {
+            "type": "P",
+            "content": "A dashboard was created to show the different results from the simulations to allow a user to compare the energy consumption as is today with a scenario where the user has a smart battery. We tested our simulation for 5 different households with a battery of 10 kWh and the average cost saving is around 35%. This is a very nice first result, but of course this should be further validated by testing the real-time solution and by actually switching to a dynamic pricing contract."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "c964b5ee8b018adf515a5fd166d1943f.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*ShOatAiQBfzz00ZFUrIDZg.gif",
+            "caption": "Simulation dashboard."
+        },
+        {
+            "type": "P",
+            "content": "Do you want to try it out yourself? Go to https://smartenergy.ml6.eu/ to test out our tool on your own data."
+        },
+        {
+            "type": "H1",
+            "content": "Next steps"
+        },
+        {
+            "type": "UL",
+            "items": [
+                "We currently did not take into account solar energy in our energy controllers and simulation, so a next step is to implement this as well.",
+                "We can make our controller smarter by taking into account input from the weather, the current consumption and predict the future consumption.",
+                "This project focused on the B2C market. We are also working with companies to lower their energy costs by leveraging their energy flexibility on the balancing markets. You can reach out to us if you are interested in talking to us about this."
+            ]
+        },
+        {
+            "type": "H1",
+            "content": "What does the future hold?"
+        },
+        {
+            "type": "P",
+            "content": "One challenge in this project was to find out all the details about the dynamic pricing and to make an accurate estimation of which costs there are. This is quite hidden and not a lot of energy providers offer this kind of contract. We learned a lot about the current offerings and limitations. With Engie, they offer information about it on their website, but up until recently it was not so easy to switch to this contract. De Standaard mentions that Engie had less than 200 clients using this contract in 2022. In the end we have a good understanding of how the market works today."
+        },
+        {
+            "type": "P",
+            "content": "One challenge for the future is that we cannot predict how the dynamic pricing contract will evolve, especially when the prices are fixed a day beforehand on the day ahead market. If more households switch to this contract it can be very beneficial because then the consumption will be more adapted to the capacity of the grid. So in the coming years it is expected that this will remain interesting. But if too many households would switch contracts and adapt their consumption then it might become a lot less interesting because the price would be more averaged out. So the biggest uncertainty for the future is whether the price fluctuations on the day ahead market will stay as interesting as they are now. It is however expected that flexibility on the production side is going to keep increasing and that it will probably outpace consumption-side flexibility in the coming years."
+        },
+        {
+            "type": "H1",
+            "content": "Xmas projects"
+        },
+        {
+            "type": "P",
+            "content": "ML6 does research into new emerging technologies to investigate how AI can bring value to the market. This research project was part of our Xmas projects. Thanks to Matthias Feys, Georges Lorré, Julien Schuermans, James Branigan, Jules Van Reempts and Robbe Sneyders for contributing to this project and blogpost."
+        },
+        {
+            "type": "BLOCKQUOTE",
+            "content": "Xmas Projects are hackathon-like projects in which people lay down their day-to-day job for some time and get together out of common interest to explore new tools, learn tech and make an impact! Read more about it in this blogpost about Xmas projects."
+        }
+    ]
+}

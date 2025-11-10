@@ -1,0 +1,164 @@
+{
+    "title": "Fine-tuning Whisper for Dutch Language: The Crucial Role of Size",
+    "author": "Sharon Grundmann",
+    "readTime": "5 min read",
+    "publishDate": "Jul 19, 2023",
+    "blocks": [
+        {
+            "type": "FIGURE",
+            "filename": "64892e3e4df8432a1ae0ac54067e4469.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/0*TPh1j5BieCFzakeo",
+            "caption": "Photo by Denisse Leon on Unsplash"
+        },
+        {
+            "type": "P",
+            "content": "OpenAI has taken over the AI landscape by storm with its recent releases — yes, the title of this blog post was generated with the help of chatGPT. Among these is Whisper, an open-source Automated Speech Recognition (ASR) system for processing human speech into written text. Trained on 680,000 hours of multilingual speech data collected from the Internet, Whisper enables transcription in 97 languages and allows translation from 96 of these languages into English."
+        },
+        {
+            "type": "P",
+            "content": "According to the company, Whisper’s English ASR performance is able to reach human-level accuracy and robustness. While the pre-trained version of Whisper offers impressive performance, it can be further enhanced through a process known as fine-tuning."
+        },
+        {
+            "type": "P",
+            "content": "In this blog post, we explore how fine-tuning Whisper on Dutch language data can lead to substantial improvements in its performance. We focus on fine-tuning different sizes of Whisper models on varying lengths of audio data — 1 hour, 10 and 50 hours."
+        },
+        {
+            "type": "BLOCKQUOTE",
+            "content": "If you cannot wait and want to see how the fine-tuned models perform on these various amounts of data, click here."
+        },
+        {
+            "type": "H2",
+            "content": "What is Whisper and how does it work?"
+        },
+        {
+            "type": "P",
+            "content": "To begin, let’s shortly have a look at Whisper and how it works."
+        },
+        {
+            "type": "P",
+            "content": "Whisper (Figure 1) is a Transformer based encoder-decoder model. It maps a sequence of audio spectrogram features to a sequence of text tokens."
+        },
+        {
+            "type": "P",
+            "content": "First, the raw audio input is split into 30-second chunks, converted into a log-Mel spectrogram by a feature extractor, and then passed into an encoder. A decoder is subsequently trained to predict the corresponding text caption, intermixed with special tokens that direct the model to perform tasks such as language identification, phrase-level timestamps, multilingual speech transcription, and to-English speech translation."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "9b3b24a8e46f538d8418532daf80c4bd.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:648/1*rmT8jsA7B1WAEiFXfHcaCw.png",
+            "caption": "Figure 1: Whisper architecture. Source"
+        },
+        {
+            "type": "P",
+            "content": "Whisper is available in 5 sizes with the smallest (tiny) comprising 39M parameters and the largest (large-v2), 1550M parameters. For our experiments, we use three of these — tiny, small and large-v2, giving us a broad view of all Whisper models."
+        },
+        {
+            "type": "H2",
+            "content": "What does fine-tuning a model mean?"
+        },
+        {
+            "type": "P",
+            "content": "Fine-tuning means training a model with examples specific to our task, here, transcribing the Dutch language, in order to improve its performance. This process involves initializing a pre-trained model with pre-trained weights and then fine-tuning the model’s parameters on a smaller dataset. We make use of the Dutch language subset of the Common Voice Dataset as training input — split into sets of 1 hour, 10 and 50 hours of audio data."
+        },
+        {
+            "type": "BLOCKQUOTE",
+            "content": "We will not go into details about the fine-tuning process. Hugging Face has a step-by-step guide detailing how to fine-tune Whisper ."
+        },
+        {
+            "type": "P",
+            "content": "The tiny and small models were trained on an NVIDIA P100 while the large-v2 model on a A100. We present our findings from the experiments as follows."
+        },
+        {
+            "type": "H2",
+            "content": "Fine-tuning Whisper on Common Voice"
+        },
+        {
+            "type": "P",
+            "content": "We used the Dutch language subset of the Common Voice 12 Dataset. As baseline, we tested pre-trained Whisper models on a test set containing 14 hours of audio recordings."
+        },
+        {
+            "type": "P",
+            "content": "We see from Table 1 that the Word Error Rate (WER) decreases as the model size increases. Whisper tiny has the worst WER of 51% and large-v2 achieves the best WER at 7.8%."
+        },
+        {
+            "type": "P",
+            "content": "As mentioned earlier, we split the data into training sets of 1 hour, 10 hours and 50 hours of audio recordings for fine-tuning. We evaluated the different Whisper models on the same evaluation set as before and achieved the following results."
+        },
+        {
+            "type": "H2",
+            "content": "Comparing fine-tuned models to pre-trained models"
+        },
+        {
+            "type": "P",
+            "content": "As expected, we observed a significant improvement in performance as the training data size increased as seen in Table 2. However, compared to the pre-trained models, models fine-tuned on only 1 hour of data perform worse."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "61e1b17ba045eeaffbd1487d4672d94b.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*0ja0bE7i9IPf3bSumwe88A.png",
+            "caption": "Figure 2: Training and validation loss curves of Whisper tiny"
+        },
+        {
+            "type": "P",
+            "content": "We see in Figure 2 that the validation loss increases with fine-tuning while the training loss decreases. Upon further investigation, we learnt this is a common issue as Whisper is known to quickly overfit on small datasets."
+        },
+        {
+            "type": "P",
+            "content": "Taking Whisper small from Figure 3 for instance, the pre-trained model achieves a WER of 17.9% but increases to 18.9% when fine-tuned on 1 hour of data. This is similar to the results for the large-v2 model."
+        },
+        {
+            "type": "BLOCKQUOTE",
+            "content": "Smaller datasets result in relatively higher WER than larger datasets, demonstrating the importance of having a sufficient amount of domain-specific data for effective fine-tuning."
+        },
+        {
+            "type": "H2",
+            "content": "Difference between Whisper transcriptions and Common Voice Data"
+        },
+        {
+            "type": "P",
+            "content": "Our analysis of the transcriptions revealed interesting observations regarding punctuation differences between Whisper’s transcriptions (predictions) and the Common Voice data (truth). A few of these are presented in Table 3 below."
+        },
+        {
+            "type": "P",
+            "content": "Such discrepancies include misuse of periods and exclamation marks, overlooking diaeresis and circumflex accents and trailing hyphens. While Whisper’s performance in capturing punctuations is generally impressive, the inherent variability in spoken language makes it challenging to achieve perfect punctuation representation consistently."
+        },
+        {
+            "type": "H2",
+            "content": "Trade-off between training time and performance"
+        },
+        {
+            "type": "P",
+            "content": "Regarding training time and performance, we observed that smaller models benefit the most from fine-tuning and are also generally less time-consuming compared to their larger counterparts."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "322e0f6a7ef0c78a5c673829e503fd9e.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*aEoqKNuEzRCGBnE-H3LzPg.png",
+            "caption": "Figure 4: Validation WER of Whisper small and large-v2"
+        },
+        {
+            "type": "P",
+            "content": "Looking at Figure 4 above, the WER of the Whisper small drops by 24% (from 16.9 to 12.7) with 5k steps of training and the large-v2, by 12% only (from 9.8 to 8.6)."
+        },
+        {
+            "type": "BLOCKQUOTE",
+            "content": "Smaller models require fewer computational resources, making them more cost-effective to train and fine-tune. This aspect is particularly advantageous when dealing with limited resources or budget constraints."
+        },
+        {
+            "type": "H2",
+            "content": "Conclusion"
+        },
+        {
+            "type": "P",
+            "content": "Fine-tuning Whisper provides a powerful approach to enhance ASR performance in specific domains. Our investigation into the relationship between training data size and performance revealed that smaller models benefit significantly from fine-tuning. While larger training datasets tend to yield better results, there is a point of diminishing returns beyond which the gains for larger models become marginal. Whisper small is able to achieve 37% increase in performance with fine-tuning and large-v2, only 18% ."
+        },
+        {
+            "type": "P",
+            "content": "While fine-tuning Whisper models with an appropriately sized dataset can help achieve remarkable accuracy in transcriptions, accurately capturing the nuances of punctuations remains a challenge. Incorporating a broader range of punctuations in the training set or applying post-processing techniques to the transcriptions generated by Whisper can help correct these punctuation errors."
+        },
+        {
+            "type": "P",
+            "content": "As ASR technology continues to advance, understanding the trade-offs and advantages of different model sizes and fine-tuning strategies will be crucial in achieving optimal performance in various applications and domains."
+        }
+    ]
+}

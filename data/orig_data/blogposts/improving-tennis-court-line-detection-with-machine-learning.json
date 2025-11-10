@@ -1,0 +1,332 @@
+{
+    "title": "Improving Tennis Court Line Detection with Machine Learning",
+    "author": "Bart Timmermans",
+    "readTime": "9 min read",
+    "publishDate": "Mar 13, 2023",
+    "blocks": [
+        {
+            "type": "FIGURE",
+            "filename": "2e34de599dd787209c446fc924eeb0fe.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*V2FLKas2Lmdyaa8z6jkBUg.png",
+            "caption": "Detecting the lines of a tennis court"
+        },
+        {
+            "type": "P",
+            "content": "Tennis is a sport played all over the world and a lot of single camera video streams are broadly available. All these streams contain information that could be turned into structured stats about games and players. Watching a tennis game, you could enrich the view automatically with numbers of serves through the middle or in the corners, how deep the ball is being played, preferences for left or right, depending on where the player is positioned... The list of insights you can extract from converting these video streams into structured data is huge."
+        },
+        {
+            "type": "P",
+            "content": "Before getting any stats, the analysis of these video streams needs to be broken down into several tasks:"
+        },
+        {
+            "type": "UL",
+            "items": [
+                "detection of the court (lines) and the net",
+                "detection of the players and their pose",
+                "detection and tracking of the ball",
+                "player shot detection"
+            ]
+        },
+        {
+            "type": "P",
+            "content": "This idea formed the base of my internship at ML6. Many thanks to the team for their help and especially to Jules for being a great mentor. For my internship, we decided to start with the detection of the court lines"
+        },
+        {
+            "type": "P",
+            "content": "Every tennis fan knows that the Hawk-Eye system is capable of doing line (and ball) detection with very high precision using six or more high speed camera’s from different angles of the court."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "e2543f98dd380dff3553c0a61b0216f3.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:420/1*kgySkNmTYIpghzpOzqHEAw.gif",
+            "caption": "Hawk-Eye in action"
+        },
+        {
+            "type": "P",
+            "content": "We however want to perform the task with the standard video streams of one fixed camera and be able to make near real time predictions."
+        },
+        {
+            "type": "H2",
+            "content": "Related Work and Inspiration"
+        },
+        {
+            "type": "P",
+            "content": "It is not the first time that somebody tries to detect a sports field. Before deciding on our approach we had a look at the following related work."
+        },
+        {
+            "type": "P",
+            "content": "In the earlier days the task was mostly tackled with a symbolic AI approach following a similar pattern to detect the boundaries of the tennis court. At first, some technique is used to extract the lines from the frame. Hough line transformations are a great fit for purpose. A detailed explanation of Hough transformations and their use in OpenCV can be found here. The next step is to find out which of these lines are the outer court lines. By taking the intersections of 4 of the found lines, you can determine the transformation matrix (also called the homography) that projects a reference tennis court onto the 4 line intersections in the frame. Using this matrix, you can project the reference court on the frame and then count the overlaps between the line pixels in the frame and the projected reference court lines. By repeating this process for all possible found line intersections, we can find the best overlap which theoretically should be the outer court lines."
+        },
+        {
+            "type": "P",
+            "content": "One can also combine a lightweight CNN with a Hough layer, which is in detail described in this paper. Similar work can be found in LSDNet where a classical Line Segment Detector is combined with a lightweight CNN."
+        },
+        {
+            "type": "P",
+            "content": "Other sports often have moving cameras, only showing part of the field. Defining a key point grid on the field has proven to give good results for this particular use case. This paper details this approach."
+        },
+        {
+            "type": "P",
+            "content": "Let’s first see how well the symbolic approach can reach the goals of doing near real time line detection on different courts. Secondly, let’s investigate if transfer learning on a trained model for classification can learn to predict the key points at the court line intersections. To conclude, we see if performance can be further improved by combining the two approaches."
+        },
+        {
+            "type": "H2",
+            "content": "Symbolic AI Approach (Hough transform / Homography)"
+        },
+        {
+            "type": "P",
+            "content": "Before diving into transfer learning, we have a look at how far we could get with a symbolic AI approach."
+        },
+        {
+            "type": "P",
+            "content": "As described above, the high level steps are:"
+        },
+        {
+            "type": "OL",
+            "items": [
+                "Preprocess the image for Hough line detection",
+                "Detect the lines and categorize the lines into horizontal and vertical lines",
+                "Try to find the lines which best fit the tennis court. That can be done by determining how well a projection of the lines of a reference court overlap with the a binary image of the frame (assuming white pixels for the court lines in the binary image). To determine how one plane can be projected onto another plane, you can calculate the projection matrix (also called the homography matrix) based on 4 known points from the first plane and 4 known points on the projected plane. So by taking the 4 intersection points of the reference court lines and the 4 intersection points of 2 horizontal found lines and 2 vertical found lines, the homography matrix can be determined that projects the reference court on the frame. Next step is to perform the warp perspective of the reference court lines using this homography matrix and count the hits (overlaps between a reference court line pixel and a white pixel of the binary image of the frame) and misses with the binary image of the frame. More hits and fewer losses are an indication of the likelihood that these found lines are the court lines. This is repeated for all the found combinations of horizontal and vertical line pairs to determine the best matching lines."
+            ]
+        },
+        {
+            "type": "P",
+            "content": "The preprocessing step is very important as this will determine how good the Hough transformation can extract the lines."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "28fc4b899e50f54746601b10fb315773.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:511/1*quj5RT6uj7vYwfqApDwiCg.png",
+            "caption": "Tennis court after preprocessing"
+        },
+        {
+            "type": "P",
+            "content": "Starting from a good preprocessed image, the results are very accurate:"
+        },
+        {
+            "type": "FIGURE",
+            "filename": "6260870bb5e1557a5233991712e84830.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:462/1*yTRkUKFvGifHQC7QQiDt8A.png",
+            "caption": "Hough lines (green) drawn over the original image"
+        },
+        {
+            "type": "P",
+            "content": "While giving good results for some courts, it is difficult to generalize this approach for all types of courts. Another downside is that the iterative process of determining the homography, creating the warp perspective and calculating the hits and misses is slow and resource-intensive."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "b38b1187667872beab9375d714e6ca66.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:320/1*av0n5GxCbeFH5BCV5AjfuQ.gif",
+            "caption": "Detection of lines of a tennis court with Hough transform (good)"
+        },
+        {
+            "type": "FIGURE",
+            "filename": "92dfa30a95cdca0cabbd6d0a24498fe1.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:274/1*JGFOeVZptHH4vKwjkn640Q.gif",
+            "caption": "Detection of lines of a tennis court with Hough transform (bad)"
+        },
+        {
+            "type": "H2",
+            "content": "AI Approach: CNN Model for Keypoint Detection"
+        },
+        {
+            "type": "P",
+            "content": "The basic idea is to take a relatively simple existing Computer Vision backbone for classification and put a custom head on it to determine 16 key points at the line intersections of the tennis court."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "3284f01ee608ce55e9b386ca9d672634.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:150/1*W4BncdlfZthXU7CV3upUNw.png",
+            "caption": "16 key points of a tennis court"
+        },
+        {
+            "type": "P",
+            "content": "We start with a ResNet50v2 backbone (Keras application) and experiment with a full CNN head and a Fully Connected Network head. The following parameters provide the best results with a ResNet50v2 backbone:"
+        },
+        {
+            "type": "FIGURE",
+            "filename": "657554fb1a020727976f8ba1ce424e56.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*ospFsh87RL9DrKO3op_Arw.png",
+            "caption": "Result with best parameters for ResNet50v2 backbone"
+        },
+        {
+            "type": "P",
+            "content": "The predictions (blue dots) are still quite off but we learned that"
+        },
+        {
+            "type": "UL",
+            "items": [
+                "this approach is more robust than the symbolic approach",
+                "Data augmentation is important for making the model more robust",
+                "A full CNN head leads to better results than a fully connected head",
+                "MAE loss provided better results than MSE",
+                "Our backbone is not expressive enough (even when trying to overfit)",
+                "Our dataset needs to be larger and more diverse"
+            ]
+        },
+        {
+            "type": "P",
+            "content": "To increase our dataset, we use the OpenCV Annotation Tool which has a great interface to label data and export it to — among others — COCO key point format. A bonus is that it also support interpolation so you only have to label the key frames."
+        },
+        {
+            "type": "P",
+            "content": "Continuing the learning and tuning with different backends keeping in mind near real time inference speed, the results improved considerably"
+        },
+        {
+            "type": "FIGURE",
+            "filename": "b0749d961c1583189a685587dc3b575b.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*6qt7pUfFtZht1WoBI_wloA.png",
+            "caption": "EfficientNetV2Small backend performs best"
+        },
+        {
+            "type": "FIGURE",
+            "filename": "5e9a69ef0aca33674b88c9ff2f6e92e4.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*SK7W_yHh_t4JXB-XQJAkEQ.png",
+            "caption": "EfficientNetV2Small backend result (predictions are blue dots)"
+        },
+        {
+            "type": "P",
+            "content": "We still see that the predictions (blue dots) are a bit off target. In order to look for patterns in the learned model, we project the reference court (black lines) with the homography of the outer predicted key points."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "68d3b02a4691dd1812ffe406eca1d355.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*JH9J9vrYPf391_SmzL5TYw.png",
+            "caption": "Projected reference court (black lines) exactly on predicted key points (blue dots)"
+        },
+        {
+            "type": "P",
+            "content": "This shows that the trained model finds the relations between the line intersections with very high accuracy (predicted blue dots are exactly on the intersections of the black lines). Are we maybe putting to much emphasize on the relationship between the points in our model?"
+        },
+        {
+            "type": "P",
+            "content": "So we try to only predict the 4 outer key points of the court. Cutting a long story short, the trained models on the 4 key points produced very similar results as the 16 key points."
+        },
+        {
+            "type": "P",
+            "content": "During training and experiments, a few other backbones were tried as well and especially MobileNetv3Small performed much better than the other backbones."
+        },
+        {
+            "type": "P",
+            "content": "So switching back to the 16 key point output, similar improvements were to be expected with the new backbone, MobileNetv3Small, and indeed the Mean Pixel Error reduced by more than 50% compared to the previously best results with EfficientNetV2Small."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "d6dec9738340fe97f86beed1efae4e0c.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*_J39yjVvippJjj-ccQXumw.png",
+            "caption": null
+        },
+        {
+            "type": "P",
+            "content": "This is a pretty good result but we want to improve and decided to post process the model using a variation of the symbolic approach from the previous section."
+        },
+        {
+            "type": "H2",
+            "content": "Post-processing"
+        },
+        {
+            "type": "P",
+            "content": "The idea is to take a rectangular area around every predicted key point of the original image and determine in every rectangle the lines and their intersection point."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "94718a12eee6eb68d3c25b3041ab4d70.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:211/1*B2DIO0MSEOscgD1D2bxVIw.png",
+            "caption": "Small area around the predicted key points"
+        },
+        {
+            "type": "P",
+            "content": "If we crop a standard area around the predicted key points (red crosses), the zoomed in starting point for the post-processing looks like this:"
+        },
+        {
+            "type": "FIGURE",
+            "filename": "d00cfaf289603a6dccd3ef1f49131a29.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*qmFx1ngWypLO9DUfjAOYJg.png",
+            "caption": "Small area around the predicted key points (red cross)"
+        },
+        {
+            "type": "P",
+            "content": "You can see that determining the line intersection can be more complicated through players (15), unclear lines (5). It will also be hard to work with the key points at the net (8, 9)."
+        },
+        {
+            "type": "P",
+            "content": "The line intersection detection algorithm is as described in the symbolic AI section:"
+        },
+        {
+            "type": "UL",
+            "items": [
+                "Prepare the image for Hough transformation- Reduce the # of colors and remove the most dominant colors- Thicken the lines of the images far away from the camera (1, 2, 3, 4)- Thin the lines with the Zhang Suen algorithm"
+            ]
+        },
+        {
+            "type": "FIGURE",
+            "filename": "4e0119a2aec5190977553b16674d0ab8.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:504/1*RFqBZGdwf3CfjebiNCi2bQ.png",
+            "caption": "Preprocessing of the image"
+        },
+        {
+            "type": "UL",
+            "items": [
+                "Performing the Hough transformation, selecting the most relevant lines and determine their intersection"
+            ]
+        },
+        {
+            "type": "FIGURE",
+            "filename": "c12b4bb1e664ff7bd41a57083c3b9501.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:202/1*-BPwE8l87e1Wm5cKsgSMoQ.png",
+            "caption": "Intersecting lines after Hough transform and line selection"
+        },
+        {
+            "type": "P",
+            "content": "This results in the following improvements:"
+        },
+        {
+            "type": "FIGURE",
+            "filename": "8f229a726b9cd9d75b3c83603622e82d.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*Q8PNYb5rio72fJpgR3XQpA.png",
+            "caption": "Clear improvement in top baseline key points"
+        },
+        {
+            "type": "P",
+            "content": "Or in the complete image:"
+        },
+        {
+            "type": "FIGURE",
+            "filename": "7aefab549ab20567e633a6331b91b592.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*aPha1dHkAduZb0xXvmxX3A.png",
+            "caption": "MobileNetV3Small with post-processing"
+        },
+        {
+            "type": "P",
+            "content": "Looking at the before and after post-processing image, the performance is clearly better. Sometimes however, post-processing can be a bit of because the lines are not accurately extracted. Comparing the mean absolute error now shows very similar results with or without post-processing. This can probably be improved by an additional verification step that only take post-processing into account when the calculated post-processing intersection is on a white pixel or matches a small filter specific for the key point (for example an L-shaped filter for the left lower baseline). This last verification step is not tested yet."
+        },
+        {
+            "type": "P",
+            "content": "Performance was good, what about inference speed?"
+        },
+        {
+            "type": "P",
+            "content": "On a 8 core Intel i9 2.3 GHz processor with GPU NVIDIA T2000 4GB, the AI model roughly predicted 100 frames/sec. When including the post-processing, the inference speed dropped to 50 frames/sec. These figures are just indicative without any effort in speed optimalization."
+        },
+        {
+            "type": "H1",
+            "content": "Conclusion"
+        },
+        {
+            "type": "P",
+            "content": "These are promising results in both performance and inference speed."
+        },
+        {
+            "type": "P",
+            "content": "We can conclude that our ML model is more robust and faster than our symbolic model."
+        },
+        {
+            "type": "P",
+            "content": "For the ML model, it is vital to find a backbone with a good balance between performance and inference speed, in our case MobileNetv3Small. For all our tested backbones, Full CNN variants were best as head and MAE as loss function produced better performance. Data augmentation was crucial but make sure that the majority of transformations still make sense for a tennis court. Post-processing can further increase the performance as seen in some samples but you need to make sure it generalizes well."
+        },
+        {
+            "type": "P",
+            "content": "With a little extra investment in post-processing, adding some temporal smoothing (there will only be slight changes in camera movement between frames) and giving some love to inference speed optimalisation, this approach is a good candidate for doing near real time court line detection... A first step in automating the stats of a tennis game."
+        }
+    ]
+}

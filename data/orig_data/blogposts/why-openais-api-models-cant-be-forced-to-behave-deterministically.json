@@ -1,0 +1,338 @@
+{
+    "title": "Why OpenAI’s API models can’t be forced to behave deterministically",
+    "author": "Michiel De Koninck",
+    "readTime": "11 min read",
+    "publishDate": "Aug 18, 2023",
+    "blocks": [
+        {
+            "type": "P",
+            "content": "A donkey never hits its head on the same stone twice. And it seems this is a thing that ChatGPT and donkeys have in common: ChatGPT is no fool, it doesn’t always make the same mistake. Instead it makes a different mistake each time. Nice? Try forcing it to always make the same mistake. Bummer: that’s just not possible."
+        },
+        {
+            "type": "P",
+            "content": "We observe that OpenAI’s Generative API-callable models (DALL-E, ChatGPT, …) cannot be controlled to act deterministically. In other words: they produce inconsistent results even when their temperature, the parameter that controls their “creativity”, is dialed to zero. More information on temperature can be found in the OpenAI API documentation. Instead of offering solutions, this blogpost aims to explain this behaviour. Because knowledge is power, right?"
+        },
+        {
+            "type": "P",
+            "content": "But how relevant is this really? Does this question pop up regularly? Apparently; yes. It currently tops the list of the OpenAI GPT list of FAQ."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "45bf34a78813263672e5aa6e1c4fd797.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*6B_Tl_CJAj5DlqIV8W_CDw.png",
+            "caption": "Screenshot taken from https://platform.openai.com/docs/guides/gpt/faq"
+        },
+        {
+            "type": "P",
+            "content": "It’s likely that, if you are building an application that relies on the output of a GPT-model, you (at least in a testing phase) want to be able to have the model behave deterministically so that you can rely on reproducible behaviour to some extent. For example:"
+        },
+        {
+            "type": "UL",
+            "items": [
+                "(Generative Language) GPT context: you want to show your boss that your “guided Angular code generator” delivers the right blob of code for a certain request 100% of the time.",
+                "(Generative Vision) DALL-E context: you want to show your colleagues that your prompt delivers exactly the same wonderful image of “fruit juice in a soup bowl” as it did yesterday when you were working on the marketing for your son’s lemonade stand."
+            ]
+        },
+        {
+            "type": "P",
+            "content": "But enough introduction, because we value both structure and blowing things out of proportion, we will now analyse the behaviour of GPT models specifically by taking you from observation through understanding towards explanation. We have to go into quite the level of detail here but through simplified visualisation, we hope to alleviate the need for any knowledge of complicated mathematical concepts. Hooray for simplifications!"
+        },
+        {
+            "type": "H1",
+            "content": "The Observation"
+        },
+        {
+            "type": "P",
+            "content": "To summarise again, the question that we will answer here boils down to:"
+        },
+        {
+            "type": "BLOCKQUOTE",
+            "content": "”why don’t I consistently get the same answers from a call to any OpenAI Generative API when the temperature is 0?\""
+        },
+        {
+            "type": "P",
+            "content": "Note that, while relevant discussions and resources on this topic can be found;"
+        },
+        {
+            "type": "UL",
+            "items": [
+                "OpenAI Forum: “a question on Determinism”",
+                "Twitter Post with reply from OpenAI engineer",
+                "Nvidia on Determinism in Deep Learning (slide 51)"
+            ]
+        },
+        {
+            "type": "P",
+            "content": "We deemed none of these explanations to be satisfactory in delivering a complete and comprehensive answer. Great news because this allows us to fill the void and offer you that sweet satisfaction."
+        },
+        {
+            "type": "H1",
+            "content": "The Understanding"
+        },
+        {
+            "type": "BLOCKQUOTE",
+            "content": "“it is hard to understand exactly how a black box system works. But if the black box evolved from boxes that were, you know, less black and more transparent, then some quality assumptions can still be made.”- someone, at some point in time, possibly"
+        },
+        {
+            "type": "P",
+            "content": "As clear from the fake quote above: we can’t know exactly how the closed source LLMs (Large Language Models) ChatGPT or GPT-4 work under the hood (e.g. paper GPT-4). But from their more transparent predecessors (e.g. GPT-2 paper [2] and open source code) and open source competitors (e.g. LLaMA paper), we know the gist of the relevant transformer-based architecture."
+        },
+        {
+            "type": "P",
+            "content": "Below, we zoom-in on the parts of the architecture that we estimate to be most relevant for the observation of non-deterministic behaviour. Feel free to quickly skim through this and skip to the “Explanation” section, if you are familiar with the basics of textual generative models’ architecture."
+        },
+        {
+            "type": "H2",
+            "content": "How does the model deliver output text?"
+        },
+        {
+            "type": "P",
+            "content": "First; one inference forward pass through the LLM network delivers a single “token” which represents the “most granular unit of text the model understands” (can be thought of as a syllable but can just as well represent a word as a whole). For the sake of interpretability, we consider each “token” in our story to represent an entire word. This simplification has no impact on further conclusions."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "fe2157e51c1fbfad03ba032e771dd511.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*aDpkCK_8bVa_V05t2kaytg.png",
+            "caption": "Simplified representation of one forward pass through an LLM network"
+        },
+        {
+            "type": "P",
+            "content": "That being said, an LLM network has a vocabulary of tokens and through its seemingly magical understanding of input text, it is very good at indicating which tokens from its vocabulary are most likely to follow the given input. This indication happens through (see drawing above) assigning probabilities. For example P(token_0) represents the estimated probability that the word chewing (represented by token_0) follows the given sequence of input tokens ( the cow is …). The probability of the word bowling (represented by token_50.256) is hopefully lower than that of the word chewing or grazing in this context."
+        },
+        {
+            "type": "P",
+            "content": "We emphasise that, for an LLM to generate a complete sequence of text, it has to iteratively pass through the network multiple times: each forward pass serves to select exactly one token which in turn contributes to determining the next token."
+        },
+        {
+            "type": "P",
+            "content": "The crucial piece of the puzzle now comes from how just one output token is chosen using this list of token probabilities. Below, we briefly dive into the world of sampling. For a more extended understanding of sampling methods, we recommend reading through this Hugging Face blogpost."
+        },
+        {
+            "type": "H2",
+            "content": "Top notch sampling: Top-p sampling"
+        },
+        {
+            "type": "P",
+            "content": "Modern LLMs use (a variant of) top-p sampling (i.e. nucleus sampling introduced in this 2018 paper) for sampling the response. This method only considers the tokens whose cumulative probability exceed the probability p and then redistributes the probability mass across the remaining tokens so that the sum of probabilities is 1. If you’re now thinking “wait what”, congratulations, you’re not a statistician! Feel free to re-read that sentence and then jump into the more understandable visual explanation below:"
+        },
+        {
+            "type": "FIGURE",
+            "filename": "1a6922fc5bdfcde86c6a42bcc96d8862.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*I-gy65EAu_YvBFhX2UTYnA.png",
+            "caption": "Example of top-p sampling (i.e. nucleus sampling) based on the Hugging Face blogpost."
+        },
+        {
+            "type": "P",
+            "content": "Say that we set p=0.92. On the first pass starting from only the word \"the”, we need 6 tokens to exceed that probability of 92% (they sum to 94%). We can sample a token from these six words by considering their redistributed probabilities (where the word nice will have the highest chance of being picked). For the next pass, we find that the 3 most likely tokens together already easily exceed the threshold of 92% and thus the eventual token is sampled from only those three."
+        },
+        {
+            "type": "P",
+            "content": "The nice thing is, the amount of tokens to sample from dynamically depends on the level of “uncertainty” of the model. If the model deems a small subset of tokens to be most relevant (for example because the input tokens consist of \"the\", \"car\" thus restricting the context) it will only sample from those."
+        },
+        {
+            "type": "P",
+            "content": "Relevant anecdote: a couple of years ago at ML6 we created a basic ‘terms & conditions summariser’ that by chance generated the word “milk” in a summary and completely shifted towards talking about food just because it didn’t use nucleus sampling."
+        },
+        {
+            "type": "H2",
+            "content": "Then what is Temperature controlling?"
+        },
+        {
+            "type": "P",
+            "content": "Okay so nice, we now understand what the top_p parameter from the OpenAI API documentation refers to. Note that by default, this parameter sets p=100% meaning that all output tokens are taken into account. If on the other hand p=0%, the first token to be checked which algorithmically is the one with the highest probability will always be chosen as it immediately exceeds the super low threshold by itself."
+        },
+        {
+            "type": "P",
+            "content": "Okay but what role does the temperature parameter play?"
+        },
+        {
+            "type": "P",
+            "content": "Imagine you have a set of output tokens (possibly with re-distributed probability if you play with the top_p parameter) to sample from:"
+        },
+        {
+            "type": "FIGURE",
+            "filename": "6253b0d37d6ddf7256d582f74678abb7.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*SqYQwUnkKcZmNrJpHeaaVA.png",
+            "caption": "Sampling actual output tokens based on the remaining tokens in play"
+        },
+        {
+            "type": "P",
+            "content": "What the temperature does is: it controls the relative weights in the probability distribution. It controls the extent to which differences in probability play a role in the sampling. Take the example above: for the token input sequence \"The” we would (by default) expect the word nice to have a 75% chance of being chosen P(“nice”)=75%. This is what happens at temperature t=1. This parameter can be chosen between 0 and 2."
+        },
+        {
+            "type": "P",
+            "content": "At temperature t=0 this sampling technique turns into what we call greedy search/argmax sampling where the token with the highest probability is always selected (here: P(“nice”)=100% )."
+        },
+        {
+            "type": "P",
+            "content": "At temperature t=2 the difference between the more probable and less probable tokens is reduced at sample time. For the example on the left above, this would result in: P(\"nice\")=58% , P(\"dog\")=32% , P(\"car\")=10%."
+        },
+        {
+            "type": "P",
+            "content": "For those interested, the formula to calculate the sampling probabilities impacted by temperature t is added below (where K represents the total amount of tokens considered in the sampling):"
+        },
+        {
+            "type": "FIGURE",
+            "filename": "a57e81da634622938a71dbbec39265fa.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:117/1*jv91IYtcGa_sR13GF5-Miw.png",
+            "caption": null
+        },
+        {
+            "type": "H2",
+            "content": "Conclusion: secrets begone"
+        },
+        {
+            "type": "P",
+            "content": "You can now consider yourself a true warrior of the OpenAI’s Generative APIs because the extract below has no secrets for you any longer. Note the statement “we generally recommend altering this or top_p/temperature but not both”. And that is just a suggestion to keep your changes more or less interpretable as you play with the values. Setting either of these values to their deterministic limits (i.e. p=0 or top_p=0) has the same effect."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "88193719165c2c20e9913168f2af129f.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*LAffrXm1Pn0OksGdFWGwrQ.png",
+            "caption": "Extract from the OpenAI completion API documentation"
+        },
+        {
+            "type": "P",
+            "content": "We remember that: by default, sampling happens across the entirety of the token vocabulary (top_p=1) and the probability distribution is left unaffected (temperature=1)."
+        },
+        {
+            "type": "H1",
+            "content": "The Explanation"
+        },
+        {
+            "type": "P",
+            "content": "Wielding the knowledge above, we know exactly what should happen if we fix temperature=0. Namely: the one token with the most likely probability will be chosen."
+        },
+        {
+            "type": "P",
+            "content": "But what if at some point during generation, lightning strikes ⚡ and two tokens get assigned exactly the same probability?"
+        },
+        {
+            "type": "FIGURE",
+            "filename": "bf89c0632d9485657bbaba4008c9b427.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*Z7zilvbJYoaQIlAoNmxrYg.png",
+            "caption": "Lightning strikes ⚡: we encounter two tokens that have exactly the same probability"
+        },
+        {
+            "type": "H2",
+            "content": "Lightning may strike: a non-zero chance"
+        },
+        {
+            "type": "P",
+            "content": "That case of at least two tokens having the same probability may seem unlikely, but there are some factors contributing to its not so small likelihood:"
+        },
+        {
+            "type": "UL",
+            "items": [
+                "Model Uncertainty: in cases where the model is far from certain that one token is the ideal choice for the next token, the odds that tokens that are among the favourites have similar probabilities is higher.",
+                "Limited Precision: the odds for two probabilities to be exactly the same decreases with the amount of bits that are used to represent them. If you have: 1 bit = 2 possible numbers, 2 bits= 4 possible numbers, 8 bits= 256 possible numbers. If you have only 8 bits to represent a number in a network (which is a result of a sum of multiplications from other 8-bit numbers) the odds of outcomes to be exactly the same is larger than when you have 32 bits at every step along the way. We note that if quantisation choices are made to optimise the speed and cost of inference, the precision of the represented numbers is limited further.",
+                "Forward Pass Bonanza: with the amount of tokens typically necessary to construct a relevant reply, the chance of lightning striking steadily rises. If Pᵢ is the probability of this happening for one forward passi then the total chance of this happening is the sum of that probability for all forward passes needed to generate the total reply. As a simplified example, imagine fixed odds of lightning striking P_i=0.0001%, then for a reply that needs 200 passes through the network, the odds of lightning striking for the entire reply would be P=0.02% which isn’t all too small."
+            ]
+        },
+        {
+            "type": "P",
+            "content": "And of course we note that lightning has to strike only once to change the entire generative behaviour; if another token is selected once, then the probability for following forward passes will be directly impacted, resulting in a different “answer path”. You can imagine that getting the word “milk” once, results in a completely different terms & conditions summary down the line."
+        },
+        {
+            "type": "H2",
+            "content": "Okay, so lightning can strike ⚡. But what if it does?"
+        },
+        {
+            "type": "P",
+            "content": "The obvious next question is then: if two tokens indeed have exactly the same probability, what happens next?"
+        },
+        {
+            "type": "P",
+            "content": "Well, when computers need to make a pick between a set of equally valid/probable options, the decisive “coin toss” power is handed to a seed. The seed controls the value of a pseudorandom number generator. A more intuitive simplification is shown below."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "6df3677c7d188446527d81908283f32a.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*SgyCRdRi_VQBoaYqFzN7ag.png",
+            "caption": "Illustration on how a seed can be imagined to affect seemingly random decisions"
+        },
+        {
+            "type": "P",
+            "content": "We thus expect these seeds to affect how ⚡-situations are handled. Typically, when you host your own algorithm/model, you can fix this seed so that the random “coin toss” decisions are always the same."
+        },
+        {
+            "type": "H2",
+            "content": "No seed-control, no harvest-control"
+        },
+        {
+            "type": "P",
+            "content": "A wise farmer could have once said:"
+        },
+        {
+            "type": "BLOCKQUOTE",
+            "content": "“if you don’t control what you sow, then how can you control what you reap?” — hypothetical farmer, probably"
+        },
+        {
+            "type": "P",
+            "content": "And my god would this hypothetical farmer have hit the proverbial nail on the head. If you can’t fix the seed that is used to determine the “coin toss” decisions within your system, then full control is unreachable."
+        },
+        {
+            "type": "FIGURE",
+            "filename": "85e3d001221a6fef6761d7e5a619a96f.jpg",
+            "src": "https://miro.medium.com/v2/resize:fit:700/1*b6fDN4K-YrBpQLSbT0f0Ng.png",
+            "caption": "No seed-control, no determinism."
+        },
+        {
+            "type": "P",
+            "content": "Hence we have explained why determinism remains out of reach when working with OpenAI’s most popular APIs."
+        },
+        {
+            "type": "P",
+            "content": "Quod erat demonstrandum?"
+        },
+        {
+            "type": "H1",
+            "content": "But why? Why are things the way they are?"
+        },
+        {
+            "type": "P",
+            "content": "Okay, so seeds. Big whoop. Not that surprising. The question that remains:Why can’t you pass a seed? As stated by this guy on Twitter:"
+        },
+        {
+            "type": "BLOCKQUOTE",
+            "content": "“it’s kind of crazy that the OpenAI API has no “random seed” parameter. The expected behaviour is to get results that you can never reproduce.”  — Sasha Rush (Associate Prof. at Cornell Tech & Hugging Face Researcher)"
+        },
+        {
+            "type": "P",
+            "content": "So let’s look at some possible reasons for the design choice made to not allow passing a fixed seed:"
+        },
+        {
+            "type": "UL",
+            "items": [
+                "Perhaps the amount of voodoo magic needed to set a user-defined seed across potentially multiple GPUs is just too much to handle?“Sparks of Artificial General Intelligence”: sure. But “Glimmers of Deterministic Behaviour”: dream on (cue Aerosmith).",
+                "Perhaps different combinations of software and hardware (GPUs) that take care of the floating point calculations introduce a degree of randomness that cannot be fully controlled by fixing the seed? And therefore giving user the option to fix the seed would set the wrong expectations?",
+                "Perhaps our friends at OpenAI (and other API providers alike) don’t want you to be able to deterministically sample a model’s behaviour as this could potentially give you more of a way to sneak a peek underneath the hood of today’s closed source models?"
+            ]
+        },
+        {
+            "type": "H1",
+            "content": "Wrap it up"
+        },
+        {
+            "type": "P",
+            "content": "In this journey we offered insights in:"
+        },
+        {
+            "type": "UL",
+            "items": [
+                "How token probabilities are delivered by an LLM network",
+                "How tokens are sampled at each step of answer generation and how temperature and top_p parameters influence that sampling",
+                "Why exactly equal token probabilities (⚡) aren’t as unusual as you might expect",
+                "The role a seed typically plays in lightning strike situations"
+            ]
+        },
+        {
+            "type": "P",
+            "content": "For reasons not immediately known to us, OpenAI does not allow us to set the seed that has conclusive power when lightning strikes during token-wise generation of an answer."
+        },
+        {
+            "type": "P",
+            "content": "We may not know why determinism and thus reproducibility is prevented to some extent. But at least, the behaviour is more clear now. And that makes us feel a bit better. Right?"
+        }
+    ]
+}
